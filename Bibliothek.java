@@ -48,4 +48,16 @@ public class Bibliothek {
             }
         }
     }
+
+    public void buchHinzufugen(String isbn,String titel, String autor, int jahr, String beschreibung){
+        dbConnector.executeStatement("INSERT INTO buecher VALUES('" + isbn + "', '" + titel+ "', '" + autor + "','"+jahr+"','"+beschreibung+"','verfuegbar')");
+    }
+
+    public void buchLoschen(String isbn){
+        dbConnector.executeStatement("SELECT * WHERE isbn = '" + isbn + "'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null){
+            dbConnector.executeStatement("DELET FROM 'buecher' WHERE 'isbn' LIKE '"+isbn+"'");
+        }
+    }
 }
