@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Bibliothek
+comment1.params=
+comment1.target=Bibliothek()
+comment2.params=
+comment2.target=void\ dbVerbinden()
+comment3.params=isbn\ schuelerId\ ausleihZeitTage
+comment3.target=void\ buchLeihen(java.lang.String,\ int,\ int)
+comment4.params=isbn
+comment4.target=void\ buchRueckgabe(java.lang.String)
+comment5.params=isbn\ titel\ autor\ jahr\ beschreibung
+comment5.target=void\ buchHinzufugen(java.lang.String,\ java.lang.String,\ java.lang.String,\ int,\ java.lang.String)
+comment6.params=isbn
+comment6.target=void\ buchLoschen(java.lang.String)
+numComments=7
