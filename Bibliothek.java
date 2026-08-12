@@ -48,4 +48,9 @@ public class Bibliothek {
             }
         }
     }
+    
+    public QueryResult getVerlieheneBuecher(){
+        dbConnector.executeStatement("SELECT buecher.isbn, buecher.titel, benutzer.nachname, benutzer.vorname, benutzer.email FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE buecher.status = 'verliehen' ORDER BY ausleihen.geplante_rueckgabe;");
+        return dbConnector.getCurrentQueryResult();
+    }
 }
