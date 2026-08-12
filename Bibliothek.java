@@ -50,7 +50,7 @@ public class Bibliothek {
     }
 
     public void buchHinzufugen(String isbn,String titel, String autor, int jahr, String beschreibung){
-        dbConnector.executeStatement("INSERT INTO buecher VALUES('" + isbn + "', '" + titel+ "', '" + autor + "','"+jahr+"','"+beschreibung+"','verfuegbar')");
+        dbConnector.executeStatement("INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status) VALUES('" + isbn + "', '" + titel + "', '" + autor + "','"+ jahr +"','"+ beschreibung +"','verfuegbar')");
     }
 
     public void buchLoschen(String isbn){
@@ -60,5 +60,11 @@ public class Bibliothek {
             dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = '" + isbn + "'");
             
         }
+    }
+    
+    public QueryResult buecherSuchen(String titel){
+        dbConnector.executeStatement("SELECT titel, author, beschreibung, status FROM 'buecher' WHERE titel LIKE '*" + titel + "*'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
     }
 }
