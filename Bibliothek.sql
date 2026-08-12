@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Aug 11, 2026 at 06:36 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Host: 127.0.0.1
+-- Erstellungszeit: 12. Aug 2026 um 08:45
+-- Server-Version: 10.4.28-MariaDB
+-- PHP-Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,16 +18,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `Bibliothek`
+-- Datenbank: `bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `asuleihen`
+-- Tabellenstruktur für Tabelle `ausleihen`
 --
 
-CREATE TABLE `asuleihen` (
+CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
   `isbn` int(20) NOT NULL,
   `ausleihdatum` date NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE `asuleihen` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `benutzer`
+-- Tabellenstruktur für Tabelle `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -54,7 +54,7 @@ CREATE TABLE `benutzer` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `buecher`
+-- Tabellenstruktur für Tabelle `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -69,7 +69,7 @@ CREATE TABLE `buecher` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reservierungen`
+-- Tabellenstruktur für Tabelle `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -81,31 +81,31 @@ CREATE TABLE `reservierungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Indexes for dumped tables
+-- Indizes der exportierten Tabellen
 --
 
 --
--- Indexes for table `asuleihen`
+-- Indizes für die Tabelle `ausleihen`
 --
-ALTER TABLE `asuleihen`
+ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
   ADD KEY `isbn` (`isbn`);
 
 --
--- Indexes for table `benutzer`
+-- Indizes für die Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indexes for table `buecher`
+-- Indizes für die Tabelle `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indexes for table `reservierungen`
+-- Indizes für die Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -113,33 +113,40 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT für exportierte Tabellen
 --
 
 --
--- AUTO_INCREMENT for table `asuleihen`
+-- AUTO_INCREMENT für Tabelle `ausleihen`
 --
-ALTER TABLE `asuleihen`
+ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `benutzer`
+-- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `reservierungen`
+-- AUTO_INCREMENT für Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Constraints der exportierten Tabellen
 --
 
 --
--- Constraints for table `reservierungen`
+-- Constraints der Tabelle `ausleihen`
+--
+ALTER TABLE `ausleihen`
+  ADD CONSTRAINT `ausleihen_ibfk_1` FOREIGN KEY (`id`) REFERENCES `benutzer` (`id`),
+  ADD CONSTRAINT `ausleihen_ibfk_2` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
+
+--
+-- Constraints der Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_1` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`) ON UPDATE CASCADE,
