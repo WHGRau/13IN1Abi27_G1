@@ -1,0 +1,13 @@
+#BlueJ class context
+#Wed Aug 12 21:27:06 CEST 2026
+comment0.target=Bibliothek
+comment1.target=Bibliothek()
+comment2.target=void dbVerbinden()
+comment3.params=ausleihZeitTage
+comment3.target=void buchLeihen(int)
+comment4.target=void buchRueckgabe()
+comment5.target=QueryResult getVerlieheneBuecher()
+comment6.params=code
+comment6.target=int scannen(java.lang.String)
+comment7.target=void abbrechen()
+numComments=8

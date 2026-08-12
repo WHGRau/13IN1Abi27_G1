@@ -1,0 +1,8 @@
+#BlueJ class context
+#Wed Aug 12 21:27:06 CEST 2026
+comment0.target=View
+comment1.params=primaryStage
+comment1.target=void start(javafx.stage.Stage)
+comment2.params=args
+comment2.target=void main(java.lang.String[])
+numComments=3
