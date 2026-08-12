@@ -57,9 +57,8 @@ public class Bibliothek {
         dbConnector.executeStatement("SELECT * WHERE isbn = '" + isbn + "'");
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null){
-            dbConnector.executeStatement("DELET FROM 'buecher' WHERE 'isbn' LIKE '"+isbn+"'");
-            dbConnector.executeStatement("DELET FROM 'ausleihen' WHERE 'isbn' LIKE '"+isbn+"'");
-            dbConnector.executeStatement("DELET FROM 'reservierungen' WHERE 'isbn' LIKE '"+isbn+"'");
+            dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = '" + isbn + "'");
+            
         }
     }
 }
