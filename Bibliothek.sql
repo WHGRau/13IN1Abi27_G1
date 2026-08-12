@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 12. Aug 2026 um 08:45
+-- Erstellungszeit: 12. Aug 2026 um 08:53
 -- Server-Version: 10.4.28-MariaDB
 -- PHP-Version: 8.2.4
 
@@ -63,7 +63,7 @@ CREATE TABLE `buecher` (
   `autor` varchar(255) NOT NULL,
   `erscheinungsjahr` year(4) NOT NULL,
   `beschreibung` text NOT NULL,
-  `status` enum('verfuegbar','verliehen','reserviert') NOT NULL
+  `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
