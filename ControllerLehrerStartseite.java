@@ -21,7 +21,7 @@ import javafx.scene.Node;
 
 public class ControllerLehrerStartseite {
 
-    public Bibliothek model;
+    private Bibliothek model;
     private PauseTransition feedbackTimer;
 
     @FXML
@@ -287,6 +287,22 @@ public class ControllerLehrerStartseite {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
+
+        }
+    }
+    
+    public void loadBuecherVerwaltung(ActionEvent event){
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/buchVerwaltung.fxml"));
+            Parent root = loader.load();
+            ControllerBuecherVerwaltung controller = loader.getController();
+            controller.setModel(model);
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

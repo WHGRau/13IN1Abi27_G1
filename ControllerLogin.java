@@ -52,7 +52,7 @@ public class ControllerLogin {
 
             }
         } else {
-            fehlerText.setText("anmeldung fehkgeschlagen");
+            fehlerText.setText("anmeldung fehlgeschlagen");
         }
     }
 }

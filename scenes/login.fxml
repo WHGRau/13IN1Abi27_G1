@@ -13,7 +13,7 @@
          <children>
             <TextField fx:id="emailFeld" layoutX="551.0" layoutY="407.0" promptText="E-Mail" />
             <PasswordField fx:id="passwortFeld" layoutX="551.0" layoutY="472.0" promptText="Passwort" />
-            <Text fx:id="fehlerText" layoutX="551.0" layoutY="636.0" strokeType="OUTSIDE" strokeWidth="0.0" text="" />
+            <Text fx:id="fehlerText" fill="RED" layoutX="551.0" layoutY="636.0" strokeType="OUTSIDE" strokeWidth="0.0" />
             <Button fx:id="loginButton" layoutX="881.0" layoutY="420.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
          </children>
       </AnchorPane>

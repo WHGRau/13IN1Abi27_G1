@@ -149,6 +149,8 @@
                   <Font size="28.0" />
                </font>
             </Text>
+            <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
+            <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
          </children>
     </AnchorPane>
   </children>

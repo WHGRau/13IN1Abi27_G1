@@ -1,5 +1,5 @@
 #BlueJ class context
-#Thu Aug 13 15:06:36 CEST 2026
+#Thu Aug 13 17:05:34 CEST 2026
 comment0.target=DatabaseConnector
 comment0.text=\n <p>\n Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2018\n </p>\n <p>\n Klasse DatabaseConnector\n </p>\n <p>\n Ein Objekt der Klasse DatabaseConnector ermoeglicht die Abfrage und Manipulation \n einer MySQL-Datenbank. \n Beim Erzeugen des Objekts wird eine Datenbankverbindung aufgebaut, so dass \n anschlie\u00DFend SQL-Anweisungen an diese Datenbank gerichtet werden koennen.\n </p>\n \n @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule\n @version 2016-01-24\n
 comment1.params=pIP pPort pDatabase pUsername pPassword
