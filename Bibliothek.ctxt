@@ -1,7 +1,12 @@
 #BlueJ class context
-#Wed Aug 12 21:27:06 CEST 2026
+#Thu Aug 13 15:06:36 CEST 2026
 comment0.target=Bibliothek
 comment1.target=Bibliothek()
+comment10.params=email passwort
+comment10.target=int login(java.lang.String, java.lang.String)
+comment11.target=void logout()
+comment12.target=java.lang.String getName()
+comment13.target=boolean isLehrer()
 comment2.target=void dbVerbinden()
 comment3.params=ausleihZeitTage
 comment3.target=void buchLeihen(int)
@@ -10,4 +15,7 @@ comment5.target=QueryResult getVerlieheneBuecher()
 comment6.params=code
 comment6.target=int scannen(java.lang.String)
 comment7.target=void abbrechen()
-numComments=8
+comment8.target=java.lang.String getErfassteBuecherNamen()
+comment9.params=isbn
+comment9.target=int getTageZuSpaet(java.lang.String)
+numComments=14

@@ -1,5 +1,5 @@
 #BlueJ class context
-#Wed Aug 12 21:27:05 CEST 2026
+#Thu Aug 13 15:06:36 CEST 2026
 comment0.target=QueryResult
 comment0.text=\n <p>\n Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2018.\n </p>\n <p>\n Klasse QueryResult\n </p>\n <p>\n Ein Objekt der Klasse QueryResult stellt die Ergebnistabelle einer Datenbankanfrage mit Hilfe \n der Klasse DatabaseConnector dar. Objekte dieser Klasse werden nur von der Klasse DatabaseConnector erstellt. \n Die Klasse verfuegt ueber keinen oeffentlichen Konstruktor.\n </p>\n \n @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule\n @version 2015-01-31\n
 comment1.params=pData pColumnNames pColumnTypes

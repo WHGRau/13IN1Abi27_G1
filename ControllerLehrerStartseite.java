@@ -11,6 +11,13 @@ import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import java.io.IOException;
+import javafx.scene.Node;
 
 public class ControllerLehrerStartseite {
 
@@ -37,30 +44,33 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private TableColumn<tabelleZeile, Label> verliehenTabelleGeplanteRueckgabe;
-    
+
     @FXML
     private TextField codeFeld;
-    
+
     @FXML
     private Text feedbackText;
-    
+
     @FXML
     private Text gescanntListe;
-    
+
     @FXML
     private Button abbrechenButton;
-    
+
     @FXML
     private Button ausleihenButton;
-    
+
     @FXML
     private Button zuruecknehmenButton;
-    
+
     @FXML
     private Button scannenButton;
-    
+
     @FXML
     private TextField ausleihdauerFeld;
+
+    @FXML
+    private Text nutzernameText;
 
     public static class tabelleZeile {
         private String isbn;
@@ -111,21 +121,26 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public void setModel(Bibliothek model) {
+        this.model = model;
+        loadVerliehenTabelle();
+        nutzernameText.setText("Hallo, " + model.getName() + " !");
+    }
+
     public void initialize() {
-        model = new Bibliothek();
         verliehenTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verliehenTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verliehenTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
         verliehenTabelleVorname.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         verliehenTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         verliehenTabelleGeplanteRueckgabe.setCellValueFactory(new PropertyValueFactory<>("geplanteRueckgabe"));
-        
+
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
-        
+
         ausleihdauerFeld.setText("28");
 
-        loadVerliehenTabelle();
+        verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
     }
 
     public void loadVerliehenTabelle() {
@@ -149,9 +164,10 @@ public class ControllerLehrerStartseite {
             }
         }
     }
-    
-    public void scannen(){
-        if (feedbackTimer != null) feedbackTimer.stop();
+
+    public void scannen() {
+        if (feedbackTimer != null)
+            feedbackTimer.stop();
         String code = codeFeld.getText();
         int feedback = model.scannen(code);
         switch (feedback) {
@@ -161,13 +177,14 @@ public class ControllerLehrerStartseite {
             case 2: {
                 int tage = model.getTageZuSpaet(code);
                 String msg = "Buch erfasst, bitte 'zurücknehmen' drücken";
-                if (tage > 0) msg += " – " + tage + " Tage zu spät!";
+                if (tage > 0)
+                    msg += " – " + tage + " Tage zu spät!";
                 feedbackText.setText(msg);
                 zuruecknehmenButton.setDisable(false);
                 break;
             }
             case 3:
-                feedbackText.setText("Das Buch ist reserviert und kann nicht verliehen werden.");
+                feedbackText.setText("Das Buch ist reserviert (Verleih von reservierten Büchern noch nicht möglich!)");
                 break;
             case 4:
                 feedbackText.setText("Buch kann nicht verliehen werden!");
@@ -175,7 +192,8 @@ public class ControllerLehrerStartseite {
             case 5: {
                 int tage = model.getTageZuSpaet(code);
                 String msg = "Buch erfasst und bereits für nächsten Schüler reserviert";
-                if (tage > 0) msg += " – " + tage + " Tage zu spät!";
+                if (tage > 0)
+                    msg += " – " + tage + " Tage zu spät!";
                 feedbackText.setText(msg);
                 zuruecknehmenButton.setDisable(false);
                 break;
@@ -185,7 +203,8 @@ public class ControllerLehrerStartseite {
                 ausleihenButton.setDisable(false);
                 break;
             case 7:
-                feedbackText.setText("Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
+                feedbackText.setText(
+                        "Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
                 break;
             case 8:
                 feedbackText.setText("Code nicht erkannt!");
@@ -203,32 +222,33 @@ public class ControllerLehrerStartseite {
         codeFeld.clear();
         updateGescanntListe();
     }
-    
+
     private void updateGescanntListe() {
         if (gescanntListe != null) {
             gescanntListe.setText(model.getErfassteBuecherNamen());
         }
     }
-    
+
     private void feedbackZuruecksetzen() {
-        if (feedbackTimer != null) feedbackTimer.stop();
+        if (feedbackTimer != null)
+            feedbackTimer.stop();
         feedbackTimer = new PauseTransition(Duration.seconds(10));
         feedbackTimer.setOnFinished(e -> feedbackText.setText("Buch scannen"));
         feedbackTimer.play();
     }
-    
-    public void abbrechen(){
+
+    public void abbrechen() {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
-        model.abbrechen();        
+        model.abbrechen();
         ausleihdauerFeld.setText("28");
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
     }
-    
-    public void zurueckgeben(){
+
+    public void zurueckgeben() {
         model.buchRueckgabe();
-        model.abbrechen(); // Wichtig: Nach Rückgabe Liste leeren
+        model.abbrechen();
         ausleihdauerFeld.setText("28");
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
@@ -237,13 +257,13 @@ public class ControllerLehrerStartseite {
         updateGescanntListe();
         feedbackZuruecksetzen();
     }
-    
-    public void ausleihen(){
+
+    public void ausleihen() {
         try {
             int dauer = Integer.parseInt(ausleihdauerFeld.getText());
             if (dauer >= 1 && dauer <= 200) {
                 model.buchLeihen(dauer);
-                model.abbrechen(); // Wichtig: Nach dem Ausleihen den Status zurücksetzen
+                model.abbrechen();
                 ausleihdauerFeld.setText("28");
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);
@@ -256,6 +276,18 @@ public class ControllerLehrerStartseite {
             }
         } catch (NumberFormatException e) {
             feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
+        }
+    }
+
+    public void logout(ActionEvent event) {
+        model.logout();
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("scenes/login.fxml"));
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

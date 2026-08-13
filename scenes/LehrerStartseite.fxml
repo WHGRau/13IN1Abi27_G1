@@ -103,7 +103,7 @@
                   <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
               </columns>
             </TableView>
-            <Button layoutX="623.0" layoutY="40.0" mnemonicParsing="false" prefHeight="53.0" prefWidth="103.0" text="ausloggen">
+            <Button fx:id="logout" layoutX="623.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="53.0" prefWidth="103.0" text="ausloggen">
                <font>
                   <Font size="16.0" />
                </font>
