@@ -66,19 +66,19 @@ public class Bibliothek {
         return dbConnector.getCurrentQueryResult();
     }
 
-    // 1: Buch kann ausgeliehen werden
-    // 2: Buch kann zurueckgegeben werden
-    // 3: Buch ist reserviert
-    // 4: Buch ist nicht verfügbar
-    // 5: Buch kann zurückgegeben werden und ist reserviert
-    // 6: Schueler erfasst
-    // 7: Buch berits verliehen (ausleihen und zurück geben nicht gleichzeitig)
-    // 8: Code ist kein Buch oder Schüler
-    // 9: Maximale Anzahl Bücher
-    // 10: schueler gesperrt
-    // 11: schuler vor Buch gescannt
-
     public int scannen(String code) {
+
+        // 1: Buch kann ausgeliehen werden
+        // 2: Buch kann zurueckgegeben werden
+        // 3: Buch ist reserviert
+        // 4: Buch ist nicht verfügbar
+        // 5: Buch kann zurückgegeben werden und ist reserviert
+        // 6: Schueler erfasst
+        // 7: Buch berits verliehen (ausleihen und zurück geben nicht gleichzeitig)
+        // 8: Code ist kein Buch oder Schüler
+        // 9: Maximale Anzahl Bücher
+        // 10: schueler gesperrt
+        // 11: schuler vor Buch gescannt
 
         dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + code + "'");
         QueryResult buchResult = dbConnector.getCurrentQueryResult();
@@ -210,7 +210,7 @@ public class Bibliothek {
         return "";
     }
 
-    public boolean isLehrer(){
+    public boolean isLehrer() {
         dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = " + angemeldet);
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result != null && result.getRowCount() > 0
