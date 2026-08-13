@@ -50,15 +50,24 @@ public class Bibliothek {
     }
 
     public void buchHinzufugen(String isbn,String titel, String autor, int jahr, String beschreibung){
-        dbConnector.executeStatement("INSERT INTO buecher VALUES('" + isbn + "', '" + titel+ "', '" + autor + "','"+jahr+"','"+beschreibung+"','verfuegbar')");
+        String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)"+" VALUES(" + isbn + ", '" + titel + "', '" + autor + "',"+ jahr +",'"+ beschreibung +"','verfuegbar')";
+        dbConnector.executeStatement(sql);
     }
 
     public void buchLoschen(String isbn){
-        dbConnector.executeStatement("SELECT * WHERE isbn = '" + isbn + "'");
+        dbConnector.executeStatement("SELECT * FROM buecher WHERE isbn = " + isbn + "");
+        
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null){
-            dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = '" + isbn + "'");
+            dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = " + isbn + "");
             
         }
+    }
+    
+    public QueryResult buecherSuchen(String pS){
+        dbConnector.executeStatement("SELECT isbn, titel, autor, beschreibung, status FROM buecher WHERE (titel LIKE '%" + pS + "%' OR isbn LIKE '%" + pS + "%' )AND status NOT LIKE 'entfernt'");
+        
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
     }
 }

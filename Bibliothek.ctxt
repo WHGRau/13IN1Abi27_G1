@@ -12,4 +12,6 @@ comment5.params=isbn\ titel\ autor\ jahr\ beschreibung
 comment5.target=void\ buchHinzufugen(java.lang.String,\ java.lang.String,\ java.lang.String,\ int,\ java.lang.String)
 comment6.params=isbn
 comment6.target=void\ buchLoschen(java.lang.String)
-numComments=7
+comment7.params=pS
+comment7.target=QueryResult\ buecherSuchen(java.lang.String)
+numComments=8
