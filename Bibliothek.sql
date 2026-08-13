@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `Bibliothek`
+-- Datenbank: `bibliothek`
 --
 
 -- --------------------------------------------------------
@@ -27,6 +27,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `ausleihen`
 --
 
+CREATE TABLE `ausleihen` (
 CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
@@ -39,7 +40,7 @@ CREATE TABLE `ausleihen` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `benutzer`
+-- Tabellenstruktur für Tabelle `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -55,7 +56,7 @@ CREATE TABLE `benutzer` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `buecher`
+-- Tabellenstruktur für Tabelle `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -65,12 +66,13 @@ CREATE TABLE `buecher` (
   `erscheinungsjahr` year(4) NOT NULL,
   `beschreibung` text NOT NULL,
   `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
+  `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reservierungen`
+-- Tabellenstruktur für Tabelle `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -82,32 +84,33 @@ CREATE TABLE `reservierungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Indexes for dumped tables
+-- Indizes der exportierten Tabellen
 --
 
 --
 -- Indexes for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
+ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
   ADD KEY `isbn` (`isbn`),
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indexes for table `benutzer`
+-- Indizes für die Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indexes for table `buecher`
+-- Indizes für die Tabelle `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indexes for table `reservierungen`
+-- Indizes für die Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -115,23 +118,25 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT für exportierte Tabellen
 --
 
 --
 -- AUTO_INCREMENT for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT for table `benutzer`
+-- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `reservierungen`
+-- AUTO_INCREMENT für Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;

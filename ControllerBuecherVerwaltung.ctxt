@@ -1,9 +1,0 @@
-#BlueJ class context
-#Thu Aug 13 17:05:34 CEST 2026
-comment0.target=ControllerBuecherVerwaltung
-comment1.target=ControllerBuecherVerwaltung()
-comment2.params=model
-comment2.target=void setModel(Bibliothek)
-comment3.params=event
-comment3.target=void toStartseite(javafx.event.ActionEvent)
-numComments=4

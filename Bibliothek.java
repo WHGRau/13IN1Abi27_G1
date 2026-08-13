@@ -60,6 +60,30 @@ public class Bibliothek {
         }
     }
 
+    public void buchHinzufugen(String isbn, String titel, String autor, int jahr, String beschreibung) {
+        String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES("
+                + isbn + ", '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
+        dbConnector.executeStatement(sql);
+    }
+
+    public void buchLoschen(String isbn) {
+        dbConnector.executeStatement("SELECT * FROM buecher WHERE isbn = " + isbn + "");
+
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null) {
+            dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = " + isbn + "");
+
+        }
+    }
+
+    public QueryResult buecherSuchen(String pS) {
+        dbConnector.executeStatement("SELECT isbn, titel, autor, beschreibung, status FROM buecher WHERE (titel LIKE '%"
+                + pS + "%' OR isbn LIKE '%" + pS + "%' )AND status NOT LIKE 'entfernt'");
+
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
+    }
+
     public QueryResult getVerlieheneBuecher() {
         dbConnector.executeStatement(
                 "SELECT buecher.isbn, buecher.titel, benutzer.nachname, benutzer.vorname, benutzer.email, ausleihen.geplante_rueckgabe FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe;");
