@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Erstellungszeit: 12. Aug 2026 um 09:23
--- Server-Version: 10.4.28-MariaDB
--- PHP-Version: 8.2.4
+-- Host: localhost
+-- Generation Time: Aug 13, 2026 at 01:19 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,18 +18,18 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `bibliothek`
+-- Database: `Bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `ausleihen`
+-- Table structure for table `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
-  `isbn` int(20) NOT NULL,
+  `isbn` varchar(20) NOT NULL,
   `ausleihdatum` date NOT NULL,
   `geplante_rueckgabe` date NOT NULL,
   `ruckgabe_datum` date DEFAULT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE `ausleihen` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `benutzer`
+-- Table structure for table `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -48,17 +48,18 @@ CREATE TABLE `benutzer` (
   `nachname` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
   `passwort` varchar(255) NOT NULL,
-  `rolle` enum('schueler','lehrer') NOT NULL
+  `rolle` enum('schueler','lehrer') NOT NULL,
+  `freigeschaltet` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `buecher`
+-- Table structure for table `buecher`
 --
 
 CREATE TABLE `buecher` (
-  `isbn` int(20) NOT NULL,
+  `isbn` varchar(20) NOT NULL,
   `titel` varchar(255) NOT NULL,
   `autor` varchar(255) NOT NULL,
   `erscheinungsjahr` year(4) NOT NULL,
@@ -69,23 +70,23 @@ CREATE TABLE `buecher` (
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `reservierungen`
+-- Table structure for table `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
   `id` int(11) NOT NULL,
-  `isbn` int(11) NOT NULL,
+  `isbn` varchar(20) NOT NULL,
   `schueler_id` int(11) NOT NULL,
   `status` enum('wartend','bereit','abgeschlossen') NOT NULL,
   `reservierung_beginn` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Indizes der exportierten Tabellen
+-- Indexes for dumped tables
 --
 
 --
--- Indizes für die Tabelle `ausleihen`
+-- Indexes for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -93,20 +94,20 @@ ALTER TABLE `ausleihen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indizes für die Tabelle `benutzer`
+-- Indexes for table `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indizes für die Tabelle `buecher`
+-- Indexes for table `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indizes für die Tabelle `reservierungen`
+-- Indexes for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -114,44 +115,44 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `ausleihen`
+-- AUTO_INCREMENT for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `benutzer`
+--
+ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT für Tabelle `benutzer`
---
-ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT für Tabelle `reservierungen`
+-- AUTO_INCREMENT for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints der exportierten Tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Constraints der Tabelle `ausleihen`
+-- Constraints for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
-  ADD CONSTRAINT `ausleihen_ibfk_2` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`),
-  ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`);
+  ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
+  ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints der Tabelle `reservierungen`
+-- Constraints for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
-  ADD CONSTRAINT `reservierungen_ibfk_1` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `reservierungen_ibfk_3` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
