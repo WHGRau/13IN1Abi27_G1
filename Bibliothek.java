@@ -61,8 +61,8 @@ public class Bibliothek {
     }
 
     public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
-        String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES("
-                + isbn + ", '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
+        String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES('"
+                + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
         dbConnector.executeStatement(sql);
     }
 

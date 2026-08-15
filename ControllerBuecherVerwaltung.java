@@ -129,7 +129,7 @@ public class ControllerBuecherVerwaltung {
         buecherTabelle.setPlaceholder(new Label("Keine Bücher gefunden"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
-        
+
         verlaufNachnameSpalte.setCellValueFactory(new PropertyValueFactory<>("nachname"));
         verlaufVornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
@@ -210,7 +210,7 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     public void bearbeiten(ActionEvent event) {
-        if (selectedBuch == null) {
+        if (selectedBuch == null && !neuAktiv) {
             return;
         }
         if (bearbeitenAktiv) {
@@ -235,18 +235,28 @@ public class ControllerBuecherVerwaltung {
             }
         } else {
             if (neuAktiv) {
-                model.buchHinzufuegen(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
-                        Integer.parseInt(jahrFeld.getText()), beschreibungFeld.getText());
-                suchen();
-                neuAktiv = false;
-                bearbeitenButton.setText("bearbeiten");
-                titelFeld.setEditable(false);
-                autorFeld.setEditable(false);
-                jahrFeld.setEditable(false);
-                beschreibungFeld.setEditable(false);
-                zurueckButton.setDisable(false);
-                neuButton.setText("neu");
-                entfernenButton.setDisable(false);
+                try {
+                    int jahr = Integer.parseInt(jahrFeld.getText().trim());
+                    model.buchHinzufuegen(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
+                            jahr, beschreibungFeld.getText());
+                    suchen();
+                    neuAktiv = false;
+                    bearbeitenButton.setText("bearbeiten");
+                    titelFeld.setEditable(false);
+                    autorFeld.setEditable(false);
+                    jahrFeld.setEditable(false);
+                    beschreibungFeld.setEditable(false);
+                    zurueckButton.setDisable(false);
+                    neuButton.setText("neu");
+                    entfernenButton.setDisable(false);
+                    titelFeld.clear();
+                    autorFeld.clear();
+                    jahrFeld.clear();
+                    beschreibungFeld.clear();
+                    isbnFeld.clear();
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
             } else {
                 bearbeitenAktiv = true;
                 bearbeitenButton.setText("speichern");
