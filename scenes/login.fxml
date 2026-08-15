@@ -52,7 +52,7 @@
             </Menu>
          </menus>
       </MenuBar>
-      <AnchorPane focusTraversable="true" prefHeight="1089.0" prefWidth="1920.0">
+      <AnchorPane focusTraversable="true" prefHeight="1026.0" prefWidth="1824.0">
          <children>
             <TextField fx:id="emailFeld" layoutX="551.0" layoutY="407.0" promptText="E-Mail" />
             <PasswordField fx:id="passwortFeld" layoutX="551.0" layoutY="472.0" promptText="Passwort" />

@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Aug 13, 2026 at 03:07 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Host: 127.0.0.1
+-- Erstellungszeit: 15. Aug 2026 um 15:17
+-- Server-Version: 10.4.32-MariaDB
+-- PHP-Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ausleihen`
+-- Tabellenstruktur für Tabelle `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
@@ -77,7 +77,7 @@ CREATE TABLE `reservierungen` (
   `id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
   `schueler_id` int(11) NOT NULL,
-  `status` enum('wartend','bereit','abgeschlossen') NOT NULL,
+  `status` enum('wartend','bereit','abgeschlossen','abgesagt') NOT NULL,
   `reservierung_beginn` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -86,7 +86,7 @@ CREATE TABLE `reservierungen` (
 --
 
 --
--- Indexes for table `ausleihen`
+-- Indizes für die Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -119,16 +119,16 @@ ALTER TABLE `reservierungen`
 --
 
 --
--- AUTO_INCREMENT for table `ausleihen`
+-- AUTO_INCREMENT für Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT für Tabelle `reservierungen`
@@ -137,18 +137,18 @@ ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Constraints der exportierten Tabellen
 --
 
 --
--- Constraints for table `ausleihen`
+-- Constraints der Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
   ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints for table `reservierungen`
+-- Constraints der Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,
