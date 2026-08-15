@@ -28,7 +28,6 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `ausleihen` (
-CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
   `ausleihdatum` date NOT NULL,
@@ -66,7 +65,6 @@ CREATE TABLE `buecher` (
   `erscheinungsjahr` year(4) NOT NULL,
   `beschreibung` text NOT NULL,
   `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
-  `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -90,7 +88,6 @@ CREATE TABLE `reservierungen` (
 --
 -- Indexes for table `ausleihen`
 --
-ALTER TABLE `ausleihen`
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
   ADD KEY `isbn` (`isbn`),
@@ -124,8 +121,6 @@ ALTER TABLE `reservierungen`
 --
 -- AUTO_INCREMENT for table `ausleihen`
 --
-ALTER TABLE `ausleihen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
