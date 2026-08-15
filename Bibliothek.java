@@ -61,6 +61,13 @@ public class Bibliothek {
     }
 
     public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
+        if (titel != null)
+            titel = titel.replace("'", "''");
+        if (autor != null)
+            autor = autor.replace("'", "''");
+        if (beschreibung != null)
+            beschreibung = beschreibung.replace("'", "''");
+            
         String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES('"
                 + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
         dbConnector.executeStatement(sql);

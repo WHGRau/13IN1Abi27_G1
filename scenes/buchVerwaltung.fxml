@@ -46,20 +46,20 @@
                 <TableColumn fx:id="titelSpalte" prefWidth="301.0" text="Titel" />
               </columns>
             </TableView>
-            <TextField fx:id="isbnFeld" editable="false" layoutX="780.0" layoutY="166.0" prefHeight="31.0" prefWidth="387.0">
+            <TextField fx:id="isbnFeld" editable="false" layoutX="780.0" layoutY="166.0" prefHeight="31.0" prefWidth="387.0" promptText="ISBN">
                <font>
                   <Font size="15.0" />
                </font></TextField>
-            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" prefHeight="269.0" prefWidth="397.0" wrapText="true" />
-            <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="240.0" prefHeight="31.0" prefWidth="389.0">
+            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" prefHeight="269.0" prefWidth="397.0" promptText="Beschreibung" wrapText="true" />
+            <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="240.0" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
                <font>
                   <Font size="15.0" />
                </font></TextField>
-            <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="312.0" prefHeight="31.0" prefWidth="390.0">
+            <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="312.0" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
                <font>
                   <Font size="15.0" />
                </font></TextField>
-            <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="382.0" prefHeight="31.0" prefWidth="395.0">
+            <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="382.0" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
                <font>
                   <Font size="15.0" />
                </font></TextField>
