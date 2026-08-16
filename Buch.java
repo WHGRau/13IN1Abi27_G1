@@ -66,8 +66,7 @@ public class Buch {
 
     @Override
     public String toString() {
-        return "Buch [isbn=" + isbn + ", titel=" + titel + ", autor=" + autor + ", erscheinungsjahr=" + erscheinungsjahr
-                + ", beschreibung=" + beschreibung + ", status=" + status + "]";
+        return titel;
     }
 
 }
