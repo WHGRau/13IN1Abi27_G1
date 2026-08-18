@@ -473,11 +473,11 @@ public class Bibliothek {
     }
     
     public String hashen(String pP){
+        // Passwort wird gesaltet und gehasht
         String verschlusselt;
         
         verschlusselt = passwordEncoder.encode(pP);
-        System.out.println(verschlusselt);
-        
+                
         return verschlusselt;
     }
 }
