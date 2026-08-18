@@ -101,10 +101,10 @@
                 <TableColumn fx:id="geliehenRueckgabeSpalte" minWidth="0.0" prefWidth="124.66667175292969" text="Rückgabe" />
               </columns>
             </TableView>
-            <TableView fx:id="reserviertTabelle" layoutX="25.0" layoutY="558.0" prefHeight="200.0" prefWidth="413.0">
+            <TableView fx:id="reserviertTabelle" layoutX="25.0" layoutY="558.0" prefHeight="200.0" prefWidth="448.0">
                <columns>
                   <TableColumn fx:id="reserviertTitelSpalte" prefWidth="217.6666717529297" text="Titel" />
-                  <TableColumn fx:id="reserviertBisSpalte" minWidth="0.0" prefWidth="196.3333282470703" text="status" />
+                  <TableColumn fx:id="reserviertBisSpalte" minWidth="0.0" prefWidth="229.0" text="status" />
                </columns>
             </TableView>
             <TableView fx:id="verlaufTabelle" layoutX="478.0" layoutY="126.0" prefHeight="833.0" prefWidth="578.0">
