@@ -33,6 +33,7 @@
 -->
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -144,11 +145,6 @@
                   <Font size="20.0" />
                </font>
             </Text>
-            <Text fx:id="gescanntListe" layoutX="34.0" layoutY="390.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="299.13000106811523">
-               <font>
-                  <Font size="28.0" />
-               </font>
-            </Text>
             <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
             <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
             <TableView layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
@@ -161,6 +157,7 @@
               </columns>
             </TableView>
             <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle rservierungen" />
+            <ListView fx:id="gescanntListe" layoutX="30.0" layoutY="390.0" prefHeight="257.0" prefWidth="284.0" />
          </children>
     </AnchorPane>
   </children>
