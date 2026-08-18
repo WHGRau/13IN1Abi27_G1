@@ -268,6 +268,7 @@ public class Bibliothek {
     }
 
     public int login(String email, String passwort) {
+        // Vorname grosgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
                 "SELECT id, passwort FROM benutzer WHERE email = '" + email + "'");
