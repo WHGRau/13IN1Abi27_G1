@@ -178,9 +178,11 @@ public class Bibliothek {
                 switch (status) {
                     case "verfuegbar":
                         if (erfassteBuecher.size() > 0) {
-                            dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + erfassteBuecher.get(0) + "'");
+                            dbConnector.executeStatement(
+                                    "SELECT status FROM buecher WHERE isbn = '" + erfassteBuecher.get(0) + "'");
                             QueryResult firstBookResult = dbConnector.getCurrentQueryResult();
-                            if (firstBookResult != null && firstBookResult.getRowCount() > 0 && firstBookResult.getData()[0][0].equals("verliehen")) {
+                            if (firstBookResult != null && firstBookResult.getRowCount() > 0
+                                    && firstBookResult.getData()[0][0].equals("verliehen")) {
                                 return 7;
                             }
                         }
@@ -209,9 +211,11 @@ public class Bibliothek {
                         }
                     case "reserviert":
                         if (erfassteBuecher.size() > 0) {
-                            dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + erfassteBuecher.get(0) + "'");
+                            dbConnector.executeStatement(
+                                    "SELECT status FROM buecher WHERE isbn = '" + erfassteBuecher.get(0) + "'");
                             QueryResult firstBookResult = dbConnector.getCurrentQueryResult();
-                            if (firstBookResult != null && firstBookResult.getRowCount() > 0 && firstBookResult.getData()[0][0].equals("verliehen")) {
+                            if (firstBookResult != null && firstBookResult.getRowCount() > 0
+                                    && firstBookResult.getData()[0][0].equals("verliehen")) {
                                 return 7;
                             }
                         }
@@ -423,6 +427,10 @@ public class Bibliothek {
 
     public void reservieren(String isbn) {
         if (angemeldet != null) {
+            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = " + angemeldet + "");
+            if (dbConnector.getCurrentQueryResult().getData()[0][0] == 0) {
+                return;
+            }
             if (reservierungMoeglich(isbn)) {
                 dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + isbn + "'");
                 QueryResult result = dbConnector.getCurrentQueryResult();
