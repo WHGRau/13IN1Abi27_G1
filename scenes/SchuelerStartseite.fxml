@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="1078.0" prefWidth="1884.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
+<VBox prefHeight="1078.0" prefWidth="1884.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
   <children>
     <MenuBar prefHeight="0.0" prefWidth="1277.0" VBox.vgrow="NEVER">
       <menus>
@@ -115,14 +115,14 @@
                   <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="79.6666259765625" text="geliehen am" />
               </columns>
             </TableView>
-            <Button layoutX="562.0" layoutY="48.0" mnemonicParsing="false" onAction="#logout" text="ausloggen" />
+            <Button layoutX="536.0" layoutY="24.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="75.0" text="ausloggen" />
             <TextField fx:id="searchBar" layoutX="1109.0" layoutY="130.0" onKeyReleased="#suchen" promptText="suchen..." />
             <ListView fx:id="suchergebnisse" layoutX="1107.0" layoutY="210.0" onMouseClicked="#selectBuch" prefHeight="688.0" prefWidth="253.0" />
-            <TextField fx:id="isbnFeld" editable="false" layoutX="1451.0" layoutY="114.0" />
-            <TextField fx:id="titelFeld" editable="false" layoutX="1476.0" layoutY="181.0" />
-            <TextField fx:id="autorFeld" editable="false" layoutX="1476.0" layoutY="276.0" />
-            <TextField fx:id="jahrFeld" editable="false" layoutX="1486.0" layoutY="344.0" />
-            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="1500.0" layoutY="473.0" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
+            <TextField fx:id="isbnFeld" editable="false" layoutX="1500.0" layoutY="162.0" />
+            <TextField fx:id="titelFeld" editable="false" layoutX="1500.0" layoutY="215.0" />
+            <TextField fx:id="autorFeld" editable="false" layoutX="1500.0" layoutY="275.0" />
+            <TextField fx:id="jahrFeld" editable="false" layoutX="1501.0" layoutY="328.0" />
+            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="1500.0" layoutY="402.0" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
             <Text fx:id="statusText" layoutX="1504.0" layoutY="741.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:" />
             <Button fx:id="reservierenButton" layoutX="1500.0" layoutY="799.0" mnemonicParsing="false" onAction="#reservieren" text="reservieren" />
          </children>
