@@ -7,11 +7,14 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Text?>
 
-<VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
+<VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
    <children>
       <MenuBar prefHeight="0.0" prefWidth="421.0">
          <menus>
@@ -54,10 +57,16 @@
       </MenuBar>
       <AnchorPane focusTraversable="true" prefHeight="1026.0" prefWidth="1824.0">
          <children>
-            <TextField fx:id="emailFeld" layoutX="551.0" layoutY="407.0" promptText="E-Mail" />
-            <PasswordField fx:id="passwortFeld" layoutX="551.0" layoutY="472.0" promptText="Passwort" />
-            <Text fx:id="fehlerText" fill="RED" layoutX="551.0" layoutY="636.0" strokeType="OUTSIDE" strokeWidth="0.0" />
-            <Button fx:id="loginButton" layoutX="881.0" layoutY="420.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
+            <MediaView fx:id="meinVideo" fitHeight="1049.0" fitWidth="1882.0" />
+            <Text fx:id="fehlerText" fill="#ff000000" layoutX="551.0" layoutY="636.0" strokeType="OUTSIDE" strokeWidth="0.0" />
+            <ImageView fitHeight="1049.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../eulen/euleAnmeldung.png" />
+               </image>
+            </ImageView>
+            <TextField fx:id="emailFeld" layoutX="858.0" layoutY="543.0" promptText="E-Mail" />
+            <PasswordField fx:id="passwortFeld" layoutX="858.0" layoutY="580.0" promptText="Passwort" />
+            <Button fx:id="loginButton" layoutX="891.0" layoutY="619.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
          </children>
       </AnchorPane>
    </children>

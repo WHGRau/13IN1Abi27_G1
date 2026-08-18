@@ -10,6 +10,10 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.io.IOException;
 import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import java.io.File;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -17,6 +21,13 @@ public class ControllerLogin {
     public void initialize() {
         model = new Bibliothek();
         Platform.runLater(() -> loginButton.requestFocus());
+        
+        String videoPfad = getClass().getResource("/eulen/hintergrundEulen.mp4").toExternalForm();
+        Media  media = new Media(videoPfad);
+        MediaPlayer mediaplayer = new MediaPlayer(media);
+        meinVideo.setMediaPlayer(mediaplayer);
+        mediaplayer.setCycleCount(MediaPlayer.INDEFINITE);
+        mediaplayer.play();
     }
 
     @FXML
@@ -30,6 +41,9 @@ public class ControllerLogin {
 
     @FXML
     private Text fehlerText;
+    
+    @FXML
+    private MediaView meinVideo;
 
     public void login(ActionEvent event) {
         if (model.login(emailFeld.getText(), passwortFeld.getText()) == 1) {
@@ -57,4 +71,6 @@ public class ControllerLogin {
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
+    
+    
 }
