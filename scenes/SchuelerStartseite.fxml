@@ -33,21 +33,23 @@
 -->
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<VBox prefHeight="1078.0" prefWidth="1884.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
   <children>
-    <MenuBar prefHeight="0.0" prefWidth="421.0" VBox.vgrow="NEVER">
+    <MenuBar prefHeight="0.0" prefWidth="1277.0" VBox.vgrow="NEVER">
       <menus>
         <Menu mnemonicParsing="false" text="File">
           <items>
@@ -88,79 +90,41 @@
     </MenuBar>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
          <children>
-            <Text fx:id="nutzernameText" layoutX="26.0" layoutY="82.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
+            <Text fx:id="nutzernameText" layoutX="26.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
                <font>
                   <Font size="55.0" />
                </font>
             </Text>
-            <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="40.0" prefHeight="700.0" prefWidth="726.0">
+            <TableView fx:id="geliehenTabelle" layoutX="23.0" layoutY="240.0" prefHeight="200.0" prefWidth="413.0">
               <columns>
-                <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
-                <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
-                  <TableColumn fx:id="verliehenTabelleName" prefWidth="98.0" text="Name" />
-                  <TableColumn fx:id="verliehenTabelleVorname" prefWidth="67.0" text="Vorname" />
-                  <TableColumn fx:id="verliehenTabelleEmail" prefWidth="155.0" text="E-Mail" />
-                  <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
+                <TableColumn fx:id="geliehenTitelSpalte" prefWidth="287.3333282470703" text="Titel" />
+                <TableColumn fx:id="geliehenRueckgabeSpalte" minWidth="0.0" prefWidth="124.66667175292969" text="Rückgabe" />
               </columns>
             </TableView>
-            <Button fx:id="logout" layoutX="623.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="53.0" prefWidth="103.0" text="ausloggen">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Button>
-            <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </TextField>
-            <Text fx:id="feedbackText" layoutX="26.0" layoutY="245.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buch scannen" wrappingWidth="217.2300033569336">
-               <font>
-                  <Font size="23.0" />
-               </font>
-            </Text>
-            <Button fx:id="scannenButton" layoutX="248.0" layoutY="157.0" mnemonicParsing="false" onAction="#scannen" text="scannen">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </Button>
-            <Button fx:id="ausleihenButton" layoutX="34.0" layoutY="292.0" mnemonicParsing="false" onAction="#ausleihen" prefHeight="53.0" prefWidth="103.0" text="ausleihen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <Button fx:id="zuruecknehmenButton" layoutX="165.0" layoutY="292.0" mnemonicParsing="false" onAction="#zurueckgeben" prefHeight="53.0" prefWidth="147.0" text="zurücknehmen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <Button fx:id="abbrechenButton" layoutX="378.0" layoutY="158.0" mnemonicParsing="false" onAction="#abbrechen" prefHeight="42.0" prefWidth="110.0" text="abbrechen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <TextField fx:id="ausleihdauerFeld" layoutX="326.0" layoutY="229.0" prefHeight="26.0" prefWidth="70.0" />
-            <Text layoutX="248.0" layoutY="249.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dauer" wrappingWidth="69.99999999999994">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </Text>
-            <Text fx:id="gescanntListe" layoutX="34.0" layoutY="390.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="299.13000106811523">
-               <font>
-                  <Font size="28.0" />
-               </font>
-            </Text>
-            <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
-            <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
-            <TableView layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
+            <TableView fx:id="reserviertTabelle" layoutX="25.0" layoutY="558.0" prefHeight="200.0" prefWidth="413.0">
+               <columns>
+                  <TableColumn fx:id="reserviertTitelSpalte" prefWidth="217.6666717529297" text="Titel" />
+                  <TableColumn fx:id="reserviertBisSpalte" minWidth="0.0" prefWidth="196.3333282470703" text="status" />
+               </columns>
+            </TableView>
+            <TableView fx:id="verlaufTabelle" layoutX="478.0" layoutY="126.0" prefHeight="833.0" prefWidth="578.0">
               <columns>
-                <TableColumn prefWidth="75.0" text="ISBN" />
-                <TableColumn prefWidth="75.0" text="Titel" />
-                  <TableColumn prefWidth="75.0" text="Name" />
-                  <TableColumn prefWidth="75.0" text="Vorname" />
-                  <TableColumn prefWidth="75.0" text="E-Mail" />
+                <TableColumn fx:id="verlaufTitelSpalte" prefWidth="230.33331298828125" text="Titel" />
+                <TableColumn fx:id="verlaufAutorSpalte" prefWidth="153.66668701171875" text="Autor" />
+                  <TableColumn fx:id="verlaufIsbnSpalte" minWidth="0.0" prefWidth="113.3333740234375" text="ISBN" />
+                  <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="79.6666259765625" text="geliehen am" />
               </columns>
             </TableView>
-            <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle rservierungen" />
+            <Button layoutX="562.0" layoutY="48.0" mnemonicParsing="false" onAction="#logout" text="ausloggen" />
+            <TextField fx:id="searchBar" layoutX="1109.0" layoutY="130.0" onKeyReleased="#suchen" promptText="suchen..." />
+            <ListView fx:id="suchergebnisse" layoutX="1107.0" layoutY="210.0" onMouseClicked="#selectBuch" prefHeight="688.0" prefWidth="253.0" />
+            <TextField fx:id="isbnFeld" editable="false" layoutX="1451.0" layoutY="114.0" />
+            <TextField fx:id="titelFeld" editable="false" layoutX="1476.0" layoutY="181.0" />
+            <TextField fx:id="autorFeld" editable="false" layoutX="1476.0" layoutY="276.0" />
+            <TextField fx:id="jahrFeld" editable="false" layoutX="1486.0" layoutY="344.0" />
+            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="1500.0" layoutY="473.0" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
+            <Text fx:id="statusText" layoutX="1504.0" layoutY="741.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:" />
+            <Button fx:id="reservierenButton" layoutX="1500.0" layoutY="799.0" mnemonicParsing="false" onAction="#reservieren" text="reservieren" />
          </children>
     </AnchorPane>
   </children>

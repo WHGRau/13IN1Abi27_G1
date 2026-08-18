@@ -45,14 +45,16 @@ public class ControllerLogin {
                 } else {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
+                    ControllerSchuelerStartseite controller = loader.getController();
+                    controller.setModel(model);
                     stage.setScene(new Scene(root));
                     stage.show();
                 }
             } catch (IOException e) {
-
+                e.printStackTrace();
             }
         } else {
-            fehlerText.setText("anmeldung fehlgeschlagen");
+            fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
 }
