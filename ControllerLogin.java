@@ -14,6 +14,8 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import java.io.File;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.transform.Scale;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -28,6 +30,7 @@ public class ControllerLogin {
         meinVideo.setMediaPlayer(mediaplayer);
         mediaplayer.setCycleCount(MediaPlayer.INDEFINITE);
         mediaplayer.play();
+        
     }
 
     @FXML
@@ -44,6 +47,8 @@ public class ControllerLogin {
     
     @FXML
     private MediaView meinVideo;
+    
+
 
     public void login(ActionEvent event) {
         if (model.login(emailFeld.getText(), passwortFeld.getText()) == 1) {
