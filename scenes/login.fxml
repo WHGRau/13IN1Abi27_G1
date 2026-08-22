@@ -13,9 +13,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.media.MediaView?>
 <?import javafx.scene.text.Text?>
-
 
 <StackPane fx:id="background" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
    <children>
@@ -62,7 +60,11 @@
          <children>
             <AnchorPane focusTraversable="true" style="-fx-background-color: #E9E9D3;" VBox.vgrow="ALWAYS">
                <children>
-                  <MediaView fx:id="meinVideo" fitHeight="1049.0" fitWidth="1882.0" />
+                  <ImageView fitHeight="1080.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../eulen/HintergrundEulen.gif" />
+                     </image>
+                  </ImageView>
                   <ImageView fitHeight="1049.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../eulen/euleAnmeldung.png" />

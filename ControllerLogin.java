@@ -25,12 +25,6 @@ public class ControllerLogin {
         model = new Bibliothek();
         Platform.runLater(() -> loginButton.requestFocus());
         
-        String videoPfad = getClass().getResource("/eulen/hintergrundEulen.mp4").toExternalForm();
-        Media  media = new Media(videoPfad);
-        MediaPlayer mediaplayer = new MediaPlayer(media);
-        meinVideo.setMediaPlayer(mediaplayer);
-        mediaplayer.setCycleCount(MediaPlayer.INDEFINITE);
-        mediaplayer.play();
         
         Platform.runLater(() ->{
             Scene scene = background.getScene();
