@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="1078.0" prefWidth="1884.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
+<VBox prefHeight="1078.0" prefWidth="1884.0" style="-fx-background-color: #E9E9D3;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
   <children>
     <MenuBar prefHeight="0.0" prefWidth="1277.0" VBox.vgrow="NEVER">
       <menus>
@@ -90,7 +90,7 @@
     </MenuBar>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
          <children>
-            <Text fx:id="nutzernameText" layoutX="26.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
+            <Text fx:id="nutzernameText" layoutX="655.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
                <font>
                   <Font size="55.0" />
                </font>
@@ -115,7 +115,7 @@
                   <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="79.6666259765625" text="geliehen am" />
               </columns>
             </TableView>
-            <Button layoutX="536.0" layoutY="24.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="75.0" text="ausloggen" />
+            <Button layoutX="23.0" layoutY="24.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="75.0" text="ausloggen" />
             <TextField fx:id="searchBar" layoutX="1109.0" layoutY="130.0" onKeyReleased="#suchen" promptText="suchen..." />
             <ListView fx:id="suchergebnisse" layoutX="1107.0" layoutY="210.0" onMouseClicked="#selectBuch" prefHeight="688.0" prefWidth="253.0" />
             <TextField fx:id="isbnFeld" editable="false" layoutX="1500.0" layoutY="162.0" />

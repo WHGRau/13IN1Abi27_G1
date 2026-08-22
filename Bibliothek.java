@@ -274,14 +274,14 @@ public class Bibliothek {
                 "SELECT id, passwort FROM benutzer WHERE email = '" + email + "'");
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0){
-            for(int i = 0; i< result.getRowCount(); i++){
-                gespeichertesPasswort = result.getData()[i][1];
-                boolean passwortStimmt = passwordEncoder.matches(passwort,gespeichertesPasswort);
-                if(passwortStimmt){
-                    angemeldet = Integer.parseInt(result.getData()[i][0]);
-                    return 1;  
-                } 
-            }
+            
+            gespeichertesPasswort = result.getData()[0][1];
+            boolean passwortStimmt = passwordEncoder.matches(passwort,gespeichertesPasswort);
+            if(passwortStimmt){
+                angemeldet = Integer.parseInt(result.getData()[0][0]);
+                return 1;  
+            } 
+            
         }
         
         return 0;

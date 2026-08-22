@@ -45,7 +45,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
   <children>
     <MenuBar prefHeight="0.0" prefWidth="421.0" VBox.vgrow="NEVER">
       <menus>
@@ -88,7 +88,7 @@
     </MenuBar>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
          <children>
-            <Text fx:id="nutzernameText" layoutX="26.0" layoutY="82.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
+            <Text fx:id="nutzernameText" layoutX="233.0" layoutY="99.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
                <font>
                   <Font size="55.0" />
                </font>
@@ -103,7 +103,7 @@
                   <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
               </columns>
             </TableView>
-            <Button fx:id="logout" layoutX="535.0" layoutY="23.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="76.0" text="ausloggen" />
+            <Button fx:id="logout" layoutX="26.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="76.0" text="ausloggen" />
             <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
                <font>
                   <Font size="20.0" />
