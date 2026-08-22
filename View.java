@@ -5,6 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.transform.Scale;
+import javafx.scene.paint.Color;
 
 public class View extends Application {
 
@@ -17,11 +18,8 @@ public class View extends Application {
         final double targetHeight = 1080.0;
         
         Scene scene = new Scene(root, targetWidth, targetHeight);
-        Scale scale = new Scale(1, 1, 0, 0);
-        scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
-        scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
         
-        root.getTransforms().add(scale);
+        scene.setFill(Color.web("#E9E9D3"));
         
         primaryStage.setScene(scene);
         primaryStage.show();

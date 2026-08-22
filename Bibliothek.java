@@ -278,7 +278,7 @@ public class Bibliothek {
                 gespeichertesPasswort = result.getData()[i][1];
                 boolean passwortStimmt = passwordEncoder.matches(passwort,gespeichertesPasswort);
                 if(passwortStimmt){
-                    angemeldet = Integer.parseInt(result.getData()[0][0]);
+                    angemeldet = Integer.parseInt(result.getData()[i][0]);
                     return 1;  
                 } 
             }

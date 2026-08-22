@@ -14,8 +14,9 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import java.io.File;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -30,6 +31,32 @@ public class ControllerLogin {
         meinVideo.setMediaPlayer(mediaplayer);
         mediaplayer.setCycleCount(MediaPlayer.INDEFINITE);
         mediaplayer.play();
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                scale.setPivotX(targetWidth/3);
+                scale.setPivotY(targetHeight);
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.BOTTOM_LEFT);
+            }
+        });
+        
         
     }
 
@@ -48,6 +75,8 @@ public class ControllerLogin {
     @FXML
     private MediaView meinVideo;
     
+    @FXML
+    private StackPane background;
 
 
     public void login(ActionEvent event) {
