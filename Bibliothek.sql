@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `bibliothek`
+-- Database: `Bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `ausleihen`
+-- Table structure for table `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
@@ -48,7 +48,7 @@ INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckg
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `benutzer`
+-- Table structure for table `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -77,7 +77,7 @@ INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `buecher`
+-- Table structure for table `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -108,7 +108,7 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `reservierungen`
+-- Table structure for table `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -132,7 +132,7 @@ INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservieru
 --
 
 --
--- Indizes für die Tabelle `ausleihen`
+-- Indexes for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -140,20 +140,20 @@ ALTER TABLE `ausleihen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indizes für die Tabelle `benutzer`
+-- Indexes for table `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indizes für die Tabelle `buecher`
+-- Indexes for table `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indizes für die Tabelle `reservierungen`
+-- Indexes for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -161,40 +161,40 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `ausleihen`
+-- AUTO_INCREMENT for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
--- AUTO_INCREMENT für Tabelle `benutzer`
+-- AUTO_INCREMENT for table `benutzer`
 --
 ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT für Tabelle `reservierungen`
+-- AUTO_INCREMENT for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- Constraints der exportierten Tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Constraints der Tabelle `ausleihen`
+-- Constraints for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
   ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints der Tabelle `reservierungen`
+-- Constraints for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,

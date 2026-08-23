@@ -5,6 +5,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
+
 import javafx.scene.paint.Color;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
@@ -18,6 +20,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import java.io.IOException;
 import javafx.scene.Node;
+import javafx.scene.control.ListView;
 
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
@@ -32,6 +35,7 @@ public class ControllerLehrerStartseite {
 
     private Bibliothek model;
     private PauseTransition feedbackTimer;
+    private ArrayList<String> konfliktNamen = new ArrayList<>();
     
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
@@ -64,7 +68,7 @@ public class ControllerLehrerStartseite {
     private Text feedbackText;
 
     @FXML
-    private Text gescanntListe;
+    private ListView gescanntListe;
 
     @FXML
     private Button abbrechenButton;
@@ -170,6 +174,22 @@ public class ControllerLehrerStartseite {
         ausleihdauerFeld.setText("28");
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
+
+        gescanntListe.setCellFactory(lv -> new javafx.scene.control.ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTextFill(Color.BLACK);
+                } else {
+                    setText(item);
+                    if (konfliktNamen != null && konfliktNamen.contains(item)) {
+                        setTextFill(Color.RED);
+                    } else {
+                        setTextFill(Color.BLACK);
+                    }
+                }
         
         Platform.runLater(() ->{
             Scene scene = background.getScene();
@@ -220,11 +240,17 @@ public class ControllerLehrerStartseite {
     public void scannen() {
         if (feedbackTimer != null)
             feedbackTimer.stop();
+        feedbackText.setFill(Color.BLACK);
         String code = codeFeld.getText();
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
-                feedbackText.setText("weiteres Buch oder Nutzerausweis scannen");
+                if (model.getName() != null && model.getErfassteSchuelerName() != "") {
+                    feedbackText.setText("weiteres Buch scannen");
+                    ausleihenButton.setDisable(false);
+                } else {
+                    feedbackText.setText("weiteres Buch oder Nutzerausweis scannen");
+                }
                 break;
             case 2: {
                 int tage = model.getTageZuSpaet(code);
@@ -236,9 +262,11 @@ public class ControllerLehrerStartseite {
                 break;
             }
             case 3:
-                feedbackText.setText("Das Buch ist reserviert (Verleih von reservierten Büchern noch nicht möglich!)");
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Das Buch ist für einen anderen Schüler reserviert!");
                 break;
             case 4:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Buch kann nicht verliehen werden!");
                 break;
             case 5: {
@@ -251,8 +279,10 @@ public class ControllerLehrerStartseite {
                 break;
             }
             case 6:
-                feedbackText.setText("Schüler erfasst");
-                ausleihenButton.setDisable(false);
+                feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst");
+                if (model.getErfassteBuecherNamen().size() > 0) {
+                    ausleihenButton.setDisable(false);
+                }
                 break;
             case 7:
                 feedbackText.setText(
@@ -268,7 +298,15 @@ public class ControllerLehrerStartseite {
                 feedbackText.setText("Schüler gesperrt! Verleih nicht möglich");
                 break;
             case 11:
-                feedbackText.setText("Bitte erst Bücher und dann Schüler scannen");
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Buch ist reserviert für " + model.getreserviertSchuelerName(code)
+                        + ", zum Prüfen Schüler scannen");
+                break;
+            case 12:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Bücher für andere Schüler reserviert");
+                scannenButton.setDisable(true);
+                ausleihenButton.setDisable(true);
                 break;
         }
         codeFeld.clear();
@@ -276,8 +314,13 @@ public class ControllerLehrerStartseite {
     }
 
     private void updateGescanntListe() {
-        if (gescanntListe != null) {
-            gescanntListe.setText(model.getErfassteBuecherNamen());
+        if (gescanntListe != null && model != null) {
+            gescanntListe.getItems().clear();
+            ArrayList<String> namen = model.getErfassteBuecherNamen();
+            konfliktNamen = model.getKonfliktBuecherNamen();
+            if (namen != null) {
+                gescanntListe.getItems().addAll(namen);
+            }
         }
     }
 
@@ -285,7 +328,10 @@ public class ControllerLehrerStartseite {
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackTimer = new PauseTransition(Duration.seconds(10));
-        feedbackTimer.setOnFinished(e -> feedbackText.setText("Buch scannen"));
+        feedbackTimer.setOnFinished(e -> {
+            feedbackText.setText("Buch scannen");
+            feedbackText.setFill(Color.BLACK);
+        });
         feedbackTimer.play();
     }
 
@@ -294,8 +340,10 @@ public class ControllerLehrerStartseite {
         zuruecknehmenButton.setDisable(true);
         model.abbrechen();
         ausleihdauerFeld.setText("28");
+        feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
+        scannenButton.setDisable(false);
     }
 
     public void zurueckgeben() {
@@ -344,8 +392,8 @@ public class ControllerLehrerStartseite {
 
         }
     }
-    
-    public void loadBuecherVerwaltung(ActionEvent event){
+
+    public void loadBuecherVerwaltung(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
