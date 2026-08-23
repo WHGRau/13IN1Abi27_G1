@@ -19,10 +19,18 @@ import javafx.fxml.FXMLLoader;
 import java.io.IOException;
 import javafx.scene.Node;
 
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
+import com.sun.javafx.tk.Toolkit;
+import com.sun.javafx.tk.FontMetrics;
+
 public class ControllerLehrerStartseite {
 
     private Bibliothek model;
     private PauseTransition feedbackTimer;
+    
+    private final double maxText = 802;
+    private final double normaleSchriftgros = 55;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -124,7 +132,21 @@ public class ControllerLehrerStartseite {
     public void setModel(Bibliothek model) {
         this.model = model;
         loadVerliehenTabelle();
-        nutzernameText.setText("Hallo, " + model.getName() + " !");
+        
+        String text = "Hallo, " + model.getName() + " !";
+        //dynamisch die Schriftgrose an Text Lange anpassen
+        Text tempText = new Text(text);
+        tempText.setFont(Font.font("Candara", normaleSchriftgros));
+        double textBreite = tempText.getLayoutBounds().getWidth();
+        if (textBreite <= maxText){
+            nutzernameText.setFont(Font.font("Candara",normaleSchriftgros));
+        }
+        else{
+            double neueSchrift = normaleSchriftgros * maxText/textBreite;
+            nutzernameText.setFont(Font.font("Candara",neueSchrift));
+        }
+        
+        nutzernameText.setText(text);
     }
 
     public void initialize() {

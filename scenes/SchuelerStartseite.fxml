@@ -90,9 +90,9 @@
     </MenuBar>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
          <children>
-            <Text fx:id="nutzernameText" layoutX="655.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
+            <Text fx:id="nutzernameText" layoutX="521.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="842.8600044250488">
                <font>
-                  <Font size="55.0" />
+                  <Font name="Candara" size="55.0" />
                </font>
             </Text>
             <TableView fx:id="geliehenTabelle" layoutX="23.0" layoutY="240.0" prefHeight="200.0" prefWidth="413.0">

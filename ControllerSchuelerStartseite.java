@@ -4,6 +4,7 @@ import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
@@ -18,10 +19,19 @@ import java.util.ArrayList;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Button;
 
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
+import com.sun.javafx.tk.Toolkit;
+import com.sun.javafx.tk.FontMetrics;
+
+
 public class ControllerSchuelerStartseite {
 
     private Bibliothek model;
     private Buch selectedBuch;
+    
+    private final double maxText = 521;
+    private final double normaleSchriftgros = 55;
 
     @FXML
     private Text nutzernameText;
@@ -117,7 +127,20 @@ public class ControllerSchuelerStartseite {
 
     public void setModel(Bibliothek model) {
         this.model = model;
-        nutzernameText.setText("Hallo, " + model.getName() + " !");
+        String text = "Hallo, " + model.getName() + " !";
+        //dynamisch die Schriftgrose an Text Lange anpassen
+        Text tempText = new Text(text);
+        tempText.setFont(Font.font("Candara", normaleSchriftgros));
+        double textBreite = tempText.getLayoutBounds().getWidth();
+        if (textBreite <= maxText){
+            nutzernameText.setFont(Font.font("Candara",normaleSchriftgros));
+        }
+        else{
+            double neueSchrift = normaleSchriftgros * maxText/textBreite;
+            nutzernameText.setFont(Font.font("Candara",neueSchrift));
+        }
+        
+        nutzernameText.setText(text);
         updateTabellen();
     }
 
