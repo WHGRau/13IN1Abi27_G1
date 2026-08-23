@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 16. Aug 2026 um 14:32
+-- Erstellungszeit: 22. Aug 2026 um 18:22
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -36,6 +36,15 @@ CREATE TABLE `ausleihen` (
   `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Daten für Tabelle `ausleihen`
+--
+
+INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`) VALUES
+(8, '978-3125739291', '2026-08-17', '2026-09-20', NULL, 16),
+(8, '978-3608126013', '2026-08-17', '2026-09-20', NULL, 17),
+(13, '978-3551321022', '2026-08-20', '2026-09-09', NULL, 18);
+
 -- --------------------------------------------------------
 
 --
@@ -52,6 +61,19 @@ CREATE TABLE `benutzer` (
   `freigeschaltet` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Daten für Tabelle `benutzer`
+--
+
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`) VALUES
+(7, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0),
+(8, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1),
+(9, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1),
+(10, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1),
+(11, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1),
+(12, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1),
+(13, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -67,6 +89,22 @@ CREATE TABLE `buecher` (
   `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Daten für Tabelle `buecher`
+--
+
+INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`) VALUES
+('978-0261102217', 'The Hobbit', 'J. R. R. Tolkien', '2011', 'Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely travelling further than the pantry of his hobbit-hole in Bag End. But his contentment is disturbed when the wizard, Gandalf, and a company of thirteen dwarves arrive on his doorstep one day to whisk him away on an unexpected journey ‘there and back again’. They have a plot to raid the treasure hoard of Smaug the Magnificent, a large and very dangerous dragon…', 'verfuegbar'),
+('978-1464221378', 'The Teacher', 'Freida McFadden', '2024', 'Eve has a good life. She gets up each day, gets a kiss from her husband Nate, and heads off to teach math at the local high school. All is as it should be. Except…\r\n\r\nLast year, Caseham High was rocked by a scandal, with one student, Addie, at its center. And this year, Eve is dismayed to find the girl in her class.\r\n\r\nAddie can\'t be trusted. She lies. She hurts people. She destroys lives. At least, that\'s what everyone says.\r\n\r\nBut nobody knows the real Addie. Nobody knows the secrets that could destroy her. And Addie will do anything to keep it quiet.', 'verfuegbar'),
+('978-1642750331', 'I want to eat your pancreas', 'Yoru Sumino', '2018', 'A high school boy finds the diary of his classmate—only to discover that she’s dying. Yamauchi Sakura has been silently suffering from a pancreatic disease, and now exactly one person outside her family knows. He swears to her that he won’t tell anyone what he learned, and the shared secret brings them closer together in this deeply moving, first-person story that traces their developing relationship in Sakura’s final months of life.', 'verfuegbar'),
+('978-1645052975', 'At Night, I Become a Monster', 'Yoru Sumino', '2020', 'Every night, Adachi transforms into a nightmarish creature―and every morning, he reverts to human form. When he encounters his ostracized classmate Yano Satsuki in his monstrous state, the two develop a peculiar bond. But daylight brings its own form of terrors. Which is worse, the monster at night, or the cruel realities of the classroom by day?', 'entfernt'),
+('978-3125739291', 'Nineteen Eighty-Four', 'George Orwell', '2021', 'Winston Smith lives in 1984 in a London ruled by a fearsome totalitarian regime, headed by the ever-present Big Brother, and watched closely by the hugely feared Thought Police. But, he rebels…', 'verliehen'),
+('978-3551317148', 'Im Zeichen der Zauberkugel 1', 'Stefan Gemmel', '2019', 'Beim Stöbern auf dem Dachboden seiner Großeltern entdeckt Alex eine verborgene Tür, die er noch nie gesehen hat. Eine Tür, die laut seiner Oma strengstens verboten ist. Natürlich öffnet Alex sie trotzdem. Dahinter liegt das geheime Arbeitszimmer seines Großvaters – ein Professor, der vor Jahren spurlos verschwand. Und zwischen all den rätselhaften Büchern und seltsamen Gegenständen findet Alex eine leuchtende Kugel. Darin steckt Sahli, ein echter Dschinn! Alex kann sein Glück kaum fassen. Doch das ändert sich schnell. Denn mit der Befreiung des Kugelgeists hat Alex nicht nur drei Wünsche frei – sondern auch Argus gegen sich aufgebracht. Den mächtigsten und gefährlichsten Dschinn aller Zeiten!', 'reserviert'),
+('978-3551321022', 'Im Zeichen der Zauberkugel 2: Der Fluch des Skorpions', 'Stefan Gemmel', '2022', 'Alex hat einen neuen Freund: Sahli, den Jungen aus der Zauberkugel. Doch sie werden von dem geheimnisvollen Dschinn Argus verfolgt! Mächtiger und böser denn je, ist er wild entschlossen, den Fluch des Skorpions gegen die Freunde einzusetzen. Gemeinsam mit der magischen Katze Kadabra und den Zwillingen Liv und Sally müssen die beiden Jungs sich wehren - und werden dabei in eine aufregende Suche verwickelt, die bis tief in die Steinzeit führt …', 'verliehen'),
+('978-3608126013', 'Der Herr der Ringe. Bd. 1 - Die Gefährten', 'J. R. R. Tolkien', '2026', 'Ein ungewöhnlicher Held. Eine Reise voller Gefahren. Das größte Abenteuer aller Zeiten.\r\n\r\nIn einem ruhigen Dorf im Auenland bekommt der junge Frodo ein Geschenk, das sein Leben für immer verändern wird – den Einen Ring, der seit Jahrhunderten als verschollen galt. Ein mächtiges und furchterregendes Ding, mit dem der Dunkle Herrscher einst Mittelerde versklavte.\r\n\r\nNun erhebt sich die Dunkelheit erneut, und Frodo muss tief in das Reich des Dunklen Herrschers vordringen, bis zu dem einzigen Ort, an dem der Ring zerstört werden kann: dem Schicksalsberg. Die Reise wird Frodos Mut, seine Freundschaften und sein Herz auf die Probe stellen. Denn der Ring korrumpiert alle, die ihn tragen. Kann Frodo den Ring vernichten, bevor der Ring ihn vernichtet? ', 'verliehen'),
+('978-3641306113', 'Die Ehefrau – Was hat sie zu verbergen?', 'Freida McFadden', '2026', 'Sylvia Robinson wird im Haus der Barnetts als private Pflegekraft eingestellt. Nach einem Unfall benötigt Victoria Barnett rund um die Uhr Betreuung. Sie kann weder gehen noch sprechen und ist an ihr Bett im obersten Stockwerk des Hauses gefesselt. Daher hat ihr Mann Sylvia als Unterstützung hinzugeholt. Doch schon bald hat Sylvia das Gefühl, dass Victoria nicht so hilflos ist, wie sie scheint. Dann entdeckt sie Victorias Tagebuch versteckt in einer Kommode. Und was sie darin liest, zieht ihr den Boden unter den Füßen weg.', 'verfuegbar'),
+('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. It\s a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt');
+
 -- --------------------------------------------------------
 
 --
@@ -81,6 +119,13 @@ CREATE TABLE `reservierungen` (
   `reservierung_beginn` date NOT NULL,
   `reservierung_ende` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Daten für Tabelle `reservierungen`
+--
+
+INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`) VALUES
+(7, '978-3551317148', 11, 'bereit', '2026-08-20', '2026-09-03');
 
 --
 -- Indizes der exportierten Tabellen
@@ -123,19 +168,19 @@ ALTER TABLE `reservierungen`
 -- AUTO_INCREMENT für Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT für Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints der exportierten Tabellen

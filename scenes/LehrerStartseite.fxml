@@ -41,127 +41,129 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
-  <children>
-    <MenuBar prefHeight="0.0" prefWidth="421.0" VBox.vgrow="NEVER">
-      <menus>
-        <Menu mnemonicParsing="false" text="File">
-          <items>
-            <MenuItem mnemonicParsing="false" text="New" />
-            <MenuItem mnemonicParsing="false" text="Open…" />
-            <Menu mnemonicParsing="false" text="Open Recent" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Close" />
-            <MenuItem mnemonicParsing="false" text="Save" />
-            <MenuItem mnemonicParsing="false" text="Save As…" />
-            <MenuItem mnemonicParsing="false" text="Revert" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Preferences…" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Quit" />
-          </items>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Edit">
-          <items>
-            <MenuItem mnemonicParsing="false" text="Undo" />
-            <MenuItem mnemonicParsing="false" text="Redo" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Cut" />
-            <MenuItem mnemonicParsing="false" text="Copy" />
-            <MenuItem mnemonicParsing="false" text="Paste" />
-            <MenuItem mnemonicParsing="false" text="Delete" />
-            <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" text="Select All" />
-            <MenuItem mnemonicParsing="false" text="Unselect All" />
-          </items>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Help">
-          <items>
-            <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
-          </items>
-        </Menu>
-      </menus>
-    </MenuBar>
-    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
-         <children>
-            <Text fx:id="nutzernameText" layoutX="26.0" layoutY="82.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="573.8600044250488">
-               <font>
-                  <Font size="55.0" />
-               </font>
-            </Text>
-            <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="40.0" prefHeight="700.0" prefWidth="726.0">
-              <columns>
-                <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
-                <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
-                  <TableColumn fx:id="verliehenTabelleName" prefWidth="98.0" text="Name" />
-                  <TableColumn fx:id="verliehenTabelleVorname" prefWidth="67.0" text="Vorname" />
-                  <TableColumn fx:id="verliehenTabelleEmail" prefWidth="155.0" text="E-Mail" />
-                  <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
-              </columns>
-            </TableView>
-            <Button fx:id="logout" layoutX="623.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="53.0" prefWidth="103.0" text="ausloggen">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Button>
-            <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </TextField>
-            <Text fx:id="feedbackText" layoutX="26.0" layoutY="245.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buch scannen" wrappingWidth="217.2300033569336">
-               <font>
-                  <Font size="23.0" />
-               </font>
-            </Text>
-            <Button fx:id="scannenButton" layoutX="248.0" layoutY="157.0" mnemonicParsing="false" onAction="#scannen" text="scannen">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </Button>
-            <Button fx:id="ausleihenButton" layoutX="34.0" layoutY="292.0" mnemonicParsing="false" onAction="#ausleihen" prefHeight="53.0" prefWidth="103.0" text="ausleihen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <Button fx:id="zuruecknehmenButton" layoutX="165.0" layoutY="292.0" mnemonicParsing="false" onAction="#zurueckgeben" prefHeight="53.0" prefWidth="147.0" text="zurücknehmen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <Button fx:id="abbrechenButton" layoutX="378.0" layoutY="158.0" mnemonicParsing="false" onAction="#abbrechen" prefHeight="42.0" prefWidth="110.0" text="abbrechen">
-               <font>
-                  <Font size="17.0" />
-               </font>
-            </Button>
-            <TextField fx:id="ausleihdauerFeld" layoutX="326.0" layoutY="229.0" prefHeight="26.0" prefWidth="70.0" />
-            <Text layoutX="248.0" layoutY="249.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dauer" wrappingWidth="69.99999999999994">
-               <font>
-                  <Font size="20.0" />
-               </font>
-            </Text>
-            <Text fx:id="gescanntListe" layoutX="34.0" layoutY="390.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="299.13000106811523">
-               <font>
-                  <Font size="28.0" />
-               </font>
-            </Text>
-            <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
-            <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
-            <TableView layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
-              <columns>
-                <TableColumn prefWidth="75.0" text="ISBN" />
-                <TableColumn prefWidth="75.0" text="Titel" />
-                  <TableColumn prefWidth="75.0" text="Name" />
-                  <TableColumn prefWidth="75.0" text="Vorname" />
-                  <TableColumn prefWidth="75.0" text="E-Mail" />
-              </columns>
-            </TableView>
-            <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle rservierungen" />
-         </children>
-    </AnchorPane>
-  </children>
-</VBox>
+
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+   <children>
+      <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
+        <children>
+          <MenuBar prefHeight="0.0" prefWidth="421.0" style="-fx-background-color: #E9E9D3;" VBox.vgrow="NEVER">
+            <menus>
+              <Menu mnemonicParsing="false" text="File">
+                <items>
+                  <MenuItem mnemonicParsing="false" text="New" />
+                  <MenuItem mnemonicParsing="false" text="Open…" />
+                  <Menu mnemonicParsing="false" text="Open Recent" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Close" />
+                  <MenuItem mnemonicParsing="false" text="Save" />
+                  <MenuItem mnemonicParsing="false" text="Save As…" />
+                  <MenuItem mnemonicParsing="false" text="Revert" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Preferences…" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Quit" />
+                </items>
+              </Menu>
+              <Menu mnemonicParsing="false" text="Edit">
+                <items>
+                  <MenuItem mnemonicParsing="false" text="Undo" />
+                  <MenuItem mnemonicParsing="false" text="Redo" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Cut" />
+                  <MenuItem mnemonicParsing="false" text="Copy" />
+                  <MenuItem mnemonicParsing="false" text="Paste" />
+                  <MenuItem mnemonicParsing="false" text="Delete" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Select All" />
+                  <MenuItem mnemonicParsing="false" text="Unselect All" />
+                </items>
+              </Menu>
+              <Menu mnemonicParsing="false" text="Help">
+                <items>
+                  <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+                </items>
+              </Menu>
+            </menus>
+          </MenuBar>
+          <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+               <children>
+                  <Text fx:id="nutzernameText" layoutX="184.0" layoutY="99.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" wrappingWidth="802.8600044250488">
+                     <font>
+                        <Font size="55.0" />
+                     </font>
+                  </Text>
+                  <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="40.0" prefHeight="700.0" prefWidth="726.0">
+                    <columns>
+                      <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
+                      <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
+                        <TableColumn fx:id="verliehenTabelleName" prefWidth="98.0" text="Name" />
+                        <TableColumn fx:id="verliehenTabelleVorname" prefWidth="67.0" text="Vorname" />
+                        <TableColumn fx:id="verliehenTabelleEmail" prefWidth="155.0" text="E-Mail" />
+                        <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
+                    </columns>
+                  </TableView>
+                  <Button fx:id="logout" layoutX="26.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="76.0" text="ausloggen" />
+                  <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </TextField>
+                  <Text fx:id="feedbackText" layoutX="26.0" layoutY="245.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buch scannen" wrappingWidth="217.2300033569336">
+                     <font>
+                        <Font size="23.0" />
+                     </font>
+                  </Text>
+                  <Button fx:id="scannenButton" layoutX="248.0" layoutY="157.0" mnemonicParsing="false" onAction="#scannen" text="scannen">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="ausleihenButton" layoutX="34.0" layoutY="292.0" mnemonicParsing="false" onAction="#ausleihen" prefHeight="53.0" prefWidth="103.0" text="ausleihen">
+                     <font>
+                        <Font size="17.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="zuruecknehmenButton" layoutX="165.0" layoutY="292.0" mnemonicParsing="false" onAction="#zurueckgeben" prefHeight="53.0" prefWidth="147.0" text="zurücknehmen">
+                     <font>
+                        <Font size="17.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="abbrechenButton" layoutX="378.0" layoutY="158.0" mnemonicParsing="false" onAction="#abbrechen" prefHeight="42.0" prefWidth="110.0" text="abbrechen">
+                     <font>
+                        <Font size="17.0" />
+                     </font>
+                  </Button>
+                  <TextField fx:id="ausleihdauerFeld" layoutX="326.0" layoutY="229.0" prefHeight="26.0" prefWidth="70.0" />
+                  <Text layoutX="248.0" layoutY="249.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dauer" wrappingWidth="69.99999999999994">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="gescanntListe" layoutX="34.0" layoutY="390.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="299.13000106811523">
+                     <font>
+                        <Font size="28.0" />
+                     </font>
+                  </Text>
+                  <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
+                  <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
+                  <TableView layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
+                    <columns>
+                      <TableColumn prefWidth="75.0" text="ISBN" />
+                      <TableColumn prefWidth="75.0" text="Titel" />
+                        <TableColumn prefWidth="75.0" text="Name" />
+                        <TableColumn prefWidth="75.0" text="Vorname" />
+                        <TableColumn prefWidth="75.0" text="E-Mail" />
+                    </columns>
+                  </TableView>
+                  <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle rservierungen" />
+               </children>
+          </AnchorPane>
+        </children>
+      </VBox>
+   </children>
+</StackPane>

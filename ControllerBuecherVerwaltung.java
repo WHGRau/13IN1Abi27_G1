@@ -16,6 +16,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
+import javafx.scene.paint.Color;
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
+import javafx.application.Platform;
 
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
@@ -82,6 +87,9 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
+    
+    @FXML
+    private StackPane background;
 
     public static class tabelleZeile {
         private String nachname;
@@ -135,6 +143,29 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
     }
 
     public void setModel(Bibliothek model) {
@@ -161,7 +192,9 @@ public class ControllerBuecherVerwaltung {
             Parent root = loader.load();
             ControllerLehrerStartseite controller = loader.getController();
             controller.setModel(model);
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
             stage.show();
 
         } catch (Exception e) {
