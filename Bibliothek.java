@@ -4,12 +4,14 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.sql.*;
 import java.util.ArrayList;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 public class Bibliothek {
     private DatabaseConnector dbConnector;
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
+    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
 
     public Bibliothek() {
         dbVerbinden();
@@ -315,13 +317,22 @@ public class Bibliothek {
     }
 
     public int login(String email, String passwort) {
+        // Vorname grosgeschrieben ist das Passwort
+        String gespeichertesPasswort;
         dbConnector.executeStatement(
-                "SELECT id FROM benutzer WHERE email = '" + email + "' AND passwort = '" + passwort + "'");
+                "SELECT id, passwort FROM benutzer WHERE email = '" + email + "'");
         QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result != null && result.getRowCount() > 0) {
-            angemeldet = Integer.parseInt(result.getData()[0][0]);
-            return 1;
+        if (result != null && result.getRowCount() > 0){
+            
+            gespeichertesPasswort = result.getData()[0][1];
+            boolean passwortStimmt = passwordEncoder.matches(passwort,gespeichertesPasswort);
+            if(passwortStimmt){
+                angemeldet = Integer.parseInt(result.getData()[0][0]);
+                return 1;  
+            } 
+            
         }
+        
         return 0;
     }
 
@@ -593,5 +604,13 @@ public class Bibliothek {
             return result.getData()[0][0] + " " + result.getData()[0][1];
         }
         return "";
+    
+    public String hashen(String pP){
+        // Passwort wird gesaltet und gehasht
+        String verschlusselt;
+        
+        verschlusselt = passwordEncoder.encode(pP);
+                
+        return verschlusselt;
     }
 }

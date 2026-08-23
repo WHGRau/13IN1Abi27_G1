@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -7,13 +8,16 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
+<StackPane fx:id="background" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
    <children>
-      <MenuBar prefHeight="0.0" prefWidth="421.0">
+      <MenuBar prefHeight="0.0" prefWidth="421.0" style="-fx-background-color: #E9E9D3;">
          <menus>
             <Menu mnemonicParsing="false" text="File">
                <items>
@@ -52,13 +56,30 @@
             </Menu>
          </menus>
       </MenuBar>
-      <AnchorPane focusTraversable="true" prefHeight="1026.0" prefWidth="1824.0">
+      <VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
-            <TextField fx:id="emailFeld" layoutX="551.0" layoutY="407.0" promptText="E-Mail" />
-            <PasswordField fx:id="passwortFeld" layoutX="551.0" layoutY="472.0" promptText="Passwort" />
-            <Text fx:id="fehlerText" fill="RED" layoutX="551.0" layoutY="636.0" strokeType="OUTSIDE" strokeWidth="0.0" />
-            <Button fx:id="loginButton" layoutX="881.0" layoutY="420.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
+            <AnchorPane focusTraversable="true" style="-fx-background-color: #E9E9D3;" VBox.vgrow="ALWAYS">
+               <children>
+                  <ImageView fitHeight="1080.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../eulen/HintergrundEulen.gif" />
+                     </image>
+                  </ImageView>
+                  <ImageView fitHeight="1049.0" fitWidth="1920.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../eulen/euleAnmeldung.png" />
+                     </image>
+                  </ImageView>
+                  <TextField fx:id="emailFeld" layoutX="851.0" layoutY="568.0" promptText="E-Mail" />
+                  <PasswordField fx:id="passwortFeld" layoutX="851.0" layoutY="609.0" promptText="Passwort" />
+                  <Button fx:id="loginButton" layoutX="891.0" layoutY="646.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
+                  <Text fx:id="fehlerText" fill="#d32626" layoutX="851.0" layoutY="690.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="149.0" />
+               </children>
+            </AnchorPane>
          </children>
-      </AnchorPane>
+         <StackPane.margin>
+            <Insets bottom="5.0" />
+         </StackPane.margin>
+      </VBox>
    </children>
-</VBox>
+</StackPane>

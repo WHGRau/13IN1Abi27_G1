@@ -9,90 +9,106 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerBuecherVerwaltung">
+
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerBuecherVerwaltung">
    <children>
-      <MenuBar>
-        <menus>
-          <Menu mnemonicParsing="false" text="File">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Edit">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
-            </items>
-          </Menu>
-        </menus>
-      </MenuBar>
-      <AnchorPane prefHeight="1026.0" prefWidth="1824.0">
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
-            <TextField fx:id="searchBar" layoutX="69.0" layoutY="171.0" onAction="#suchen" onKeyReleased="#suchen" prefHeight="25.0" prefWidth="445.0" promptText="suchen...">
-               <font>
-                  <Font size="22.0" />
-               </font></TextField>
-            <TableView fx:id="buecherTabelle" layoutX="69.0" layoutY="241.0" onMouseClicked="#selectBuch" prefHeight="783.0" prefWidth="447.0">
-              <columns>
-                <TableColumn fx:id="isbnSpalte" prefWidth="145.0" text="ISBN" />
-                <TableColumn fx:id="titelSpalte" prefWidth="301.0" text="Titel" />
-              </columns>
-            </TableView>
-            <TextField fx:id="isbnFeld" editable="false" layoutX="780.0" layoutY="166.0" prefHeight="31.0" prefWidth="387.0" promptText="ISBN">
-               <font>
-                  <Font size="15.0" />
-               </font></TextField>
-            <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" prefHeight="269.0" prefWidth="397.0" promptText="Beschreibung" wrapText="true" />
-            <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="240.0" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
-               <font>
-                  <Font size="15.0" />
-               </font></TextField>
-            <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="312.0" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
-               <font>
-                  <Font size="15.0" />
-               </font></TextField>
-            <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="382.0" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
-               <font>
-                  <Font size="15.0" />
-               </font></TextField>
-            <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#entfernen" text="sperren">
-               <font>
-                  <Font size="18.0" />
-               </font></Button>
-            <Button fx:id="bearbeitenButton" layoutX="778.0" layoutY="727.0" mnemonicParsing="false" onAction="#bearbeiten" text="bearbeiten">
-               <font>
-                  <Font size="15.0" />
-               </font></Button>
-            <Text fx:id="statusText" layoutX="781.0" layoutY="844.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
-               <font>
-                  <Font size="18.0" />
-               </font></Text>
-            <Button fx:id="zurueckButton" layoutX="69.0" layoutY="42.0" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
-               <font>
-                  <Font size="18.0" />
-               </font></Button>
-            <Button fx:id="neuButton" layoutX="586.0" layoutY="624.0" mnemonicParsing="false" onAction="#buchErstellen" text="neu">
-               <font>
-                  <Font size="20.0" />
-               </font></Button>
-            <TableView fx:id="verlaufTabelle" layoutX="1347.0" layoutY="159.0" prefHeight="791.0" prefWidth="540.0">
-              <columns>
-                <TableColumn fx:id="verlaufNachnameSpalte" prefWidth="93.6666259765625" text="Name" />
-                <TableColumn fx:id="verlaufVornameSpalte" prefWidth="100.3333740234375" text="Vorname" />
-                  <TableColumn fx:id="verlaufEmailSpalte" prefWidth="166.3333740234375" text="E-Mail" />
-                  <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="97.6666259765625" text="ausgegeben" />
-                  <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
-              </columns>
-            </TableView>
+            <MenuBar style="-fx-background-color: #E9E9D3;">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Delete" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <AnchorPane prefHeight="1026.0" prefWidth="1824.0">
+               <children>
+                  <TextField fx:id="searchBar" layoutX="69.0" layoutY="171.0" onAction="#suchen" onKeyReleased="#suchen" prefHeight="25.0" prefWidth="445.0" promptText="suchen...">
+                     <font>
+                        <Font size="22.0" />
+                     </font>
+                  </TextField>
+                  <TableView fx:id="buecherTabelle" layoutX="69.0" layoutY="241.0" onMouseClicked="#selectBuch" prefHeight="783.0" prefWidth="447.0">
+                    <columns>
+                      <TableColumn fx:id="isbnSpalte" prefWidth="145.0" text="ISBN" />
+                      <TableColumn fx:id="titelSpalte" prefWidth="301.0" text="Titel" />
+                    </columns>
+                  </TableView>
+                  <TextField fx:id="isbnFeld" editable="false" layoutX="780.0" layoutY="166.0" prefHeight="31.0" prefWidth="387.0" promptText="ISBN">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
+                  <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" prefHeight="269.0" prefWidth="397.0" promptText="Beschreibung" wrapText="true" />
+                  <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="240.0" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
+                  <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="312.0" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
+                  <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="382.0" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
+                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#entfernen" text="sperren">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="bearbeitenButton" layoutX="778.0" layoutY="727.0" mnemonicParsing="false" onAction="#bearbeiten" text="bearbeiten">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Button>
+                  <Text fx:id="statusText" layoutX="781.0" layoutY="844.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Text>
+                  <Button fx:id="zurueckButton" layoutX="69.0" layoutY="42.0" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="neuButton" layoutX="586.0" layoutY="624.0" mnemonicParsing="false" onAction="#buchErstellen" text="neu">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Button>
+                  <TableView fx:id="verlaufTabelle" layoutX="1347.0" layoutY="159.0" prefHeight="791.0" prefWidth="540.0">
+                    <columns>
+                      <TableColumn fx:id="verlaufNachnameSpalte" prefWidth="93.6666259765625" text="Name" />
+                      <TableColumn fx:id="verlaufVornameSpalte" prefWidth="100.3333740234375" text="Vorname" />
+                        <TableColumn fx:id="verlaufEmailSpalte" prefWidth="166.3333740234375" text="E-Mail" />
+                        <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="97.6666259765625" text="ausgegeben" />
+                        <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
+                    </columns>
+                  </TableView>
+               </children>
+            </AnchorPane>
          </children>
-      </AnchorPane>
+      </VBox>
    </children>
-</VBox>
+</StackPane>

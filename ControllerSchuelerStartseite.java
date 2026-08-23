@@ -4,6 +4,7 @@ import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
@@ -17,11 +18,26 @@ import javafx.scene.control.ListView;
 import java.util.ArrayList;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Button;
+import javafx.scene.paint.Color;
+
+import javafx.scene.text.Text;
+import javafx.scene.text.Font;
+import com.sun.javafx.tk.Toolkit;
+import com.sun.javafx.tk.FontMetrics;
+import javafx.application.Platform;
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
+
+
 
 public class ControllerSchuelerStartseite {
 
     private Bibliothek model;
     private Buch selectedBuch;
+    
+    private final double maxText = 521;
+    private final double normaleSchriftgros = 55;
 
     @FXML
     private Text nutzernameText;
@@ -77,6 +93,9 @@ public class ControllerSchuelerStartseite {
 
     @FXML
     private Button reservierenButton;
+    
+    @FXML
+    private StackPane background;
 
     public static class TabellenZeile {
         private String titel;
@@ -117,7 +136,20 @@ public class ControllerSchuelerStartseite {
 
     public void setModel(Bibliothek model) {
         this.model = model;
-        nutzernameText.setText("Hallo, " + model.getName() + " !");
+        String text = "Hallo, " + model.getName() + " !";
+        //dynamisch die Schriftgrose an Text Lange anpassen
+        Text tempText = new Text(text);
+        tempText.setFont(Font.font("Candara", normaleSchriftgros));
+        double textBreite = tempText.getLayoutBounds().getWidth();
+        if (textBreite <= maxText){
+            nutzernameText.setFont(Font.font("Candara",normaleSchriftgros));
+        }
+        else{
+            double neueSchrift = normaleSchriftgros * maxText/textBreite;
+            nutzernameText.setFont(Font.font("Candara",neueSchrift));
+        }
+        
+        nutzernameText.setText(text);
         updateTabellen();
     }
 
@@ -137,6 +169,29 @@ public class ControllerSchuelerStartseite {
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufAusleihdatumSpalte.setCellValueFactory(new PropertyValueFactory<>("datum"));
         reservierenButton.setDisable(true);
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
     }
 
     public void logout(ActionEvent event) {
@@ -144,7 +199,9 @@ public class ControllerSchuelerStartseite {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("scenes/login.fxml"));
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
 
