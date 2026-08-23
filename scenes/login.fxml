@@ -65,15 +65,15 @@
                         <Image url="@../eulen/HintergrundEulen.gif" />
                      </image>
                   </ImageView>
-                  <ImageView fitHeight="1049.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="1049.0" fitWidth="1920.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../eulen/euleAnmeldung.png" />
                      </image>
                   </ImageView>
-                  <TextField fx:id="emailFeld" layoutX="851.0" layoutY="542.0" promptText="E-Mail" />
-                  <PasswordField fx:id="passwortFeld" layoutX="851.0" layoutY="577.0" promptText="Passwort" />
-                  <Button fx:id="loginButton" layoutX="891.0" layoutY="612.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
-                  <Text fx:id="fehlerText" fill="#d32626" layoutX="851.0" layoutY="659.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="149.0" />
+                  <TextField fx:id="emailFeld" layoutX="851.0" layoutY="568.0" promptText="E-Mail" />
+                  <PasswordField fx:id="passwortFeld" layoutX="851.0" layoutY="609.0" promptText="Passwort" />
+                  <Button fx:id="loginButton" layoutX="891.0" layoutY="646.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
+                  <Text fx:id="fehlerText" fill="#d32626" layoutX="851.0" layoutY="690.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="149.0" />
                </children>
             </AnchorPane>
          </children>

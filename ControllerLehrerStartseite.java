@@ -23,6 +23,10 @@ import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import com.sun.javafx.tk.Toolkit;
 import com.sun.javafx.tk.FontMetrics;
+import javafx.application.Platform;
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
 
 public class ControllerLehrerStartseite {
 
@@ -79,6 +83,9 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Text nutzernameText;
+    
+    @FXML
+    private StackPane background;
 
     public static class tabelleZeile {
         private String isbn;
@@ -163,6 +170,29 @@ public class ControllerLehrerStartseite {
         ausleihdauerFeld.setText("28");
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
     }
 
     public void loadVerliehenTabelle() {
@@ -306,7 +336,9 @@ public class ControllerLehrerStartseite {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Parent root = FXMLLoader.load(getClass().getResource("scenes/login.fxml"));
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
 
@@ -321,7 +353,9 @@ public class ControllerLehrerStartseite {
             Parent root = loader.load();
             ControllerBuecherVerwaltung controller = loader.getController();
             controller.setModel(model);
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
             stage.show();
 
         } catch (Exception e) {

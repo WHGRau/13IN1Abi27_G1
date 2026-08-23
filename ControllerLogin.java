@@ -17,6 +17,7 @@ import java.io.File;
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
+import javafx.scene.paint.Color;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -82,14 +83,18 @@ public class ControllerLogin {
                     Parent root = loader.load();
                     ControllerLehrerStartseite controller = loader.getController();
                     controller.setModel(model);
-                    stage.setScene(new Scene(root));
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                    stage.setScene(scene);
                     stage.show();
                 } else {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerSchuelerStartseite controller = loader.getController();
                     controller.setModel(model);
-                    stage.setScene(new Scene(root));
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                stage.setScene(scene);
                     stage.show();
                 }
             } catch (IOException e) {
