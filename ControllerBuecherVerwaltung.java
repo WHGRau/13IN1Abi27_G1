@@ -91,6 +91,9 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private StackPane background;
 
+    @FXML
+    private Text errorText;
+
     public static class tabelleZeile {
         private String nachname;
         private String vorname;
@@ -172,7 +175,6 @@ public class ControllerBuecherVerwaltung {
         this.model = model;
     }
 
-    @FXML
     public void suchen() {
 
         String suchbegriff = searchBar.getText();
@@ -241,7 +243,6 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
-    @FXML
     public void bearbeiten(ActionEvent event) {
         if (selectedBuch == null && !neuAktiv) {
             return;
@@ -264,6 +265,7 @@ public class ControllerBuecherVerwaltung {
                         selectedBuch.getStatus());
                 suchen();
             } catch (NumberFormatException e) {
+                errorText.setText("Fehler: Ungültiges Jahr");
                 e.printStackTrace();
             }
         } else {
@@ -288,6 +290,7 @@ public class ControllerBuecherVerwaltung {
                     beschreibungFeld.clear();
                     isbnFeld.clear();
                 } catch (NumberFormatException e) {
+                    errorText.setText("Fehler: Ungültiges Jahr");
                     e.printStackTrace();
                 }
             } else {
@@ -304,7 +307,6 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
-    @FXML
     public void entfernen() {
         if (selectedBuch == null) {
             return;
@@ -388,5 +390,9 @@ public class ControllerBuecherVerwaltung {
                 }
             }
         }
+    }
+
+    public void errorTextZuruecksetzen(){
+        errorText.setText("");
     }
 }

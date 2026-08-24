@@ -16,15 +16,43 @@ public class Benutzer
     private int id;
     private boolean freigeschaltet;
     
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn)
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet)
     {
         email = pEmail;
         passwort = pPw;
         nachname = pNn;
         vorname = pVn;
         rolle = pRolle;
-        freigeschaltet = true;
+        id = pId;
+        freigeschaltet = pFreigeschaltet;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswort() {
+        return passwort;
+    }
+
+    public String getName() {
+        return nachname;
+    }
+
+    public String getVorname() {
+        return vorname;
+    }
+
+    public String getRolle() {
+        return rolle;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public boolean isFreigeschaltet() {
+        return freigeschaltet;
+    }
     
 }

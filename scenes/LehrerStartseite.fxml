@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
   <children>
     <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
       <children>
@@ -145,7 +145,7 @@
                    </font>
                 </Text>
                 <ListView fx:id="gescanntListe" layoutX="30.0" layoutY="390.0" prefHeight="257.0" prefWidth="284.0" />
-                <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" text="Nutzer Verwalten" />
+                <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadNutzerVerwaltung" text="Nutzer Verwalten" />
                 <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
                 <TableView layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
                   <columns>
