@@ -10,6 +10,14 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.io.IOException;
 import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import java.io.File;
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
+import javafx.scene.paint.Color;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -17,6 +25,34 @@ public class ControllerLogin {
     public void initialize() {
         model = new Bibliothek();
         Platform.runLater(() -> loginButton.requestFocus());
+        
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                scale.setPivotX(targetWidth/3);
+                scale.setPivotY(targetHeight);
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.BOTTOM_LEFT);
+            }
+        });
+        
+        
     }
 
     @FXML
@@ -30,6 +66,13 @@ public class ControllerLogin {
 
     @FXML
     private Text fehlerText;
+    
+    @FXML
+    private MediaView meinVideo;
+    
+    @FXML
+    private StackPane background;
+
 
     public void login(ActionEvent event) {
         if (model.login(emailFeld.getText(), passwortFeld.getText()) == 1) {
@@ -40,14 +83,18 @@ public class ControllerLogin {
                     Parent root = loader.load();
                     ControllerLehrerStartseite controller = loader.getController();
                     controller.setModel(model);
-                    stage.setScene(new Scene(root));
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                    stage.setScene(scene);
                     stage.show();
                 } else {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerSchuelerStartseite controller = loader.getController();
                     controller.setModel(model);
-                    stage.setScene(new Scene(root));
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                stage.setScene(scene);
                     stage.show();
                 }
             } catch (IOException e) {
@@ -57,4 +104,6 @@ public class ControllerLogin {
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
+    
+    
 }
