@@ -36,7 +36,7 @@ public class ControllerSchuelerStartseite {
     private Bibliothek model;
     private Buch selectedBuch;
     
-    private final double maxText = 521;
+    private final double maxText = 802;
     private final double normaleSchriftgros = 55;
 
     @FXML

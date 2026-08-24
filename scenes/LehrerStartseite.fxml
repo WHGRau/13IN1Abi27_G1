@@ -40,12 +40,13 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
-
 
 <StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
    <children>
@@ -161,6 +162,11 @@
                     </columns>
                   </TableView>
                   <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle rservierungen" />
+                  <ImageView fitHeight="118.0" fitWidth="99.0" layoutX="-6.0" layoutY="956.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../eulen/kleineEule.png" />
+                     </image>
+                  </ImageView>
                </children>
           </AnchorPane>
         </children>
