@@ -37,8 +37,6 @@ public class ControllerLogin {
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
                 
-                scale.setPivotX(targetWidth/3);
-                scale.setPivotY(targetHeight);
                 
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
@@ -48,7 +46,7 @@ public class ControllerLogin {
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
                 
-                StackPane.setAlignment(background, Pos.BOTTOM_LEFT);
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
         

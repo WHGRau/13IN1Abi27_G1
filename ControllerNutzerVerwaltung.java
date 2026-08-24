@@ -19,6 +19,12 @@ import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
 
+import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
+import javafx.geometry.Pos;
+import javafx.application.Platform;
+
+
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
     private Benutzer selectedNutzer;
@@ -87,6 +93,9 @@ public class ControllerNutzerVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
+    
+    @FXML
+    private StackPane background;
 
     public static class tabelleZeile {
         private String isbn;
@@ -168,6 +177,29 @@ public class ControllerNutzerVerwaltung {
                         setTextFill(null);
                     }
                 }
+            }
+        });
+        
+        Platform.runLater(() ->{
+            Scene scene = background.getScene();
+            if(scene != null){
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+        
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+                
+                
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+                
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+                
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
     }
