@@ -484,7 +484,7 @@ public class Bibliothek {
             dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
             QueryResult result = dbConnector.getCurrentQueryResult();
             if(result != null){
-                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 1 WHERE id = '" + pID + "'");
+                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0 WHERE id = '" + pID + "'");
             
             }
     }
