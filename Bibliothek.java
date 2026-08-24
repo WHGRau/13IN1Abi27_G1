@@ -536,6 +536,33 @@ public class Bibliothek {
         }
         return false;
     }
+    
+    public void neuerBenutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn){
+        if(isLehrer()){
+            String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet)" + " VALUES('"
+                    + pVn + "', '" + pNn + "', '" + pEmail + "','" + pPw + "','" + pRolle + "','"+ 1 +"')";
+            dbConnector.executeStatement(sql);
+        }
+    
+    }
+    
+    public void benutzerLoeschen(int pID){
+        if(isLehrer()){
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result != null){
+                dbConnector.executeStatement("DELETE FROM benutzer WHERE id='"+pID+"'");
+                }
+        }
+    }
+    
+    public void sperren(int pID){
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result != null){
+                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0 WHERE id = '" + pID + "'");
+            
+            }
 
     public void reservierungenAktualisieren() {
 
