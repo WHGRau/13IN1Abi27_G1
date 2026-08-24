@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
    <children>
       <MenuBar prefHeight="0.0" prefWidth="421.0" style="-fx-background-color: #E9E9D3;">
          <menus>
@@ -65,9 +65,9 @@
                         <Image url="@../eulen/HintergrundEulen.gif" />
                      </image>
                   </ImageView>
-                  <ImageView fitHeight="1049.0" fitWidth="1920.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="1049.0" fitWidth="1920.0" layoutX="-7.0" layoutY="276.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../eulen/euleAnmeldung.png" />
+                        <Image url="@../eulen/langeEule.png" />
                      </image>
                   </ImageView>
                   <TextField fx:id="emailFeld" layoutX="851.0" layoutY="568.0" promptText="E-Mail" />
