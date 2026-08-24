@@ -144,7 +144,7 @@ public class ControllerLehrerStartseite {
         this.model = model;
         loadVerliehenTabelle();
         
-        String text = "Hallo, " + model.getName() + " !";
+        String text = "Hallo, " + model.getName() + "!";
         //dynamisch die Schriftgrose an Text Lange anpassen
         Text tempText = new Text(text);
         tempText.setFont(Font.font("Candara", normaleSchriftgros));
@@ -190,6 +190,8 @@ public class ControllerLehrerStartseite {
                         setTextFill(Color.BLACK);
                     }
                 }
+            }
+        });
         
         Platform.runLater(() ->{
             Scene scene = background.getScene();
@@ -289,12 +291,15 @@ public class ControllerLehrerStartseite {
                         "Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
                 break;
             case 8:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Code nicht erkannt!");
                 break;
             case 9:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Es können maximal 10 Bücher gleichzeitig gescannt werden!");
                 break;
             case 10:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Schüler gesperrt! Verleih nicht möglich");
                 break;
             case 11:
@@ -400,6 +405,24 @@ public class ControllerLehrerStartseite {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/buchVerwaltung.fxml"));
             Parent root = loader.load();
             ControllerBuecherVerwaltung controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadNutzerVerwaltung(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/nutzerVerwaltung.fxml"));
+            Parent root = loader.load();
+            ControllerNutzerVerwaltung controller = loader.getController();
             controller.setModel(model);
             Scene scene = new Scene(root);
             scene.setFill(Color.web("#E9E9D3"));

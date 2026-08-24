@@ -320,7 +320,7 @@ public class Bibliothek {
         // Vorname grosgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
-                "SELECT id, passwort FROM benutzer WHERE email = '" + email + "'");
+                "SELECT id, passwort FROM benutzer WHERE email = '" + email.toLowerCase() + "'");
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0){
             
@@ -425,21 +425,25 @@ public class Bibliothek {
         return null;
     }
 
-    public QueryResult getMeinVerlauf() {
-        if (angemeldet != null) {
-            dbConnector.executeStatement(
-                    "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
-                            + angemeldet
-                            + " AND ausleihen.ruckgabe_datum IS NOT NULL ORDER BY ausleihen.ausleihdatum DESC");
-            return dbConnector.getCurrentQueryResult();
+    public QueryResult getNutzerVerlauf(int nutzerId) {
+        int id;
+        if(nutzerId == 0){
+            id = angemeldet;
+        } else{
+            id = nutzerId;
         }
-        return null;
+        dbConnector.executeStatement(
+                "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum, ausleihen.geplante_rueckgabe, ausleihen.ruckgabe_datum FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
+                        + id
+                        + " AND ausleihen.ruckgabe_datum IS NOT NULL ORDER BY ausleihen.ausleihdatum DESC");
+            return dbConnector.getCurrentQueryResult();
     }
+
 
     public void reservieren(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = " + angemeldet + "");
-            if (dbConnector.getCurrentQueryResult().getData()[0][0] == 0) {
+            if (dbConnector.getCurrentQueryResult().getData()[0][0].equals(0)) {
                 return;
             }
             if (reservierungMoeglich(isbn)) {
@@ -540,7 +544,7 @@ public class Bibliothek {
     public void neuerBenutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn){
         if(isLehrer()){
             String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet)" + " VALUES('"
-                    + pVn + "', '" + pNn + "', '" + pEmail + "','" + pPw + "','" + pRolle + "','"+ 1 +"')";
+                    + pVn + "', '" + pNn + "', '" + pEmail.toLowerCase() + "','" + hashen(pPw) + "','" + pRolle + "','"+ 1 +"')";
             dbConnector.executeStatement(sql);
         }
     
@@ -557,12 +561,55 @@ public class Bibliothek {
     }
     
     public void sperren(int pID){
+        if(isLehrer()){
             dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
             QueryResult result = dbConnector.getCurrentQueryResult();
             if(result != null){
                 dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0 WHERE id = '" + pID + "'");
             
             }
+        }
+    }
+
+    public void entsperren(int pID){
+        if(isLehrer()){
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result != null){
+                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 1 WHERE id = '" + pID + "'");
+            
+            }
+        }
+    }
+
+    public void benutzerBearbeiten(int pID, String pRolle, String pEmail, String pNn, String pVn){
+        if(isLehrer()){
+            dbConnector.executeStatement("SELECT email FROM benutzer WHERE id = '" + pID + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result != null){
+                dbConnector.executeStatement("UPDATE benutzer SET vorname = '" + pVn + "', nachname = '" + pNn + "', rolle = '" + pRolle + "', email = '" + pEmail.toLowerCase() + "' WHERE id = '" + pID + "'");
+            
+            }
+        }
+    }
+
+    public boolean emailVorhanden(String email, int ignoreId) {
+        if (email == null) return false;
+        dbConnector.executeStatement("SELECT id FROM benutzer WHERE email = '" + email + "' AND id != " + ignoreId);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result != null && result.getRowCount() > 0;
+    }
+
+    public void passwortAendern(int pID, String pNewPW){
+        if(isLehrer() || pID == angemeldet){
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result != null){
+                dbConnector.executeStatement("UPDATE benutzer SET passwort = '" + hashen(pNewPW) + "' WHERE id = '" + pID + "'");
+            
+            }
+        }
+    }
 
     public void reservierungenAktualisieren() {
 
@@ -631,6 +678,7 @@ public class Bibliothek {
             return result.getData()[0][0] + " " + result.getData()[0][1];
         }
         return "";
+    }
     
     public String hashen(String pP){
         // Passwort wird gesaltet und gehasht
@@ -640,4 +688,74 @@ public class Bibliothek {
                 
         return verschlusselt;
     }
+
+    public ArrayList<Benutzer> nutzerSuchen(String pS) {
+        if (pS == null) {
+            pS = "";
+        }
+        pS = pS.trim().replace("'", "''");
+        String[] terms = pS.split("\\s+");
+        
+
+        String whereClause = "";
+        if (pS.isEmpty()) {
+            whereClause = "1=1";
+        } else {
+            for (int i = 0; i < terms.length; i++) {
+                if (i > 0) {
+                    whereClause += " OR ";
+                }
+                whereClause += "(nachname LIKE '%" + terms[i] + "%' ";
+                whereClause += "OR vorname LIKE '%" + terms[i] + "%' ";
+                whereClause += "OR email LIKE '%" + terms[i] + "%')";
+            }
+        }
+
+        dbConnector.executeStatement(
+                "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet FROM benutzer WHERE " + whereClause);
+
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        ArrayList<Benutzer> nutzerListe = new ArrayList<>();
+
+        if (result != null) {
+            for (int i = 0; i < result.getRowCount(); i++) {
+                boolean freigeschaltet = result.getData()[i][6].equals("1");
+                Benutzer b = new Benutzer(result.getData()[i][5], result.getData()[i][4],
+                        result.getData()[i][3], result.getData()[i][1], result.getData()[i][2], Integer.parseInt(result.getData()[i][0]), freigeschaltet);
+                nutzerListe.add(b);
+            }
+            
+            for (int i = 0; i < nutzerListe.size() - 1; i++) {
+                for (int j = 0; j < nutzerListe.size() - i - 1; j++) {
+                    int score1 = berechneTreffer(nutzerListe.get(j), terms, pS);
+                    int score2 = berechneTreffer(nutzerListe.get(j + 1), terms, pS);
+                    
+                    if (score1 < score2) { 
+                        Benutzer temp = nutzerListe.get(j);
+                        nutzerListe.set(j, nutzerListe.get(j + 1));
+                        nutzerListe.set(j + 1, temp);
+                    }
+                }
+            }
+        }
+        return nutzerListe;
+    }
+    
+    private int berechneTreffer(Benutzer b, String[] terms, String pS) {
+        if (pS.isEmpty()) return 1;
+        
+        int score = 0;
+        String nn = b.getName().toLowerCase();
+        String vn = b.getVorname().toLowerCase();
+        String em = b.getEmail().toLowerCase();
+        
+        for (String term : terms) {
+            term = term.toLowerCase();
+            if (nn.contains(term) || vn.contains(term) || em.contains(term)) {
+                score++;
+            }
+        }
+        return score;
+    }
+    
 }

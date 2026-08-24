@@ -235,7 +235,7 @@ public class ControllerSchuelerStartseite {
         }
 
         verlaufTabelle.getItems().clear();
-        QueryResult verlauf = model.getMeinVerlauf();
+        QueryResult verlauf = model.getNutzerVerlauf(0);
         if (verlauf != null) {
             for (String[] row : verlauf.getData()) {
                 verlaufTabelle.getItems().add(new TabellenZeile(row[0], row[1], row[2], row[3], false));
