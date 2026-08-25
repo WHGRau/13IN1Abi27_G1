@@ -18,11 +18,19 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import java.io.File;
+import org.apache.pdfbox.Loader;
+import java.awt.Desktop;
+
 
 
 public class ControllerNutzerVerwaltung {
@@ -96,6 +104,21 @@ public class ControllerNutzerVerwaltung {
     
     @FXML
     private StackPane background;
+    
+    @FXML
+    private Text hinweisText;
+    
+    @FXML
+    private Button addButton;
+    
+    @FXML
+    private Button druckenButton;
+    
+    @FXML
+    private ListView<Benutzer> schulerList;
+    
+    @FXML
+    private TextField schulerausweis;
 
     public static class tabelleZeile {
         private String isbn;
@@ -200,6 +223,20 @@ public class ControllerNutzerVerwaltung {
                 background.setMaxHeight(targetHeight);
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
+        
+        schulerausweis.setEditable(false);
+        
+        schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
+            @Override
+            protected void updateItem(Benutzer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getEmail());
+                }
             }
         });
     }
@@ -434,6 +471,62 @@ public class ControllerNutzerVerwaltung {
                     verlaufTabelle.getItems().add(zeile);
 
                 }
+            }
+        }
+    }
+    
+    public void hinzu(ActionEvent event) {
+        if (selectedNutzer!= null){
+            int anzahl = 4 - schulerList.getItems().size();
+            if(selectedNutzer!= null && anzahl > 0){
+                schulerList.getItems().add(0, selectedNutzer);
+                anzahl=anzahl-1;
+                hinweisText.setText("Du kannst noch " + anzahl + " Nutzer hinzufügen");
+            
+            }
+            if(anzahl == 0){
+                hinweisText.setText("Bitte drucken");
+            }
+        }
+        
+    }
+    
+    public void druck(ActionEvent event) {
+        if(schulerList.getItems().size() != 0){
+            try{
+                File temp = new File("eulen/Karten.pdf");
+                PDDocument kart = Loader.loadPDF(temp);
+                PDAcroForm acroForm = kart.getDocumentCatalog().getAcroForm();
+                
+                String vorname = null;
+                if (acroForm != null) {
+                    for(int i = 1; i<=schulerList.getItems().size(); i++){
+                        Benutzer b = schulerList.getItems().get(i-1);
+                        acroForm.getField("vorname" + i).setValue(b.getVorname());
+                        acroForm.getField("nachname" + i).setValue(b.getName());
+                        vorname = b.getVorname();
+                    }
+                    acroForm.flatten();
+                    
+                }
+
+                if(vorname!= null){
+                    File pdfDatei = new File("Ausgefuellt_" + vorname + ".pdf");
+                    kart.save(pdfDatei);
+                    if(Desktop.isDesktopSupported()){
+                        Desktop desktop = Desktop.getDesktop();
+                        desktop.open(pdfDatei);
+                    }
+                }
+                 
+                 
+                
+                kart.close();
+                hinweisText.setText("");
+                schulerList.getItems().clear();
+            }
+            catch(Exception e){
+                e.printStackTrace();
             }
         }
     }
