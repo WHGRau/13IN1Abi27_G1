@@ -30,6 +30,7 @@ import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
+import javafx.scene.input.KeyEvent;
 
 public class ControllerLehrerStartseite {
 
@@ -39,6 +40,8 @@ public class ControllerLehrerStartseite {
     
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
+    
+    private final StringBuilder isbnbuild= new StringBuilder();
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -215,6 +218,12 @@ public class ControllerLehrerStartseite {
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
+        
+        background.sceneProperty().addListener((observable, oldScene, newScene) ->{
+            if(newScene != null){
+                registerGlobalScanner(newScene);
+            }
+        });
     }
 
     public void loadVerliehenTabelle() {
@@ -237,6 +246,24 @@ public class ControllerLehrerStartseite {
                 }
             }
         }
+    }
+    
+    public void registerGlobalScanner(javafx.scene.Scene scene){
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event ->{
+            String character = event.getText();
+             if(event.getCode()== javafx.scene.input.KeyCode.ENTER){
+                 String gescantISBN = isbnbuild.toString().trim();
+                 
+                 if(!gescantISBN.isEmpty()){
+                     //fertige ISBN ist in ge...
+                     isbnbuild.setLength(0);
+                 }
+                 event.consume();
+             }
+             else{
+                 isbnbuild.append(character);
+             }
+        });
     }
 
     public void scannen() {
