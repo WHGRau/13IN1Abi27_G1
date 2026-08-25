@@ -377,6 +377,7 @@ public class ControllerLehrerStartseite {
                 updateGescanntListe();
                 feedbackZuruecksetzen();
             } else {
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
             }
         } catch (NumberFormatException e) {
