@@ -15,6 +15,7 @@ public class Benutzer
     private String rolle;
     private int id;
     private boolean freigeschaltet;
+    private int lateDays;
     
     public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet)
     {
@@ -25,6 +26,7 @@ public class Benutzer
         rolle = pRolle;
         id = pId;
         freigeschaltet = pFreigeschaltet;
+        lateDays = 0;
     }
 
     public String getEmail() {
@@ -53,6 +55,10 @@ public class Benutzer
 
     public boolean isFreigeschaltet() {
         return freigeschaltet;
+    }
+    
+    public void setLateDays(int days){
+        lateDays = days;
     }
     
 }

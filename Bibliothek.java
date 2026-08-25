@@ -49,6 +49,8 @@ public class Bibliothek {
             erfassteBuecher.clear();
         }
     }
+    
+    
 
     public void buchRueckgabe() {
         if (isLehrer()) {
@@ -59,10 +61,11 @@ public class Bibliothek {
             QueryResult result = dbConnector.getCurrentQueryResult();
 
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
+                
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
                                 + "' AND ruckgabe_datum IS NULL");
-
+               
                 dbConnector.executeStatement(
                         "SELECT status FROM reservierungen WHERE isbn = '" + isbn + "' AND status = 'wartend'");
                 QueryResult resResult = dbConnector.getCurrentQueryResult();
