@@ -12,6 +12,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.event.ActionEvent;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import javafx.scene.text.Text;
@@ -27,6 +32,11 @@ public class ControllerBuecherVerwaltung {
     private Buch selectedBuch;
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
+    
+    private String apiQuelle = "openlibrary"; // oder "google"
+    private String googleApiKey = "AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI";
+    private String barcodePuffer = "";
+    private long letzteTastenZeit = 0;
 
     @FXML
     private TextField searchBar;
@@ -167,6 +177,33 @@ public class ControllerBuecherVerwaltung {
                 background.setMaxHeight(targetHeight);
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+                
+                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
+                    if (neuAktiv) {
+                        long jetzt = System.currentTimeMillis();
+                        if (jetzt - letzteTastenZeit > 100) {
+                            barcodePuffer = "";
+                        if (event.getCharacter().matches("[0-9]")) {
+                            barcodePuffer += event.getCharacter();
+                        }
+                        letzteTastenZeit = jetzt;
+                    }
+                });
+                
+                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                    if (neuAktiv && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                        if (barcodePuffer.length() >= 10) {
+                            isbnFeld.setText(barcodePuffer);
+                            
+                            if (titelFeld.getText().equals(barcodePuffer)) titelFeld.clear();
+                            if (autorFeld.getText().equals(barcodePuffer)) autorFeld.clear();
+                            if (jahrFeld.getText().equals(barcodePuffer)) jahrFeld.clear();
+                            
+                            buchDatenAbrufen(barcodePuffer);
+                            barcodePuffer = "";
+                        }
+                    }
+                });
             }
         });
     }
@@ -351,6 +388,7 @@ public class ControllerBuecherVerwaltung {
             beschreibungFeld.setEditable(true);
             zurueckButton.setDisable(true);
             neuAktiv = true;
+            Platform.runLater(() -> isbnFeld.requestFocus());
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
@@ -369,6 +407,108 @@ public class ControllerBuecherVerwaltung {
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
         }
+    }
+
+    private String pruefeFelderAufIsbn() {
+        TextField[] felder = {isbnFeld, titelFeld, autorFeld, jahrFeld};
+        for (TextField feld : felder) {
+            String text = feld.getText().trim();
+            if (text.length() >= 10 && text.matches("[0-9]+")) {
+                feld.clear();
+                isbnFeld.setText(text);
+                return text;
+            }
+        }
+        return "";
+    }
+
+    public void buchDatenAbrufen(String isbn) {
+        try {
+            String urlText = "";
+            if (apiQuelle.equals("google")) {
+                urlText = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn;
+                if (!googleApiKey.isEmpty()) {
+                    urlText += "&key=" + googleApiKey;
+                }
+            } else {
+                urlText = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
+            }
+            
+            URL url = new URL(urlText);
+            HttpURLConnection verbindung = (HttpURLConnection) url.openConnection();
+            verbindung.setRequestMethod("GET");
+            
+            BufferedReader leser = new BufferedReader(new InputStreamReader(verbindung.getInputStream()));
+            String zeile;
+            String json = "";
+            while ((zeile = leser.readLine()) != null) {
+                json += zeile;
+            }
+            leser.close();
+            
+            String titel = wertAuslesen(json, "title");
+            if (!titel.isEmpty()) titelFeld.setText(titel);
+            
+            if (apiQuelle.equals("google")) {
+                String autor = arrayWertAuslesen(json, "authors");
+                if (!autor.isEmpty()) autorFeld.setText(autor);
+                
+                String datum = wertAuslesen(json, "publishedDate");
+                if (datum.length() >= 4) jahrFeld.setText(datum.substring(0, 4));
+                
+                String beschreibung = wertAuslesen(json, "description");
+                if (!beschreibung.isEmpty()) beschreibungFeld.setText(beschreibung);
+            } else {
+                String autor = wertAuslesen(json, "name");
+                if (!autor.isEmpty()) autorFeld.setText(autor);
+                
+                String datum = wertAuslesen(json, "publish_date");
+                if (datum.length() >= 4) jahrFeld.setText(datum.substring(datum.length() - 4));
+                
+                String beschreibung = wertAuslesen(json, "notes");
+                if (!beschreibung.isEmpty()) beschreibungFeld.setText(beschreibung);
+            }
+            
+            
+        } catch (Exception e) {
+            errorText.setText("Fehler beim Abrufen der Buchdaten");
+        }
+    }
+
+    private String wertAuslesen(String json, String schluessel) {
+        String suche1 = "\"" + schluessel + "\":\"";
+        String suche2 = "\"" + schluessel + "\": \"";
+        
+        int startPos = json.indexOf(suche1);
+        if (startPos != -1) {
+            startPos += suche1.length();
+        } else {
+            startPos = json.indexOf(suche2);
+            if (startPos != -1) startPos += suche2.length();
+        }
+        
+        if (startPos != -1) {
+            int endPos = json.indexOf("\"", startPos);
+            if (endPos != -1) {
+                return json.substring(startPos, endPos);
+            }
+        }
+        return "";
+    }
+
+    private String arrayWertAuslesen(String json, String schluessel) {
+        int startPos = json.indexOf("\"" + schluessel + "\"");
+        if (startPos != -1) {
+            int klammerStart = json.indexOf("[", startPos);
+            int anfuehrungszeichenStart = json.indexOf("\"", klammerStart);
+            if (anfuehrungszeichenStart != -1) {
+                int anfuehrungszeichenEnde = json.indexOf("\"", anfuehrungszeichenStart + 1);
+                if (anfuehrungszeichenEnde != -1) {
+                    return json.substring(anfuehrungszeichenStart + 1, anfuehrungszeichenEnde);
+                }
+            }
+        }
+        return "";
     }
 
     public void loadVerlaufTabelle() {

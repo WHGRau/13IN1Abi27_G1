@@ -91,6 +91,7 @@ public class ControllerLehrerStartseite {
     @FXML
     private StackPane background;
 
+
     public static class tabelleZeile {
         private String isbn;
         private String titel;
