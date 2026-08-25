@@ -157,7 +157,7 @@ public class ControllerBuecherVerwaltung {
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
         
-        Platform.runLater(() ->{
+        Platform.runLater(() -> {
             Scene scene = background.getScene();
             if(scene != null){
                 final double targetWidth = 1920.0;
@@ -209,6 +209,14 @@ public class ControllerBuecherVerwaltung {
         });
     }
 
+    public void isbnFeldKeyReleased(javafx.scene.input.KeyEvent event) {
+        if (!neuAktiv) return;
+        String text = isbnFeld.getText().trim();
+
+        if ((text.length() == 10 || text.length() == 13) && text.matches("[0-9]+")) {
+            buchDatenAbrufen(text);
+        }
+    }
     public void setModel(Bibliothek model) {
         this.model = model;
     }
