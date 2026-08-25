@@ -183,6 +183,7 @@ public class ControllerBuecherVerwaltung {
                         long jetzt = System.currentTimeMillis();
                         if (jetzt - letzteTastenZeit > 100) {
                             barcodePuffer = "";
+                        }
                         if (event.getCharacter().matches("[0-9]")) {
                             barcodePuffer += event.getCharacter();
                         }

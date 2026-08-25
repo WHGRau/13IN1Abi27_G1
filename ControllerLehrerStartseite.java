@@ -62,6 +62,24 @@ public class ControllerLehrerStartseite {
     private TableColumn<tabelleZeile, Label> verliehenTabelleGeplanteRueckgabe;
 
     @FXML
+    private TableView<tabelleZeileReservierung> reserviertTabelle;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleIsbn;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleTitel;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleName;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleVorname;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleEmail;
+
+    @FXML
     private TextField codeFeld;
 
     @FXML
@@ -141,9 +159,46 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public static class tabelleZeileReservierung {
+        private String isbn;
+        private String titel;
+        private String nachname;
+        private String vorname;
+        private String email;
+
+        public tabelleZeileReservierung(String isbn, String titel, String nachname, String vorname, String email) {
+            this.isbn = isbn;
+            this.titel = titel;
+            this.nachname = nachname;
+            this.vorname = vorname;
+            this.email = email;
+        }
+
+        public String getIsbn() {
+            return isbn;
+        }
+
+        public String getTitel() {
+            return titel;
+        }
+
+        public String getNachname() {
+            return nachname;
+        }
+
+        public String getVorname() {
+            return vorname;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+    }
+
     public void setModel(Bibliothek model) {
         this.model = model;
         loadVerliehenTabelle();
+        loadReserviertTabelle();
         
         String text = "Hallo, " + model.getName() + "!";
         //dynamisch die Schriftgrose an Text Lange anpassen
@@ -169,12 +224,19 @@ public class ControllerLehrerStartseite {
         verliehenTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         verliehenTabelleGeplanteRueckgabe.setCellValueFactory(new PropertyValueFactory<>("geplanteRueckgabe"));
 
+        reserviertTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
+        reserviertTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
+        reserviertTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
+        reserviertTabelleVorname.setCellValueFactory(new PropertyValueFactory<>("vorname"));
+        reserviertTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
 
         ausleihdauerFeld.setText("28");
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
+        reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
 
         gescanntListe.setCellFactory(lv -> new javafx.scene.control.ListCell<String>() {
             @Override
@@ -235,6 +297,26 @@ public class ControllerLehrerStartseite {
                     tabelleZeile zeile = new tabelleZeile(isbn, titel, nachname, vorname, email, geplanteRueckgabe);
                     verliehenTabelle.getItems().add(zeile);
 
+                }
+            }
+        }
+    }
+
+    public void loadReserviertTabelle() {
+        QueryResult result = model.getAlleReservierungen();
+        if (result != null) {
+            reserviertTabelle.getItems().clear();
+            String[][] data = result.getData();
+            for (int i = 0; i < result.getRowCount(); i++) {
+                if (data[i].length >= 5) {
+                    String isbn = data[i][0];
+                    String titel = data[i][1];
+                    String nachname = data[i][2];
+                    String vorname = data[i][3];
+                    String email = data[i][4];
+
+                    tabelleZeileReservierung zeile = new tabelleZeileReservierung(isbn, titel, nachname, vorname, email);
+                    reserviertTabelle.getItems().add(zeile);
                 }
             }
         }
@@ -360,6 +442,7 @@ public class ControllerLehrerStartseite {
         zuruecknehmenButton.setDisable(true);
         feedbackText.setText("Buch erfolgreich zurückgegeben.");
         loadVerliehenTabelle();
+        loadReserviertTabelle();
         updateGescanntListe();
         feedbackZuruecksetzen();
     }
@@ -375,6 +458,7 @@ public class ControllerLehrerStartseite {
                 zuruecknehmenButton.setDisable(true);
                 feedbackText.setText("Bücher erfolgreich verliehen.");
                 loadVerliehenTabelle();
+                loadReserviertTabelle();
                 updateGescanntListe();
                 feedbackZuruecksetzen();
             } else {
