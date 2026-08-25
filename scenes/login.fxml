@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLogin">
    <children>
       <MenuBar prefHeight="0.0" prefWidth="421.0" style="-fx-background-color: #E9E9D3;">
          <menus>
@@ -73,7 +73,7 @@
                   <TextField fx:id="emailFeld" layoutX="865.0" layoutY="570.0" promptText="E-Mail" />
                   <PasswordField fx:id="passwortFeld" layoutX="865.0" layoutY="606.0" promptText="Passwort" />
                   <Button fx:id="loginButton" layoutX="905.0" layoutY="641.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
-                  <Text fx:id="fehlerText" fill="#d32626" layoutX="872.0" layoutY="692.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="149.0" />
+                  <Text fx:id="fehlerText" fill="#d32626" layoutX="819.0" layoutY="688.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="241.0" />
                </children>
             </AnchorPane>
          </children>

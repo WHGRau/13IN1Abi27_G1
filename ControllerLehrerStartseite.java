@@ -433,4 +433,18 @@ public class ControllerLehrerStartseite {
             e.printStackTrace();
         }
     }
+
+    public void gescanntesBuchEntfernen() {
+        int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            model.gescanntesBuchEntfernen(selectedIndex);
+            updateGescanntListe();
+            
+            if (model.getErfassteBuecherNamen().isEmpty()) {
+                ausleihenButton.setDisable(true);
+                zuruecknehmenButton.setDisable(true);
+            }
+        }
+    }
+
 }

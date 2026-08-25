@@ -284,6 +284,12 @@ public class Bibliothek {
         erfassterSchueler = null;
     }
 
+    public void gescanntesBuchEntfernen(int index) {
+        if (index >= 0 && index < erfassteBuecher.size()) {
+            erfassteBuecher.remove(index);
+        }
+    }
+
     public ArrayList<String> getErfassteBuecherNamen() {
         ArrayList<String> list = new ArrayList<String>();
         for (String isbn : erfassteBuecher) {
