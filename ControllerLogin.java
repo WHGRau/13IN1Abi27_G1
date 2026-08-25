@@ -15,9 +15,12 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import java.io.File;
 import javafx.scene.layout.StackPane;
+import javafx.scene.control.PasswordField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
+import javafx.scene.input.KeyCode;
 
 public class ControllerLogin {
     private Bibliothek model;
@@ -70,6 +73,8 @@ public class ControllerLogin {
     
     @FXML
     private StackPane background;
+    
+    
 
 
     public void login(ActionEvent event) {
@@ -100,6 +105,18 @@ public class ControllerLogin {
             }
         } else {
             fehlerText.setText("Anmeldung fehlgeschlagen");
+        }
+    }
+    
+    public void enter(KeyEvent event){
+        if (event.getCode().equals(KeyCode.ENTER)){
+            passwortFeld.requestFocus();
+        }
+    }
+    
+    public void anmeldenEnter(KeyEvent event){
+        if (event.getCode().equals(KeyCode.ENTER)){
+            loginButton.fire();
         }
     }
     
