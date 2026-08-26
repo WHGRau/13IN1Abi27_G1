@@ -61,4 +61,7 @@ public class Benutzer
         lateDays = days;
     }
     
+    public int getLateDays(){
+        return lateDays;
+    }
 }

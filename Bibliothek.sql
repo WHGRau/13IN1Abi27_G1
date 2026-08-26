@@ -58,7 +58,8 @@ CREATE TABLE `benutzer` (
   `email` varchar(150) NOT NULL,
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer') NOT NULL,
-  `freigeschaltet` tinyint(1) NOT NULL
+  `freigeschaltet` tinyint(1) NOT NULL,
+  `tage_spaet` int(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -66,13 +67,13 @@ CREATE TABLE `benutzer` (
 --
 
 INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`) VALUES
-(7, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0),
-(8, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1),
-(9, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1),
-(10, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1),
-(11, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1),
-(12, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1),
-(13, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1);
+(7, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0,0),
+(8, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1,0),
+(9, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1,0),
+(10, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1,0),
+(11, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1,0),
+(12, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1,0),
+(13, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1,0);
 
 -- --------------------------------------------------------
 

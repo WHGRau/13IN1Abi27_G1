@@ -16,6 +16,8 @@ public class Bibliothek {
     public Bibliothek() {
         dbVerbinden();
         reservierungenAktualisieren();
+        
+        
     }
 
     private void dbVerbinden() {
@@ -61,7 +63,14 @@ public class Bibliothek {
             QueryResult result = dbConnector.getCurrentQueryResult();
 
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
-                
+                if(getTageZuSpaet(isbn)> 0){
+                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"'");
+                    int schuelerID = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"'");
+                    int aktuell = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                    int newLateDays = getTageZuSpaet(isbn);
+                    dbConnector.executeStatement("UPDATE benutzer SET late_days = "+newLateDays+" WHERE id = "+schuelerID+"");
+                }
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
                                 + "' AND ruckgabe_datum IS NULL");
@@ -82,6 +91,7 @@ public class Bibliothek {
                             .executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
                 }
             }
+            
         }
     }
 
@@ -564,14 +574,14 @@ public class Bibliothek {
     }
     
     public void sperren(int pID){
-        if(isLehrer()){
+        //if(isLehrer()){
             dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
             QueryResult result = dbConnector.getCurrentQueryResult();
             if(result != null){
                 dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0 WHERE id = '" + pID + "'");
             
             }
-        }
+        //}
     }
 
     public void entsperren(int pID){
@@ -759,6 +769,24 @@ public class Bibliothek {
             }
         }
         return score;
+    }
+    
+    private void lateDaysAktualisieren(){
+            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihe WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+
+            if (result != null && result.getRowCount() > 0) {
+                for(int i = 0; i < result.getRowCount(); i++){
+                    int schuelerID = Integer.parseInt(result.getData()[i][0]);
+                    String isbn = result.getData()[i][1];
+                
+                    dbConnector.executeStatement("SELECT late_days FROM benutzer WHERE id = "+schuelerID+"");
+                    int lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                    if(lateDays + getTageZuSpaet(isbn) > 14){
+                        sperren(schuelerID);
+                    }
+                }
+            }
     }
     
 }
