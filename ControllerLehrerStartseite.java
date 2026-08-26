@@ -42,6 +42,7 @@ public class ControllerLehrerStartseite {
     private final double normaleSchriftgros = 55;
     
     private final StringBuilder isbnbuild= new StringBuilder();
+    private String isbn;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -252,11 +253,13 @@ public class ControllerLehrerStartseite {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event ->{
             String character = event.getText();
              if(event.getCode()== javafx.scene.input.KeyCode.ENTER){
-                 String gescantISBN = isbnbuild.toString().trim();
+                 String gescanntISBN = isbnbuild.toString().trim();
                  
-                 if(!gescantISBN.isEmpty()){
+                 if(!gescanntISBN.isEmpty()){
                      //fertige ISBN ist in ge...
+                     isbn = gescanntISBN;
                      isbnbuild.setLength(0);
+                     scannen();
                  }
                  event.consume();
              }
@@ -270,7 +273,15 @@ public class ControllerLehrerStartseite {
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
-        String code = codeFeld.getText();
+        String code;
+        if(isbn != null){
+            code = isbn;
+            isbn = null;
+        }
+        else{
+            code = codeFeld.getText();
+        }
+        
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
