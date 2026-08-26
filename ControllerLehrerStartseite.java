@@ -22,6 +22,7 @@ import java.io.IOException;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 
+import java.time.LocalDate;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import com.sun.javafx.tk.Toolkit;
@@ -43,6 +44,7 @@ public class ControllerLehrerStartseite {
     
     private final StringBuilder isbnbuild= new StringBuilder();
     private String isbn;
+    private long letzteTastenZeit;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -217,6 +219,18 @@ public class ControllerLehrerStartseite {
                 background.setMaxHeight(targetHeight);
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+                
+                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
+                    long jetzt = System.currentTimeMillis();
+                    if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
+                            ausleihdauerFeld.setEditable(false);
+                        } 
+                        else{
+                            ausleihdauerFeld.setEditable(true);
+                        }
+                    letzteTastenZeit = jetzt;
+                    
+                });
             }
         });
         
