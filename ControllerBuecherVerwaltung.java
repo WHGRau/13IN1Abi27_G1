@@ -33,7 +33,7 @@ public class ControllerBuecherVerwaltung {
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
     
-    private String apiQuelle = "openlibrary"; // oder "google"
+    private String apiQuelle = "google"; // "openlibrary" oder "google"
     private String googleApiKey = "AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI";
     private String barcodePuffer = "";
     private long letzteTastenZeit = 0;
@@ -199,6 +199,7 @@ public class ControllerBuecherVerwaltung {
                             if (titelFeld.getText().equals(barcodePuffer)) titelFeld.clear();
                             if (autorFeld.getText().equals(barcodePuffer)) autorFeld.clear();
                             if (jahrFeld.getText().equals(barcodePuffer)) jahrFeld.clear();
+                            if (beschreibungFeld.getText().equals(barcodePuffer)) beschreibungFeld.clear();
                             
                             buchDatenAbrufen(barcodePuffer);
                             barcodePuffer = "";
@@ -217,6 +218,7 @@ public class ControllerBuecherVerwaltung {
             buchDatenAbrufen(text);
         }
     }
+    
     public void setModel(Bibliothek model) {
         this.model = model;
     }
@@ -302,6 +304,8 @@ public class ControllerBuecherVerwaltung {
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
             beschreibungFeld.setEditable(false);
+            
+
 
             entfernenButton.setDisable(false);
             try {
@@ -330,6 +334,7 @@ public class ControllerBuecherVerwaltung {
                     zurueckButton.setDisable(false);
                     neuButton.setText("neu");
                     entfernenButton.setDisable(false);
+                    searchBar.setEditable(true);
                     titelFeld.clear();
                     autorFeld.clear();
                     jahrFeld.clear();
@@ -396,6 +401,7 @@ public class ControllerBuecherVerwaltung {
             jahrFeld.setEditable(true);
             beschreibungFeld.setEditable(true);
             zurueckButton.setDisable(true);
+            searchBar.setEditable(false);
             neuAktiv = true;
             Platform.runLater(() -> isbnFeld.requestFocus());
         } else {
