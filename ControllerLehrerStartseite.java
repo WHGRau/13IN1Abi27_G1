@@ -109,6 +109,9 @@ public class ControllerLehrerStartseite {
     @FXML
     private StackPane background;
 
+    @FXML
+    private Button rueckgaengigButton;
+
 
     public static class tabelleZeile {
         private String isbn;
@@ -232,6 +235,7 @@ public class ControllerLehrerStartseite {
 
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
+        rueckgaengigButton.setDisable(true);
 
         ausleihdauerFeld.setText("28");
 
@@ -370,6 +374,7 @@ public class ControllerLehrerStartseite {
                 }
                 break;
             case 7:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText(
                         "Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
                 break;
@@ -435,6 +440,7 @@ public class ControllerLehrerStartseite {
     }
 
     public void zurueckgeben() {
+        rueckgaengigButton.setDisable(false);
         model.buchRueckgabe();
         model.abbrechen();
         ausleihdauerFeld.setText("28");
@@ -445,6 +451,7 @@ public class ControllerLehrerStartseite {
         loadReserviertTabelle();
         updateGescanntListe();
         feedbackZuruecksetzen();
+        letzteAktionAnzeigen();
     }
 
     public void ausleihen() {
@@ -461,6 +468,8 @@ public class ControllerLehrerStartseite {
                 loadReserviertTabelle();
                 updateGescanntListe();
                 feedbackZuruecksetzen();
+                letzteAktionAnzeigen();
+                rueckgaengigButton.setDisable(false);
             } else {
                 feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
             }
@@ -531,5 +540,32 @@ public class ControllerLehrerStartseite {
             }
         }
     }
+
+    public void letzteAktionAnzeigen(){
+        ArrayList<String> liste = new ArrayList<>();
+        liste.add("Letzte Aktion: ");
+        liste.addAll(model.getLetzteBuecher());
+        if (model.letzteAktionAusleihen()) {
+            liste.add("verliehen an: " + model.getLetzterSchuelerName());
+        }else{
+            liste.add("zurückgenommen von: " + model.getLetzterSchuelerName());
+        }
+        gescanntListe.getItems().clear();
+        gescanntListe.getItems().addAll(liste);
+    }
+
+    public void letzteAktionZureucknehmen(){
+        model.letzteAktionZuruecknehmen();
+        loadVerliehenTabelle();
+        loadReserviertTabelle();
+        updateGescanntListe();
+        feedbackZuruecksetzen();
+        letzteAktionAnzeigen();
+        rueckgaengigButton.setDisable(true);
+        feedbackText.setFill(Color.BLACK);
+        feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
+        gescanntListe.getItems().clear();
+    }
+
 
 }

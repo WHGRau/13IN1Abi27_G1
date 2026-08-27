@@ -12,6 +12,10 @@ public class Bibliothek {
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
     private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
+    private ArrayList<String> letzteBuecher = new ArrayList<>();
+    private int letzterSchueler;
+    private boolean letzteAktionAusleihen;
+
 
     public Bibliothek() {
         dbVerbinden();
@@ -24,7 +28,11 @@ public class Bibliothek {
 
     public void buchLeihen(int ausleihZeitTage) {
         if (isLehrer()) {
+            letzteAktionAusleihen = true;
+            letzteBuecher.clear();
+            letzterSchueler = erfassterSchueler;
             for (int i = 0; i < erfassteBuecher.size(); i++) {
+                letzteBuecher.add(erfassteBuecher.get(i));
                 dbConnector
                         .executeStatement("SELECT status FROM buecher WHERE isbn = '" + erfassteBuecher.get(i) + "'");
                 QueryResult result = dbConnector.getCurrentQueryResult();
@@ -59,6 +67,14 @@ public class Bibliothek {
             QueryResult result = dbConnector.getCurrentQueryResult();
 
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
+                letzteAktionAusleihen = false;
+                letzteBuecher.clear();
+                letzteBuecher.add(isbn);
+                dbConnector.executeStatement("SELECT schueler_id FROM ausleihen WHERE isbn = '" + isbn + "' AND ruckgabe_datum IS NULL");
+                QueryResult schuelerResult = dbConnector.getCurrentQueryResult();
+                if (schuelerResult != null && schuelerResult.getRowCount() > 0) {
+                    letzterSchueler = Integer.parseInt(schuelerResult.getData()[0][0]);
+                }
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
                                 + "' AND ruckgabe_datum IS NULL");
@@ -772,5 +788,46 @@ public class Bibliothek {
         }
         return score;
     }
-    
+
+    public boolean letzteAktionAusleihen(){
+        return letzteAktionAusleihen;
+    }
+
+    public ArrayList<String> getLetzteBuecher() {
+        ArrayList<String> titelListe = new ArrayList<>();
+        for (String isbn : letzteBuecher) {
+            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = '" + isbn + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                titelListe.add(result.getData()[0][0]);
+            } else {
+                titelListe.add(isbn);
+            }
+        }
+        return titelListe;
+    }
+
+    public String getLetzterSchuelerName() {
+        dbConnector.executeStatement("SELECT nachname, vorname FROM benutzer WHERE id = " + letzterSchueler);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            return result.getData()[0][0] + " " + result.getData()[0][1];
+        }
+        return "";
+    }
+
+    public void letzteAktionZuruecknehmen(){
+        if(letzteAktionAusleihen){
+            for(String isbn : letzteBuecher){
+                dbConnector.executeStatement("DELETE FROM ausleihen WHERE isbn = '" + isbn + "' AND schueler_id = " + letzterSchueler + " AND ruckgabe_datum IS NULL");
+                dbConnector.executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
+            }
+            erfassterSchueler = letzterSchueler;
+        }else{
+            for(String isbn : letzteBuecher){
+                dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = NULL WHERE isbn = '" + isbn + "' AND schueler_id = " + letzterSchueler + " ORDER BY ausleihdatum DESC LIMIT 1");
+                dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
+            }
+        }
+    }
 }

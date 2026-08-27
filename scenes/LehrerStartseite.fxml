@@ -158,6 +158,7 @@
                 </TableView>
                 <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen" />
                   <Text layoutX="1180.0" layoutY="28.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
+                  <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgänig" />
              </children>
         </AnchorPane>
       </children>
