@@ -469,12 +469,22 @@ public class Bibliothek {
                         + " AND ausleihen.ruckgabe_datum IS NOT NULL ORDER BY ausleihen.ausleihdatum DESC");
             return dbConnector.getCurrentQueryResult();
     }
+    public boolean isFreigeschaltet() {
+        if (angemeldet != null) {
+            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = " + angemeldet + "");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                return !result.getData()[0][0].equals("0");
+            }
+        }
+        return false;
+    }
 
 
     public void reservieren(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = " + angemeldet + "");
-            if (dbConnector.getCurrentQueryResult().getData()[0][0].equals(0)) {
+            if (dbConnector.getCurrentQueryResult().getData()[0][0].equals("0")) {
                 return;
             }
             if (reservierungMoeglich(isbn)) {

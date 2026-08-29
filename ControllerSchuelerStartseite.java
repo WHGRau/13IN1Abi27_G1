@@ -287,7 +287,7 @@ public class ControllerSchuelerStartseite {
             }
             statusText.setText("aktueller Status: " + status);
             if (model.reservierungMoeglich(selectedBuch.getIsbn())) {
-                if (model.buchGeliehen(selectedBuch.getIsbn())) {
+                if (model.buchGeliehen(selectedBuch.getIsbn()) || !model.isFreigeschaltet()) {
                     reservierenButton.setDisable(true);
                     reservierenButton.setText("reservieren");
                 } else {
