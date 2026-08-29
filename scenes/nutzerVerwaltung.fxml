@@ -70,7 +70,7 @@
                         <Font size="15.0" />
                      </font>
                   </TextField>
-                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#sperren" text="sperren">
+                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#sperren" text="sperren" textAlignment="RIGHT">
                      <font>
                         <Font size="18.0" />
                      </font>
@@ -101,6 +101,11 @@
                   </TableView>
                   <Text fx:id="errorText" fill="RED" layoutX="780.0" layoutY="705.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="374.33331298828125" />
                   <ChoiceBox fx:id="rolleAuswahl" layoutX="782.0" layoutY="458.0" prefWidth="150.0" />
+                  <Text fx:id="statusText" layoutX="885.0" layoutY="898.0" strokeType="OUTSIDE" strokeWidth="0.0">
+                     <font>
+                        <Font size="22.0" />
+                     </font>
+                  </Text>
                </children>
             </AnchorPane>
          </children>

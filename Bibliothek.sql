@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 22. Aug 2026 um 18:22
+-- Erstellungszeit: 29. Aug 2026 um 10:24
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `Bibliothek`
+-- Datenbank: `bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ausleihen`
+-- Tabellenstruktur für Tabelle `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
@@ -48,7 +48,7 @@ INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckg
 -- --------------------------------------------------------
 
 --
--- Table structure for table `benutzer`
+-- Tabellenstruktur für Tabelle `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -58,7 +58,8 @@ CREATE TABLE `benutzer` (
   `email` varchar(150) NOT NULL,
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer') NOT NULL,
-  `freigeschaltet` tinyint(1) NOT NULL
+  `freigeschaltet` tinyint(1) NOT NULL,
+  `gesperrt_von` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -77,7 +78,7 @@ INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle
 -- --------------------------------------------------------
 
 --
--- Table structure for table `buecher`
+-- Tabellenstruktur für Tabelle `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -103,12 +104,12 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 ('978-3551321022', 'Im Zeichen der Zauberkugel 2: Der Fluch des Skorpions', 'Stefan Gemmel', '2022', 'Alex hat einen neuen Freund: Sahli, den Jungen aus der Zauberkugel. Doch sie werden von dem geheimnisvollen Dschinn Argus verfolgt! Mächtiger und böser denn je, ist er wild entschlossen, den Fluch des Skorpions gegen die Freunde einzusetzen. Gemeinsam mit der magischen Katze Kadabra und den Zwillingen Liv und Sally müssen die beiden Jungs sich wehren - und werden dabei in eine aufregende Suche verwickelt, die bis tief in die Steinzeit führt …', 'verliehen'),
 ('978-3608126013', 'Der Herr der Ringe. Bd. 1 - Die Gefährten', 'J. R. R. Tolkien', '2026', 'Ein ungewöhnlicher Held. Eine Reise voller Gefahren. Das größte Abenteuer aller Zeiten.\r\n\r\nIn einem ruhigen Dorf im Auenland bekommt der junge Frodo ein Geschenk, das sein Leben für immer verändern wird – den Einen Ring, der seit Jahrhunderten als verschollen galt. Ein mächtiges und furchterregendes Ding, mit dem der Dunkle Herrscher einst Mittelerde versklavte.\r\n\r\nNun erhebt sich die Dunkelheit erneut, und Frodo muss tief in das Reich des Dunklen Herrschers vordringen, bis zu dem einzigen Ort, an dem der Ring zerstört werden kann: dem Schicksalsberg. Die Reise wird Frodos Mut, seine Freundschaften und sein Herz auf die Probe stellen. Denn der Ring korrumpiert alle, die ihn tragen. Kann Frodo den Ring vernichten, bevor der Ring ihn vernichtet? ', 'verliehen'),
 ('978-3641306113', 'Die Ehefrau – Was hat sie zu verbergen?', 'Freida McFadden', '2026', 'Sylvia Robinson wird im Haus der Barnetts als private Pflegekraft eingestellt. Nach einem Unfall benötigt Victoria Barnett rund um die Uhr Betreuung. Sie kann weder gehen noch sprechen und ist an ihr Bett im obersten Stockwerk des Hauses gefesselt. Daher hat ihr Mann Sylvia als Unterstützung hinzugeholt. Doch schon bald hat Sylvia das Gefühl, dass Victoria nicht so hilflos ist, wie sie scheint. Dann entdeckt sie Victorias Tagebuch versteckt in einer Kommode. Und was sie darin liest, zieht ihr den Boden unter den Füßen weg.', 'verfuegbar'),
-('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. It\s a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt');
+('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. Its a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reservierungen`
+-- Tabellenstruktur für Tabelle `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -125,14 +126,16 @@ CREATE TABLE `reservierungen` (
 --
 
 INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`) VALUES
-(7, '978-3551317148', 11, 'bereit', '2026-08-20', '2026-09-03');
+(7, '978-3551317148', 11, 'bereit', '2026-08-20', '2026-09-03'),
+(8, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12'),
+(9, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12');
 
 --
 -- Indizes der exportierten Tabellen
 --
 
 --
--- Indexes for table `ausleihen`
+-- Indizes für die Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -140,20 +143,20 @@ ALTER TABLE `ausleihen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indexes for table `benutzer`
+-- Indizes für die Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indexes for table `buecher`
+-- Indizes für die Tabelle `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indexes for table `reservierungen`
+-- Indizes für die Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -161,40 +164,40 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT für exportierte Tabellen
 --
 
 --
--- AUTO_INCREMENT for table `ausleihen`
+-- AUTO_INCREMENT für Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
--- AUTO_INCREMENT for table `benutzer`
+-- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT for table `reservierungen`
+-- AUTO_INCREMENT für Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
--- Constraints for dumped tables
+-- Constraints der exportierten Tabellen
 --
 
 --
--- Constraints for table `ausleihen`
+-- Constraints der Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
   ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints for table `reservierungen`
+-- Constraints der Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,
