@@ -15,6 +15,8 @@ public class Bibliothek {
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
+    public static final int reservierungDauerTage = 14;
+    public static final int reservierungSperreTage = 7;
 
 
     public Bibliothek() {
@@ -87,7 +89,7 @@ public class Bibliothek {
                     dbConnector
                             .executeStatement("UPDATE buecher SET status = 'reserviert' WHERE isbn = '" + isbn + "'");
                     dbConnector.executeStatement(
-                            "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL 14 DAY) WHERE isbn = '"
+                            "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL " + reservierungDauerTage + " DAY) WHERE isbn = '"
                                     + isbn
                                     + "' AND status = 'wartend'");
                 } else {
@@ -509,7 +511,7 @@ public class Bibliothek {
                         dbConnector.executeStatement(
                                 "INSERT INTO reservierungen (isbn, schueler_id, status, reservierung_beginn, reservierung_ende) VALUES ('"
                                         + isbn + "', " + angemeldet
-                                        + ", 'bereit', CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL 14 DAY))");
+                                        + ", 'bereit', CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL " + reservierungDauerTage + " DAY))");
                     }
                 }
             }
@@ -518,6 +520,16 @@ public class Bibliothek {
 
     public boolean reservierungMoeglich(String isbn) {
         if (angemeldet != null) {
+            dbConnector.executeStatement("SELECT COUNT(*) FROM reservierungen WHERE schueler_id = " + angemeldet
+                    + " AND isbn = '" + isbn + "' AND status = 'abgelaufen' AND reservierung_ende >= DATE_SUB(CURRENT_DATE(), INTERVAL " + reservierungSperreTage + " DAY)");
+            QueryResult blockResult = dbConnector.getCurrentQueryResult();
+            if (blockResult != null && blockResult.getRowCount() > 0) {
+                int blockCount = Integer.parseInt(blockResult.getData()[0][0]);
+                if (blockCount > 0) {
+                    return false;
+                }
+            }
+            
             dbConnector.executeStatement("SELECT COUNT(*) FROM reservierungen WHERE schueler_id = " + angemeldet
                     + " AND (status = 'wartend' OR status = 'bereit')");
             QueryResult countResult = dbConnector.getCurrentQueryResult();
