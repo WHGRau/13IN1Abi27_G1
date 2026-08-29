@@ -528,6 +528,23 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public void toEinstellungen(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
+            Parent root = loader.load();
+            
+            ControllerEinstellungen controller = loader.getController();
+            controller.setModel(model);
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void gescanntesBuchEntfernen() {
         int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {

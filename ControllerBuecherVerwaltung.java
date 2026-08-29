@@ -33,8 +33,6 @@ public class ControllerBuecherVerwaltung {
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
 
-    private String apiQuelle = "google"; // "openlibrary" oder "google"
-    private String googleApiKey = "AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI";
     private String barcodePuffer = "";
     private long letzteTastenZeit = 0;
 
@@ -447,6 +445,11 @@ public class ControllerBuecherVerwaltung {
 
     public void buchDatenAbrufen(String isbn) {
         try {
+            String dbSetting = model.getEinstellung("buechersuche_datenbank");
+            String apiQuelle = (dbSetting != null && dbSetting.equals("Google Books")) ? "google" : "openlibrary";
+            String apiKeySetting = model.getEinstellung("buechersuche_api_key");
+            String googleApiKey = apiKeySetting != null ? apiKeySetting : "";
+
             String urlText = "";
             if (apiQuelle.equals("google")) {
                 urlText = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbn;

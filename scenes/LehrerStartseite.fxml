@@ -97,7 +97,7 @@
                       <Font size="55.0" />
                    </font>
                 </Text>
-                <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="40.0" prefHeight="700.0" prefWidth="726.0">
+                <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="103.0" prefHeight="700.0" prefWidth="726.0">
                   <columns>
                     <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
                     <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
@@ -157,8 +157,9 @@
                   </columns>
                 </TableView>
                 <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen" />
-                  <Text layoutX="1180.0" layoutY="28.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
-                  <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgänig" />
+                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
+                  <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
+                  <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="15.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
              </children>
         </AnchorPane>
       </children>

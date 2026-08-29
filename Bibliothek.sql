@@ -207,3 +207,15 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+--
+-- Tabellenstruktur für Tabelle `einstellungen`
+--
+
+CREATE TABLE `einstellungen` (
+  `schluessel` varchar(50) NOT NULL,
+  `wert` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `einstellungen` ADD PRIMARY KEY (`schluessel`);
+
