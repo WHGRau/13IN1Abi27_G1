@@ -16,6 +16,10 @@ import javafx.scene.paint.Color;
 
 import java.io.IOException;
 
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.transform.Scale;
+
 public class ControllerEinstellungen {
 
     @FXML
@@ -57,6 +61,28 @@ public class ControllerEinstellungen {
     public void initialize() {
         // Styling
         background.setStyle("-fx-background-color: #E9E9D3;");
+
+        Platform.runLater(() -> {
+            Scene scene = background.getScene();
+            if (scene != null) {
+                final double targetWidth = 1920.0;
+                final double targetHeight = 1080.0;
+
+                Scale scale = new Scale(1, 1, 0, 0);
+                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+
+                background.getTransforms().clear();
+                background.getTransforms().add(scale);
+
+                background.setPrefWidth(targetWidth);
+                background.setPrefHeight(targetHeight);
+                background.setMaxWidth(targetWidth);
+                background.setMaxHeight(targetHeight);
+
+                StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
     }
 
     public void setModel(Bibliothek model) {
@@ -164,6 +190,7 @@ public class ControllerEinstellungen {
             MailService mailService = new MailService(model);
             mailService.sendeEmail(email, "Test-E-Mail Bibliothek", "Die E-Mail Konfiguration war erfolgreich!");
         }
+        toStartseite(null);
     }
 
     @FXML

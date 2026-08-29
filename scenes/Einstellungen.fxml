@@ -1,147 +1,133 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
 
-<StackPane fx:id="background" prefHeight="900.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerEinstellungen">
+<StackPane fx:id="background" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerEinstellungen">
    <children>
-      <AnchorPane prefHeight="900.0" prefWidth="1200.0">
+      <VBox prefHeight="1080.0" prefWidth="1920.0" spacing="0">
          <children>
-            <Text layoutX="466.0" layoutY="134.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Einstellungen">
-               <font>
-                  <Font size="48.0" />
-               </font>
-            </Text>
+            <!-- Header bar -->
+            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: #d1d1b9; -fx-padding: 20 40 20 40; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 5);">
+               <children>
+                  <Button fx:id="zurueckButton" mnemonicParsing="false" onAction="#toStartseite" prefHeight="45.0" prefWidth="150.0" text="Zurück" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-cursor: hand;">
+                     <font><Font size="18.0" /></font>
+                  </Button>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Einstellungen">
+                     <font><Font name="System Bold" size="36.0" /></font>
+                  </Text>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="speichernButton" mnemonicParsing="false" onAction="#speichern" prefHeight="45.0" prefWidth="150.0" text="Speichern" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;">
+                     <font><Font name="System Bold" size="18.0" /></font>
+                  </Button>
+               </children>
+            </HBox>
             
-            
-            <Label layoutX="350.0" layoutY="228.0" text="E-Mail Adresse:">
-               <font><Font size="16.0" /></font>
-            </Label>
-            <TextField fx:id="emailFeld" layoutX="500.0" layoutY="223.0" prefWidth="350.0" promptText="z.B. bibliothek@gmail.com">
-               <font><Font size="14.0" /></font>
-            </TextField>
-            
-            <Label layoutX="350.0" layoutY="288.0" text="Passwort (App-PW):">
-               <font><Font size="16.0" /></font>
-            </Label>
-            <PasswordField fx:id="passwortFeld" layoutX="500.0" layoutY="283.0" prefWidth="350.0" promptText="Dein 16-stelliges App-Passwort">
-               <font><Font size="14.0" /></font>
-            </PasswordField>
-            
-            <Label layoutX="350.0" layoutY="348.0" text="SMTP-Server:">
-               <font><Font size="16.0" /></font>
-            </Label>
-            <TextField fx:id="serverFeld" layoutX="500.0" layoutY="343.0" prefWidth="350.0" promptText="z.B. smtp.gmail.com">
-               <font><Font size="14.0" /></font>
-            </TextField>
-            
-            <Label layoutX="350.0" layoutY="408.0" text="SMTP-Port:">
-               <font><Font size="16.0" /></font>
-            </Label>
-            <TextField fx:id="portFeld" layoutX="500.0" layoutY="403.0" prefWidth="350.0" promptText="z.B. 587">
-               <font><Font size="14.0" /></font>
-            </TextField>
-            
-            <Button fx:id="speichernButton" layoutX="1017.0" layoutY="818.0" mnemonicParsing="false" onAction="#speichern" prefHeight="40.0" prefWidth="150.0" text="Speichern">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Button>
-            
-            <Button fx:id="zurueckButton" layoutX="24.0" layoutY="34.0" mnemonicParsing="false" onAction="#toStartseite" prefHeight="40.0" prefWidth="150.0" text="Zurück">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Button>
-            <Text layoutX="348.0" layoutY="190.0" strokeType="OUTSIDE" strokeWidth="0.0" text="E-Mail:">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Text>
-            <Text layoutX="348.0" layoutY="486.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Reservierungen">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Text>
-            <CheckBox fx:id="reservierungenAktivierenCheckBox" layoutX="528.0" layoutY="471.0" mnemonicParsing="false" text="aktivieren" />
-            <Label layoutX="350.0" layoutY="511.0" text="Abholzeit:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <TextField fx:id="reservierungAbholzeitFeld" layoutX="500.0" layoutY="505.0" prefHeight="30.0" prefWidth="463.0" promptText="Wie lange haben Schüler Zeit ein reserviertes Buch abzuholen (Tage)?">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </TextField>
-            <TextField fx:id="reservierungSperrzeitFeld" layoutX="500.0" layoutY="556.0" prefHeight="30.0" prefWidth="659.0" promptText="Wie lange können Schüler nach Ablauf ihrer Reservierung das selbe Buch nicht wieder reservieren (Tage)?">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </TextField>
-            <Label layoutX="350.0" layoutY="555.0" text="Sperrzeit">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <Text layoutX="348.0" layoutY="622.0" strokeType="OUTSIDE" strokeWidth="0.0" text="automatisches Sperren:">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Text>
-            <Label layoutX="350.0" layoutY="634.0" text="Verspätung:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <TextField fx:id="sperrenVerspaetungFeld" layoutX="501.0" layoutY="631.0" prefHeight="30.0" prefWidth="659.0" promptText="Verspätungen werden addiert. Bei Überschreitung dieser Zahl wird der Nutzer gesperrt. (Tage)">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </TextField>
-            <CheckBox fx:id="sperrenAktivierenCheckBox" layoutX="618.0" layoutY="607.0" mnemonicParsing="false" text="aktivieren" />
-            <Label layoutX="350.0" layoutY="680.0" text="zurücksetzen:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <TextField fx:id="sperrenZuruecksetzenFeld" layoutX="501.0" layoutY="673.0" prefHeight="30.0" prefWidth="659.0" promptText="Verspätungen älter als dieser Wert, werden nicht mehr berücksichtigt. (Monate)">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </TextField>
-            <Text layoutX="348.0" layoutY="736.0" strokeType="OUTSIDE" strokeWidth="0.0" text="automatische Büchersuche">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Text>
-            <Text layoutX="350.0" layoutY="750.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Für die automatische Vervollständigung und das Scannen des Barcodes zum Hinzufügen eines Buches ist die Abfrage einer Online-Datenbank nötig" wrappingWidth="672.76171875" />
-            <Label layoutX="350.0" layoutY="774.0" text="Datenbank:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <ChoiceBox fx:id="buechersucheDatenbankChoiceBox" layoutX="543.0" layoutY="774.0" prefWidth="150.0" />
-            <Text layoutX="349.0" layoutY="812.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Open Library ist ist eine offene Datenbank eienr Gemeinützigen Organisation. Bessere und vollständigere DSaten gibt es bei Google Books. Dafür ist allerdings ein API Schlüssel nötig. Dieser kann sich (Stand August 2026) für bis zu 1.000 Anfragen pro Tag kostelos erstellt werden." wrappingWidth="672.76171875" />
-            <Label layoutX="350.0" layoutY="852.0" text="API Schlüssel:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <TextField fx:id="buechersucheApiKeyFeld" layoutX="501.0" layoutY="849.0" prefHeight="30.0" prefWidth="463.0" promptText="API Schlüssel eingeben">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </TextField>
+            <!-- Scrollable content area -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent;">
+               <content>
+                  <VBox spacing="40" alignment="TOP_CENTER" style="-fx-padding: 40 150 60 150;">
+                     <children>
+                        
+                        <!-- E-Mail Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="E-Mail Konfiguration">
+                              <font><Font size="26.0" name="System Bold"/></font>
+                           </Text>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="E-Mail Adresse:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="emailFeld" promptText="z.B. bibliothek@gmail.com" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Passwort (App-PW):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <PasswordField fx:id="passwortFeld" promptText="Dein 16-stelliges App-Passwort" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></PasswordField>
+                              
+                              <Label text="SMTP-Server:" GridPane.columnIndex="0" GridPane.rowIndex="2"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="serverFeld" promptText="z.B. smtp.gmail.com" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="2"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="SMTP-Port:" GridPane.columnIndex="0" GridPane.rowIndex="3"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="portFeld" promptText="z.B. 587" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="3"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Reservierungen Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <HBox spacing="30" alignment="CENTER_LEFT">
+                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Reservierungen">
+                                  <font><Font size="26.0" name="System Bold"/></font>
+                               </Text>
+                               <CheckBox fx:id="reservierungenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
+                                   <font><Font size="18.0" /></font>
+                               </CheckBox>
+                           </HBox>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Abholzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="reservierungAbholzeitFeld" promptText="Wie lange haben Schüler Zeit ein reserviertes Buch abzuholen?" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Sperrzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="reservierungSperrzeitFeld" promptText="Dauer bis das selbe Buch wieder reserviert werden darf" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Automatisches Sperren Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <HBox spacing="30" alignment="CENTER_LEFT">
+                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Automatisches Sperren">
+                                  <font><Font size="26.0" name="System Bold"/></font>
+                               </Text>
+                               <CheckBox fx:id="sperrenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
+                                   <font><Font size="18.0" /></font>
+                               </CheckBox>
+                           </HBox>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Verspätung Limit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="sperrenVerspaetungFeld" promptText="Verspätungen werden addiert. Bei Überschreitung wird gesperrt." prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Zurücksetzen nach (Monate):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="sperrenZuruecksetzenFeld" promptText="Verspätungen älter als dieser Wert, werden nicht mehr berücksichtigt." prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Automatische Büchersuche Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Automatische Büchersuche">
+                              <font><Font size="26.0" name="System Bold"/></font>
+                           </Text>
+                           <Text wrappingWidth="800" text="Für die automatische Vervollständigung und das Scannen des Barcodes zum Hinzufügen eines Buches ist die Abfrage einer Online-Datenbank nötig. Open Library ist eine offene Datenbank. Vollständigere Daten gibt es bei Google Books, wofür ein kostenloser API Schlüssel nötig ist.">
+                               <font><Font size="16.0" /></font>
+                           </Text>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Datenbank:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <ChoiceBox fx:id="buechersucheDatenbankChoiceBox" prefWidth="300.0" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                              
+                              <Label text="API Schlüssel:" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="buechersucheApiKeyFeld" promptText="API Schlüssel eingeben" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
          </children>
-      </AnchorPane>
+      </VBox>
    </children>
 </StackPane>
