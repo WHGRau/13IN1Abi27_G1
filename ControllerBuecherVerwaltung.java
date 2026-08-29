@@ -32,7 +32,7 @@ public class ControllerBuecherVerwaltung {
     private Buch selectedBuch;
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
-    
+
     private String apiQuelle = "google"; // "openlibrary" oder "google"
     private String googleApiKey = "AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI";
     private String barcodePuffer = "";
@@ -97,7 +97,7 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
-    
+
     @FXML
     private StackPane background;
 
@@ -156,28 +156,27 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
-        
+
         Platform.runLater(() -> {
             Scene scene = background.getScene();
-            if(scene != null){
+            if (scene != null) {
                 final double targetWidth = 1920.0;
                 final double targetHeight = 1080.0;
-        
+
                 Scale scale = new Scale(1, 1, 0, 0);
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-                
-                
+
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
-                
+
                 background.setPrefWidth(targetWidth);
                 background.setPrefHeight(targetHeight);
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
-                
+
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
-                
+
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
                     if (neuAktiv) {
                         long jetzt = System.currentTimeMillis();
@@ -190,17 +189,21 @@ public class ControllerBuecherVerwaltung {
                         letzteTastenZeit = jetzt;
                     }
                 });
-                
+
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                     if (neuAktiv && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
                         if (barcodePuffer.length() >= 10) {
                             isbnFeld.setText(barcodePuffer);
-                            
-                            if (titelFeld.getText().equals(barcodePuffer)) titelFeld.clear();
-                            if (autorFeld.getText().equals(barcodePuffer)) autorFeld.clear();
-                            if (jahrFeld.getText().equals(barcodePuffer)) jahrFeld.clear();
-                            if (beschreibungFeld.getText().equals(barcodePuffer)) beschreibungFeld.clear();
-                            
+
+                            if (titelFeld.getText().equals(barcodePuffer))
+                                titelFeld.clear();
+                            if (autorFeld.getText().equals(barcodePuffer))
+                                autorFeld.clear();
+                            if (jahrFeld.getText().equals(barcodePuffer))
+                                jahrFeld.clear();
+                            if (beschreibungFeld.getText().equals(barcodePuffer))
+                                beschreibungFeld.clear();
+
                             buchDatenAbrufen(barcodePuffer);
                             barcodePuffer = "";
                         }
@@ -211,14 +214,15 @@ public class ControllerBuecherVerwaltung {
     }
 
     public void isbnFeldKeyReleased(javafx.scene.input.KeyEvent event) {
-        if (!neuAktiv) return;
+        if (!neuAktiv)
+            return;
         String text = isbnFeld.getText().trim();
 
         if ((text.length() == 10 || text.length() == 13) && text.matches("[0-9]+")) {
             buchDatenAbrufen(text);
         }
     }
-    
+
     public void setModel(Bibliothek model) {
         this.model = model;
     }
@@ -253,7 +257,7 @@ public class ControllerBuecherVerwaltung {
     }
 
     public void selectBuch() {
-        if (!bearbeitenAktiv) {
+        if (!bearbeitenAktiv && !neuAktiv) {
 
             selectedBuch = buecherTabelle.getSelectionModel().getSelectedItem();
             if (selectedBuch != null) {
@@ -304,8 +308,6 @@ public class ControllerBuecherVerwaltung {
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
             beschreibungFeld.setEditable(false);
-            
-
 
             entfernenButton.setDisable(false);
             try {
@@ -322,7 +324,12 @@ public class ControllerBuecherVerwaltung {
             if (neuAktiv) {
                 try {
                     int jahr = Integer.parseInt(jahrFeld.getText().trim());
-                    model.buchHinzufuegen(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
+                    String neueIsbn = isbnFeld.getText().trim();
+                    if (model.isbnVorhanden(neueIsbn)) {
+                        errorText.setText("Diese ISBN existiert bereits!");
+                        return;
+                    }
+                    model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
                             jahr, beschreibungFeld.getText());
                     suchen();
                     neuAktiv = false;
@@ -407,7 +414,8 @@ public class ControllerBuecherVerwaltung {
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
-            bearbeitenButton.setText("speichern");
+            bearbeitenButton.setText("bearbeiten");
+            errorText.setText("");
             isbnFeld.clear();
             titelFeld.clear();
             autorFeld.clear();
@@ -425,7 +433,7 @@ public class ControllerBuecherVerwaltung {
     }
 
     private String pruefeFelderAufIsbn() {
-        TextField[] felder = {isbnFeld, titelFeld, autorFeld, jahrFeld};
+        TextField[] felder = { isbnFeld, titelFeld, autorFeld, jahrFeld };
         for (TextField feld : felder) {
             String text = feld.getText().trim();
             if (text.length() >= 10 && text.matches("[0-9]+")) {
@@ -448,11 +456,11 @@ public class ControllerBuecherVerwaltung {
             } else {
                 urlText = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
             }
-            
+
             URL url = new URL(urlText);
             HttpURLConnection verbindung = (HttpURLConnection) url.openConnection();
             verbindung.setRequestMethod("GET");
-            
+
             BufferedReader leser = new BufferedReader(new InputStreamReader(verbindung.getInputStream()));
             String zeile;
             String json = "";
@@ -460,31 +468,37 @@ public class ControllerBuecherVerwaltung {
                 json += zeile;
             }
             leser.close();
-            
+
             String titel = wertAuslesen(json, "title");
-            if (!titel.isEmpty()) titelFeld.setText(titel);
-            
+            if (!titel.isEmpty())
+                titelFeld.setText(titel);
+
             if (apiQuelle.equals("google")) {
                 String autor = arrayWertAuslesen(json, "authors");
-                if (!autor.isEmpty()) autorFeld.setText(autor);
-                
+                if (!autor.isEmpty())
+                    autorFeld.setText(autor);
+
                 String datum = wertAuslesen(json, "publishedDate");
-                if (datum.length() >= 4) jahrFeld.setText(datum.substring(0, 4));
-                
+                if (datum.length() >= 4)
+                    jahrFeld.setText(datum.substring(0, 4));
+
                 String beschreibung = wertAuslesen(json, "description");
-                if (!beschreibung.isEmpty()) beschreibungFeld.setText(beschreibung);
+                if (!beschreibung.isEmpty())
+                    beschreibungFeld.setText(beschreibung);
             } else {
                 String autor = wertAuslesen(json, "name");
-                if (!autor.isEmpty()) autorFeld.setText(autor);
-                
+                if (!autor.isEmpty())
+                    autorFeld.setText(autor);
+
                 String datum = wertAuslesen(json, "publish_date");
-                if (datum.length() >= 4) jahrFeld.setText(datum.substring(datum.length() - 4));
-                
+                if (datum.length() >= 4)
+                    jahrFeld.setText(datum.substring(datum.length() - 4));
+
                 String beschreibung = wertAuslesen(json, "notes");
-                if (!beschreibung.isEmpty()) beschreibungFeld.setText(beschreibung);
+                if (!beschreibung.isEmpty())
+                    beschreibungFeld.setText(beschreibung);
             }
-            
-            
+
         } catch (Exception e) {
             errorText.setText("Fehler beim Abrufen der Buchdaten");
         }
@@ -493,15 +507,16 @@ public class ControllerBuecherVerwaltung {
     private String wertAuslesen(String json, String schluessel) {
         String suche1 = "\"" + schluessel + "\":\"";
         String suche2 = "\"" + schluessel + "\": \"";
-        
+
         int startPos = json.indexOf(suche1);
         if (startPos != -1) {
             startPos += suche1.length();
         } else {
             startPos = json.indexOf(suche2);
-            if (startPos != -1) startPos += suche2.length();
+            if (startPos != -1)
+                startPos += suche2.length();
         }
-        
+
         if (startPos != -1) {
             int endPos = json.indexOf("\"", startPos);
             if (endPos != -1) {
@@ -547,7 +562,7 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
-    public void errorTextZuruecksetzen(){
+    public void errorTextZuruecksetzen() {
         errorText.setText("");
     }
 }

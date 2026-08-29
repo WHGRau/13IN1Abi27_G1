@@ -672,6 +672,14 @@ public class Bibliothek {
         return result != null && result.getRowCount() > 0;
     }
 
+    public boolean isbnVorhanden(String isbn) {
+        if (isbn == null || isbn.trim().isEmpty())
+            return false;
+        dbConnector.executeStatement("SELECT isbn FROM buecher WHERE isbn = '" + isbn + "'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result != null && result.getRowCount() > 0;
+    }
+
     public void passwortAendern(int pID, String pNewPW) {
         if (isLehrer() || pID == angemeldet) {
             dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");
