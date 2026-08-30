@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane fx:id="background" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerEinstellungen">
+   <children>
+      <VBox prefHeight="1080.0" prefWidth="1920.0" spacing="0">
+         <children>
+            <!-- Header bar -->
+            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: #d1d1b9; -fx-padding: 20 40 20 40; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 5);">
+               <children>
+                  <Button fx:id="zurueckButton" mnemonicParsing="false" onAction="#toStartseite" prefHeight="45.0" prefWidth="150.0" text="Zurück" style="-fx-background-color: #ffffff; -fx-background-radius: 5; -fx-cursor: hand;">
+                     <font><Font size="18.0" /></font>
+                  </Button>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Einstellungen">
+                     <font><Font name="System Bold" size="36.0" /></font>
+                  </Text>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="speichernButton" mnemonicParsing="false" onAction="#speichern" prefHeight="45.0" prefWidth="150.0" text="Speichern" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;">
+                     <font><Font name="System Bold" size="18.0" /></font>
+                  </Button>
+               </children>
+            </HBox>
+            
+            <!-- Scrollable content area -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-background: transparent;">
+               <content>
+                  <VBox spacing="40" alignment="TOP_CENTER" style="-fx-padding: 40 150 60 150;">
+                     <children>
+                        
+                        <!-- E-Mail Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="E-Mail Konfiguration">
+                              <font><Font size="26.0" name="System Bold"/></font>
+                           </Text>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="E-Mail Adresse:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="emailFeld" promptText="z.B. bibliothek@gmail.com" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Passwort (App-PW):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <PasswordField fx:id="passwortFeld" promptText="Dein 16-stelliges App-Passwort" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></PasswordField>
+                              
+                              <Label text="SMTP-Server:" GridPane.columnIndex="0" GridPane.rowIndex="2"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="serverFeld" promptText="z.B. smtp.gmail.com" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="2"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="SMTP-Port:" GridPane.columnIndex="0" GridPane.rowIndex="3"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="portFeld" promptText="z.B. 587" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="3"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Reservierungen Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <HBox spacing="30" alignment="CENTER_LEFT">
+                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Reservierungen">
+                                  <font><Font size="26.0" name="System Bold"/></font>
+                               </Text>
+                               <CheckBox fx:id="reservierungenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
+                                   <font><Font size="18.0" /></font>
+                               </CheckBox>
+                           </HBox>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Abholzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="reservierungAbholzeitFeld" promptText="Wie lange haben Schüler Zeit ein reserviertes Buch abzuholen?" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Sperrzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="reservierungSperrzeitFeld" promptText="Dauer bis das selbe Buch wieder reserviert werden darf" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Automatisches Sperren Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <HBox spacing="30" alignment="CENTER_LEFT">
+                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Automatisches Sperren">
+                                  <font><Font size="26.0" name="System Bold"/></font>
+                               </Text>
+                               <CheckBox fx:id="sperrenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
+                                   <font><Font size="18.0" /></font>
+                               </CheckBox>
+                           </HBox>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Verspätung Limit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="sperrenVerspaetungFeld" promptText="Verspätungen werden addiert. Bei Überschreitung wird gesperrt." prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              
+                              <Label text="Zurücksetzen nach (Monate):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="sperrenZuruecksetzenFeld" promptText="Verspätungen älter als dieser Wert, werden nicht mehr berücksichtigt." prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Automatische Büchersuche Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Automatische Büchersuche">
+                              <font><Font size="26.0" name="System Bold"/></font>
+                           </Text>
+                           <Text wrappingWidth="800" text="Für die automatische Vervollständigung und das Scannen des Barcodes zum Hinzufügen eines Buches ist die Abfrage einer Online-Datenbank nötig. Open Library ist eine offene Datenbank. Vollständigere Daten gibt es bei Google Books, wofür ein kostenloser API Schlüssel nötig ist.">
+                               <font><Font size="16.0" /></font>
+                           </Text>
+                           <GridPane vgap="20" hgap="30">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <Label text="Datenbank:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
+                              <ChoiceBox fx:id="buechersucheDatenbankChoiceBox" prefWidth="300.0" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                              
+                              <Label text="API Schlüssel:" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
+                              <TextField fx:id="buechersucheApiKeyFeld" promptText="API Schlüssel eingeben" prefHeight="40" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                           </GridPane>
+                        </VBox>
+
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </children>
+      </VBox>
+   </children>
+</StackPane>
