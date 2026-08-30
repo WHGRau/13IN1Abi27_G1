@@ -29,13 +29,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 
-
-
 public class ControllerSchuelerStartseite {
 
     private Bibliothek model;
     private Buch selectedBuch;
-    
+
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
 
@@ -93,9 +91,12 @@ public class ControllerSchuelerStartseite {
 
     @FXML
     private Button reservierenButton;
-    
+
     @FXML
     private StackPane background;
+
+    @FXML
+    private Text gesperrtText;
 
     public static class TabellenZeile {
         private String titel;
@@ -137,19 +138,19 @@ public class ControllerSchuelerStartseite {
     public void setModel(Bibliothek model) {
         this.model = model;
         String text = "Hallo, " + model.getName() + " !";
-        //dynamisch die Schriftgrose an Text Lange anpassen
+        // dynamisch die Schriftgrose an Text Lange anpassen
         Text tempText = new Text(text);
         tempText.setFont(Font.font("Candara", normaleSchriftgros));
         double textBreite = tempText.getLayoutBounds().getWidth();
-        if (textBreite <= maxText){
-            nutzernameText.setFont(Font.font("Candara",normaleSchriftgros));
+        if (textBreite <= maxText) {
+            nutzernameText.setFont(Font.font("Candara", normaleSchriftgros));
+        } else {
+            double neueSchrift = normaleSchriftgros * maxText / textBreite;
+            nutzernameText.setFont(Font.font("Candara", neueSchrift));
         }
-        else{
-            double neueSchrift = normaleSchriftgros * maxText/textBreite;
-            nutzernameText.setFont(Font.font("Candara",neueSchrift));
-        }
-        
+
         nutzernameText.setText(text);
+        gesperrtText.setVisible(!model.isFreigeschaltet());
         updateTabellen();
     }
 
@@ -169,26 +170,26 @@ public class ControllerSchuelerStartseite {
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufAusleihdatumSpalte.setCellValueFactory(new PropertyValueFactory<>("datum"));
         reservierenButton.setDisable(true);
-        
-        Platform.runLater(() ->{
+        gesperrtText.setVisible(false);
+
+        Platform.runLater(() -> {
             Scene scene = background.getScene();
-            if(scene != null){
+            if (scene != null) {
                 final double targetWidth = 1920.0;
                 final double targetHeight = 1080.0;
-        
+
                 Scale scale = new Scale(1, 1, 0, 0);
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-                
-                
+
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
-                
+
                 background.setPrefWidth(targetWidth);
                 background.setPrefHeight(targetHeight);
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
-                
+
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
@@ -287,7 +288,7 @@ public class ControllerSchuelerStartseite {
             }
             statusText.setText("aktueller Status: " + status);
             if (model.reservierungMoeglich(selectedBuch.getIsbn())) {
-                if (model.buchGeliehen(selectedBuch.getIsbn())) {
+                if (model.buchGeliehen(selectedBuch.getIsbn()) || !model.isFreigeschaltet()) {
                     reservierenButton.setDisable(true);
                     reservierenButton.setText("reservieren");
                 } else {

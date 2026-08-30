@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 25. Aug 2026 um 19:06
+-- Erstellungszeit: 29. Aug 2026 um 17:20
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -60,7 +60,8 @@ CREATE TABLE `benutzer` (
   `email` varchar(150) NOT NULL,
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer') NOT NULL,
-  `freigeschaltet` tinyint(1) NOT NULL
+  `freigeschaltet` tinyint(1) NOT NULL,
+  `gesperrt_von` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -102,12 +103,41 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 ('978-1464221378', 'The Teacher', 'Freida McFadden', '2024', 'Eve has a good life. She gets up each day, gets a kiss from her husband Nate, and heads off to teach math at the local high school. All is as it should be. Except…\r\n\r\nLast year, Caseham High was rocked by a scandal, with one student, Addie, at its center. And this year, Eve is dismayed to find the girl in her class.\r\n\r\nAddie can\'t be trusted. She lies. She hurts people. She destroys lives. At least, that\'s what everyone says.\r\n\r\nBut nobody knows the real Addie. Nobody knows the secrets that could destroy her. And Addie will do anything to keep it quiet.', 'verfuegbar'),
 ('978-1642750331', 'I want to eat your pancreas', 'Yoru Sumino', '2018', 'A high school boy finds the diary of his classmate—only to discover that she’s dying. Yamauchi Sakura has been silently suffering from a pancreatic disease, and now exactly one person outside her family knows. He swears to her that he won’t tell anyone what he learned, and the shared secret brings them closer together in this deeply moving, first-person story that traces their developing relationship in Sakura’s final months of life.', 'verfuegbar'),
 ('978-1645052975', 'At Night, I Become a Monster', 'Yoru Sumino', '2020', 'Every night, Adachi transforms into a nightmarish creature―and every morning, he reverts to human form. When he encounters his ostracized classmate Yano Satsuki in his monstrous state, the two develop a peculiar bond. But daylight brings its own form of terrors. Which is worse, the monster at night, or the cruel realities of the classroom by day?', 'entfernt'),
-('978-3125739291', 'Nineteen Eighty-Four', 'George Orwell', '2021', 'Winston Smith lives in 1984 in a London ruled by a fearsome totalitarian regime, headed by the ever-present Big Brother, and watched closely by the hugely feared Thought Police. But, he rebels…', 'verliehen'),
+('978-3125739291', 'Nineteen Eighty-Four', 'George Orwell', '2021', 'Winston Smith lives in 1984 in a London ruled by a fearsome totalitarian regime, headed by the ever-present Big Brother, and watched closely by the hugely feared Thought Police. But, he rebels…', 'reserviert'),
 ('978-3551317148', 'Im Zeichen der Zauberkugel 1', 'Stefan Gemmel', '2019', 'Beim Stöbern auf dem Dachboden seiner Großeltern entdeckt Alex eine verborgene Tür, die er noch nie gesehen hat. Eine Tür, die laut seiner Oma strengstens verboten ist. Natürlich öffnet Alex sie trotzdem. Dahinter liegt das geheime Arbeitszimmer seines Großvaters – ein Professor, der vor Jahren spurlos verschwand. Und zwischen all den rätselhaften Büchern und seltsamen Gegenständen findet Alex eine leuchtende Kugel. Darin steckt Sahli, ein echter Dschinn! Alex kann sein Glück kaum fassen. Doch das ändert sich schnell. Denn mit der Befreiung des Kugelgeists hat Alex nicht nur drei Wünsche frei – sondern auch Argus gegen sich aufgebracht. Den mächtigsten und gefährlichsten Dschinn aller Zeiten!', 'reserviert'),
 ('978-3551321022', 'Im Zeichen der Zauberkugel 2: Der Fluch des Skorpions', 'Stefan Gemmel', '2022', 'Alex hat einen neuen Freund: Sahli, den Jungen aus der Zauberkugel. Doch sie werden von dem geheimnisvollen Dschinn Argus verfolgt! Mächtiger und böser denn je, ist er wild entschlossen, den Fluch des Skorpions gegen die Freunde einzusetzen. Gemeinsam mit der magischen Katze Kadabra und den Zwillingen Liv und Sally müssen die beiden Jungs sich wehren - und werden dabei in eine aufregende Suche verwickelt, die bis tief in die Steinzeit führt …', 'verliehen'),
 ('978-3608126013', 'Der Herr der Ringe. Bd. 1 - Die Gefährten', 'J. R. R. Tolkien', '2026', 'Ein ungewöhnlicher Held. Eine Reise voller Gefahren. Das größte Abenteuer aller Zeiten.\r\n\r\nIn einem ruhigen Dorf im Auenland bekommt der junge Frodo ein Geschenk, das sein Leben für immer verändern wird – den Einen Ring, der seit Jahrhunderten als verschollen galt. Ein mächtiges und furchterregendes Ding, mit dem der Dunkle Herrscher einst Mittelerde versklavte.\r\n\r\nNun erhebt sich die Dunkelheit erneut, und Frodo muss tief in das Reich des Dunklen Herrschers vordringen, bis zu dem einzigen Ort, an dem der Ring zerstört werden kann: dem Schicksalsberg. Die Reise wird Frodos Mut, seine Freundschaften und sein Herz auf die Probe stellen. Denn der Ring korrumpiert alle, die ihn tragen. Kann Frodo den Ring vernichten, bevor der Ring ihn vernichtet? ', 'verliehen'),
 ('978-3641306113', 'Die Ehefrau – Was hat sie zu verbergen?', 'Freida McFadden', '2026', 'Sylvia Robinson wird im Haus der Barnetts als private Pflegekraft eingestellt. Nach einem Unfall benötigt Victoria Barnett rund um die Uhr Betreuung. Sie kann weder gehen noch sprechen und ist an ihr Bett im obersten Stockwerk des Hauses gefesselt. Daher hat ihr Mann Sylvia als Unterstützung hinzugeholt. Doch schon bald hat Sylvia das Gefühl, dass Victoria nicht so hilflos ist, wie sie scheint. Dann entdeckt sie Victorias Tagebuch versteckt in einer Kommode. Und was sie darin liest, zieht ihr den Boden unter den Füßen weg.', 'verfuegbar'),
-('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. It\s a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt');
+('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. Its a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt');
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `einstellungen`
+--
+
+CREATE TABLE `einstellungen` (
+  `schluessel` varchar(50) NOT NULL,
+  `wert` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Daten für Tabelle `einstellungen`
+--
+
+INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
+('buechersuche_api_key', 'AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI'),
+('buechersuche_datenbank', 'Google Books'),
+('email_adresse', 'euleinc@gmail.com'),
+('email_passwort', 'ngbz pith mvjj sggv'),
+('reservierungen_aktiv', '1'),
+('reservierung_dauer_tage', '14'),
+('reservierung_sperre_tage', '7'),
+('smtp_port', '587'),
+('smtp_server', 'smtp.gmail.com'),
+('sperren_aktiv', '0'),
+('sperren_verspaetung_tage', ''),
+('sperren_zuruecksetzen_monate', '');
 
 -- --------------------------------------------------------
 
@@ -121,8 +151,8 @@ CREATE TABLE `reservierungen` (
   `isbn` varchar(20) NOT NULL,
   `schueler_id` int(11) NOT NULL,
   `status` enum('wartend','bereit','abgeschlossen','abgesagt') NOT NULL,
-  `reservierung_beginn` date NOT NULL,
-  `reservierung_ende` date NOT NULL
+  `reservierung_beginn` date DEFAULT NULL,
+  `reservierung_ende` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -156,6 +186,12 @@ ALTER TABLE `benutzer`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
+
+--
+-- Indizes für die Tabelle `einstellungen`
+--
+ALTER TABLE `einstellungen`
+  ADD PRIMARY KEY (`schluessel`);
 
 --
 -- Indizes für die Tabelle `reservierungen`

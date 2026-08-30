@@ -15,8 +15,9 @@ public class Benutzer
     private String rolle;
     private int id;
     private boolean freigeschaltet;
+    private int gesperrtVon;
     
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet)
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
     {
         email = pEmail;
         passwort = pPw;
@@ -25,6 +26,7 @@ public class Benutzer
         rolle = pRolle;
         id = pId;
         freigeschaltet = pFreigeschaltet;
+        gesperrtVon = pGesperrtVon;
     }
 
     public String getEmail() {
@@ -53,6 +55,10 @@ public class Benutzer
 
     public boolean isFreigeschaltet() {
         return freigeschaltet;
+    }
+    
+    public int getGesperrtVon() {
+        return gesperrtVon;
     }
     
 }

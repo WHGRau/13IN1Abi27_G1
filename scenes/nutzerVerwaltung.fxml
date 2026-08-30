@@ -71,7 +71,7 @@
                         <Font size="15.0" />
                      </font>
                   </TextField>
-                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#sperren" text="sperren">
+                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#sperren" text="sperren" textAlignment="RIGHT">
                      <font>
                         <Font size="18.0" />
                      </font>
@@ -121,6 +121,9 @@
                   <Text fx:id="hinweisText" layoutX="974.0" layoutY="946.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="235.0">
                      <font>
                         <Font size="20.0" />
+                  <Text fx:id="statusText" layoutX="885.0" layoutY="898.0" strokeType="OUTSIDE" strokeWidth="0.0">
+                     <font>
+                        <Font size="22.0" />
                      </font>
                   </Text>
                </children>
