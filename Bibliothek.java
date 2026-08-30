@@ -880,7 +880,8 @@ public class Bibliothek {
         String verschlusselt;
 
         verschlusselt = passwordEncoder.encode(pP);
-
+        
+        
         return verschlusselt;
     }
 

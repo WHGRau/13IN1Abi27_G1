@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -14,7 +15,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
    <children>
       <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
@@ -101,6 +102,25 @@
                   </TableView>
                   <Text fx:id="errorText" fill="RED" layoutX="780.0" layoutY="705.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="374.33331298828125" />
                   <ChoiceBox fx:id="rolleAuswahl" layoutX="782.0" layoutY="458.0" prefWidth="150.0" />
+                  <Button fx:id="addButton" layoutX="974.0" layoutY="747.0" mnemonicParsing="false" onAction="#hinzu" prefHeight="31.0" prefWidth="106.0" text="hinzufügen">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="druckenButton" layoutX="1103.0" layoutY="747.0" mnemonicParsing="false" onAction="#druck" prefHeight="31.0" prefWidth="106.0" text="drucken">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Button>
+                  <ListView fx:id="schulerList" layoutX="974.0" layoutY="801.0" prefHeight="117.0" prefWidth="235.0" />
+                  <TextField fx:id="schulerausweis" layoutX="1031.0" layoutY="708.0" prefHeight="31.0" prefWidth="118.0" text="Schülerausweis">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
+                  <Text fx:id="hinweisText" layoutX="974.0" layoutY="946.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="235.0">
+                     <font>
+                        <Font size="20.0" />
                   <Text fx:id="statusText" layoutX="885.0" layoutY="898.0" strokeType="OUTSIDE" strokeWidth="0.0">
                      <font>
                         <Font size="22.0" />

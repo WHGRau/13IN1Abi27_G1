@@ -22,6 +22,7 @@ import java.io.IOException;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 
+import java.time.LocalDate;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import com.sun.javafx.tk.Toolkit;
@@ -30,6 +31,7 @@ import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
+import javafx.scene.input.KeyEvent;
 
 public class ControllerLehrerStartseite {
 
@@ -39,6 +41,10 @@ public class ControllerLehrerStartseite {
     
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
+    
+    private final StringBuilder isbnbuild= new StringBuilder();
+    private String isbn;
+    private long letzteTastenZeit;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -280,6 +286,30 @@ public class ControllerLehrerStartseite {
                 background.setMaxHeight(targetHeight);
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+                
+                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
+                    long jetzt = System.currentTimeMillis();
+                    if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
+                            ausleihdauerFeld.setEditable(false);
+                            String e = ausleihdauerFeld.getText();
+                            if (e != null){
+                                e = e.substring(0, e.length()-1);
+                                ausleihdauerFeld.setText(e);
+                            }
+                            
+                        } 
+                        else{
+                            ausleihdauerFeld.setEditable(true);
+                        }
+                    letzteTastenZeit = jetzt;
+                    
+                });
+            }
+        });
+        
+        background.sceneProperty().addListener((observable, oldScene, newScene) ->{
+            if(newScene != null){
+                registerGlobalScanner(newScene);
             }
         });
     }
@@ -304,6 +334,26 @@ public class ControllerLehrerStartseite {
                 }
             }
         }
+    }
+    
+    public void registerGlobalScanner(javafx.scene.Scene scene){
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event ->{
+            String character = event.getText();
+             if(event.getCode()== javafx.scene.input.KeyCode.ENTER){
+                 String gescanntISBN = isbnbuild.toString().trim();
+                 
+                 if(!gescanntISBN.isEmpty()){
+                     //fertige ISBN ist in ge...
+                     isbn = gescanntISBN;
+                     isbnbuild.setLength(0);
+                     scannen();
+                 }
+                 event.consume();
+             }
+             else{
+                 isbnbuild.append(character);
+             }
+        });
     }
 
     public void loadReserviertTabelle() {
@@ -330,7 +380,15 @@ public class ControllerLehrerStartseite {
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
-        String code = codeFeld.getText();
+        String code;
+        if(isbn != null){
+            code = isbn;
+            isbn = null;
+        }
+        else{
+            code = codeFeld.getText();
+        }
+        
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
@@ -471,6 +529,7 @@ public class ControllerLehrerStartseite {
                 letzteAktionAnzeigen();
                 rueckgaengigButton.setDisable(false);
             } else {
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
             }
         } catch (NumberFormatException e) {

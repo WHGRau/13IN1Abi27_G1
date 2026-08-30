@@ -70,8 +70,8 @@
                         <Image url="@../eulen/langeEule.png" />
                      </image>
                   </ImageView>
-                  <TextField fx:id="emailFeld" layoutX="865.0" layoutY="570.0" promptText="E-Mail" />
-                  <PasswordField fx:id="passwortFeld" layoutX="865.0" layoutY="606.0" promptText="Passwort" />
+                  <TextField fx:id="emailFeld" layoutX="865.0" layoutY="570.0" onKeyPressed="#enter" promptText="E-Mail" />
+                  <PasswordField fx:id="passwortFeld" layoutX="865.0" layoutY="606.0" onKeyPressed="#anmeldenEnter" promptText="Passwort" />
                   <Button fx:id="loginButton" layoutX="905.0" layoutY="641.0" mnemonicParsing="false" onAction="#login" text="anmelden" />
                   <Text fx:id="fehlerText" fill="#d32626" layoutX="819.0" layoutY="688.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="241.0" />
                </children>
