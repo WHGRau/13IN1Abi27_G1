@@ -91,18 +91,18 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
-    public void sendeMahnungMail(String empfaengerEmail, String nutzerName, String buchTitel, String typ) {
+    public void sendeMahnungMail(String empfaengerEmail, String nutzerName, String buchTitel, String typ, String rueckgabeDatum) {
         String betreff = "";
         String nachricht = "Hallo " + nutzerName + ",\n\n";
 
         if (typ.equals("2_Tage_vorher")) {
-            betreff = "Erinnerung: Buchrückgabe in 2 Tagen fällig";
+            betreff = "Erinnerung: Buchrückgabe bald fällig";
             nachricht += "wir möchten dich daran erinnern, dass du das Buch \"" + buchTitel
-                    + "\" in 2 Tagen zurückgeben musst.\n" +
+                    + "\" am " + rueckgabeDatum + " zurückgeben musst.\n" +
                     "Bitte denke daran, es rechtzeitig in der Bibliothek abzugeben.";
         } else if (typ.equals("Stichtag")) {
             betreff = "Buchrückgabe heute fällig!";
-            nachricht += "du musst das Buch \"" + buchTitel + "\" heute in der Bibliothek zurückgeben!\n" +
+            nachricht += "du musst das Buch \"" + buchTitel + "\" in der Bibliothek zurückgeben!\n" +
                     "Bitte erledige das schnellstmöglich.";
         } else if (typ.equals("1_Woche_danach")) {
             betreff = "Buchrückgabe überfällig!";

@@ -28,32 +28,29 @@ public class ControllerLogin {
     public void initialize() {
         model = new Bibliothek();
         Platform.runLater(() -> loginButton.requestFocus());
-        
-        
-        Platform.runLater(() ->{
+
+        Platform.runLater(() -> {
             Scene scene = background.getScene();
-            if(scene != null){
+            if (scene != null) {
                 final double targetWidth = 1920.0;
                 final double targetHeight = 1080.0;
-        
+
                 Scale scale = new Scale(1, 1, 0, 0);
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-                
-                
+
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
-                
+
                 background.setPrefWidth(targetWidth);
                 background.setPrefHeight(targetHeight);
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
-                
+
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
-        
-        
+
     }
 
     @FXML
@@ -67,15 +64,12 @@ public class ControllerLogin {
 
     @FXML
     private Text fehlerText;
-    
+
     @FXML
     private MediaView meinVideo;
-    
+
     @FXML
     private StackPane background;
-    
-    
-
 
     public void login(ActionEvent event) {
         if (model.login(emailFeld.getText(), passwortFeld.getText()) == 1) {
@@ -97,7 +91,7 @@ public class ControllerLogin {
                     controller.setModel(model);
                     Scene scene = new Scene(root);
                     scene.setFill(Color.web("#E9E9D3"));
-                stage.setScene(scene);
+                    stage.setScene(scene);
                     stage.show();
                 }
             } catch (IOException e) {
@@ -107,18 +101,17 @@ public class ControllerLogin {
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
-    
-    public void enter(KeyEvent event){
-        if (event.getCode().equals(KeyCode.ENTER)){
+
+    public void enter(KeyEvent event) {
+        if (event.getCode().equals(KeyCode.ENTER)) {
             passwortFeld.requestFocus();
         }
     }
-    
-    public void anmeldenEnter(KeyEvent event){
-        if (event.getCode().equals(KeyCode.ENTER)){
+
+    public void anmeldenEnter(KeyEvent event) {
+        if (event.getCode().equals(KeyCode.ENTER)) {
             loginButton.fire();
         }
     }
-    
-    
+
 }

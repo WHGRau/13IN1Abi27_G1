@@ -9,13 +9,18 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
    <children>
       <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
@@ -38,96 +43,175 @@
                 </Menu>
               </menus>
             </MenuBar>
-            <AnchorPane prefHeight="1026.0" prefWidth="1824.0">
+            <HBox spacing="40.0" VBox.vgrow="ALWAYS">
+               <padding>
+                  <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+               </padding>
                <children>
-                  <TextField fx:id="searchBar" layoutX="69.0" layoutY="171.0" onAction="#suchen" onKeyReleased="#suchen" prefHeight="25.0" prefWidth="445.0" promptText="suchen...">
-                     <font>
-                        <Font size="22.0" />
-                     </font>
-                  </TextField>
-                  <TableView fx:id="nutzerTabelle" layoutX="69.0" layoutY="241.0" onMouseClicked="#selectBenutzer" prefHeight="783.0" prefWidth="447.0">
-                    <columns>
-                      <TableColumn fx:id="nameSpalte" prefWidth="145.0" text="Name" />
-                      <TableColumn fx:id="vornameSpalte" prefWidth="301.0" text="Vorname" />
-                    </columns>
-                  </TableView>
-                  <TextField fx:id="emailFeld" editable="false" layoutX="780.0" layoutY="166.0" prefHeight="31.0" prefWidth="387.0" promptText="E-Mail">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextField fx:id="nameFeld" editable="false" layoutX="779.0" layoutY="240.0" prefHeight="31.0" prefWidth="389.0" promptText="Name">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextField fx:id="vornameFeld" editable="false" layoutX="779.0" layoutY="312.0" prefHeight="31.0" prefWidth="390.0" promptText="Vorname">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextField fx:id="passwortFeld" editable="false" layoutX="777.0" layoutY="382.0" prefHeight="31.0" prefWidth="395.0" promptText="Passwort">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#sperren" text="sperren" textAlignment="RIGHT">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="bearbeitenButton" layoutX="778.0" layoutY="747.0" mnemonicParsing="false" onAction="#bearbeiten" text="bearbeiten">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="zurueckButton" layoutX="69.0" layoutY="42.0" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="neuButton" layoutX="586.0" layoutY="624.0" mnemonicParsing="false" onAction="#nutzerErstellen" text="neu">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  <TableView fx:id="verlaufTabelle" layoutX="1347.0" layoutY="159.0" prefHeight="791.0" prefWidth="540.0">
-                    <columns>
-                      <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="108.666748046875" text="ISBN" />
-                      <TableColumn fx:id="verlaufTitelSpalte" prefWidth="120.333251953125" text="Titel" />
-                        <TableColumn fx:id="verlaufGeliehenSpalte" prefWidth="87.6666259765625" text="ausgeliehen" />
-                        <TableColumn fx:id="verlaufGeplRueckgabeSpalte" prefWidth="144.6666259765625" text="vereinbarteRückgabe" />
-                        <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
-                    </columns>
-                  </TableView>
-                  <Text fx:id="errorText" fill="RED" layoutX="780.0" layoutY="705.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="374.33331298828125" />
-                  <ChoiceBox fx:id="rolleAuswahl" layoutX="782.0" layoutY="458.0" prefWidth="150.0" />
-                  <Button fx:id="addButton" layoutX="974.0" layoutY="747.0" mnemonicParsing="false" onAction="#hinzu" prefHeight="31.0" prefWidth="106.0" text="hinzufügen">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="druckenButton" layoutX="1103.0" layoutY="747.0" mnemonicParsing="false" onAction="#druck" prefHeight="31.0" prefWidth="106.0" text="drucken">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </Button>
-                  <ListView fx:id="schulerList" layoutX="974.0" layoutY="801.0" prefHeight="117.0" prefWidth="235.0" />
-                  <TextField fx:id="schulerausweis" layoutX="1031.0" layoutY="708.0" prefHeight="31.0" prefWidth="118.0" text="Schülerausweis">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <Text fx:id="hinweisText" layoutX="974.0" layoutY="946.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="235.0">
-                     <font>
-                        <Font size="20.0" />
-                  <Text fx:id="statusText" layoutX="885.0" layoutY="898.0" strokeType="OUTSIDE" strokeWidth="0.0">
-                     <font>
-                        <Font size="22.0" />
-                     </font>
-                  </Text>
+                  <!-- Left Column: User List & Search -->
+                  <VBox spacing="15.0" HBox.hgrow="NEVER" prefWidth="450.0">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Button fx:id="zurueckButton" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Button>
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button fx:id="neuButton" mnemonicParsing="false" onAction="#nutzerErstellen" text="neuer Nutzer" prefHeight="35.0">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </HBox>
+                        <TextField fx:id="searchBar" onAction="#suchen" onKeyReleased="#suchen" prefHeight="40.0" promptText="suchen...">
+                           <font>
+                              <Font size="22.0" />
+                           </font>
+                        </TextField>
+                        <TableView fx:id="nutzerTabelle" onMouseClicked="#selectBenutzer" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="nameSpalte" prefWidth="145.0" text="Name" />
+                            <TableColumn fx:id="vornameSpalte" prefWidth="301.0" text="Vorname" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+
+                  <!-- Center Column: Details & Actions -->
+                  <VBox spacing="20.0" HBox.hgrow="ALWAYS" prefWidth="500.0">
+                     <children>
+                        <Label text="Benutzer Details">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <GridPane hgap="10.0" vgap="15.0">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
+                          </columnConstraints>
+                           <children>
+                              <Label text="E-Mail:" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="emailFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="nameFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Vorname:" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="vornameFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Passwort:" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="passwortFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Rolle:" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <ChoiceBox fx:id="rolleAuswahl" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                           </children>
+                        </GridPane>
+                        
+                        <HBox spacing="15.0" alignment="CENTER_LEFT">
+                           <children>
+                              <Button fx:id="bearbeitenButton" mnemonicParsing="false" onAction="#bearbeiten" text="bearbeiten" prefHeight="35.0">
+                                 <font><Font size="16.0" /></font>
+                              </Button>
+                              <Button fx:id="entfernenButton" mnemonicParsing="false" onAction="#sperren" text="sperren" prefHeight="35.0">
+                                 <font><Font size="16.0" /></font>
+                              </Button>
+                              <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0">
+                                 <font><Font size="16.0" /></font>
+                              </Text>
+                           </children>
+                        </HBox>
+                        
+                        <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0">
+                           <font><Font size="16.0" /></font>
+                        </Text>
+                        
+                        <Region VBox.vgrow="ALWAYS" /> <!-- pushes Schülerausweis to bottom if there's space -->
+                        
+                        <!-- Schülerausweis Section -->
+                        <VBox spacing="15.0" style="-fx-background-color: #DFDFCD; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #C0C0C0; -fx-border-radius: 8;">
+                           <children>
+                              <Label text="Schülerausweis Drucken">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <TextField fx:id="schulerausweis" prefHeight="35.0" text="Schülerausweis" HBox.hgrow="ALWAYS">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </TextField>
+                                    <Button fx:id="addButton" mnemonicParsing="false" onAction="#hinzu" prefHeight="35.0" text="hinzufügen">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                              <ListView fx:id="schulerList" prefHeight="150.0" />
+                              <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                                 <children>
+                                    <Text fx:id="hinweisText" strokeType="OUTSIDE" strokeWidth="0.0">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Text>
+                                    <Button fx:id="druckenButton" mnemonicParsing="false" onAction="#druck" prefHeight="35.0" text="drucken">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+
+                  <!-- Right Column: History & Student ID -->
+                  <VBox spacing="20.0" HBox.hgrow="ALWAYS" prefWidth="650.0">
+                     <children>
+                        <Label text="Ausleihverlauf">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <TableView fx:id="verlaufTabelle" VBox.vgrow="ALWAYS" prefHeight="500.0">
+                          <columns>
+                            <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="120.0" text="ISBN" />
+                            <TableColumn fx:id="verlaufTitelSpalte" prefWidth="180.0" text="Titel" />
+                            <TableColumn fx:id="verlaufGeliehenSpalte" prefWidth="110.0" text="ausgeliehen" />
+                            <TableColumn fx:id="verlaufGeplRueckgabeSpalte" prefWidth="140.0" text="vereinbarteRückgabe" />
+                            <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="100.0" text="Rückgabe" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
                </children>
-            </AnchorPane>
+            </HBox>
          </children>
       </VBox>
    </children>

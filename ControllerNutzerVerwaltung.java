@@ -43,8 +43,6 @@ import com.google.zxing.oned.Code128Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-
-
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
     private Benutzer selectedNutzer;
@@ -116,19 +114,19 @@ public class ControllerNutzerVerwaltung {
 
     @FXML
     private StackPane background;
-    
+
     @FXML
     private Text hinweisText;
-    
+
     @FXML
     private Button addButton;
-    
+
     @FXML
     private Button druckenButton;
-    
+
     @FXML
     private ListView<Benutzer> schulerList;
-    
+
     @FXML
     private TextField schulerausweis;
 
@@ -234,9 +232,9 @@ public class ControllerNutzerVerwaltung {
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
-        
+
         schulerausweis.setEditable(false);
-        
+
         schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
             @Override
             protected void updateItem(Benutzer item, boolean empty) {
@@ -300,10 +298,10 @@ public class ControllerNutzerVerwaltung {
                 if (!selectedNutzer.isFreigeschaltet()) {
                     entfernenButton.setText("freigeben");
                     if (selectedNutzer.getGesperrtVon() == 0) {
-                        statusText.setText("Status: automatisch gesperrt");
+                        statusText.setText("automatisch gesperrt");
                     } else {
                         statusText.setText(
-                                "Status: gesperrt von " + model.getBenutzerName(selectedNutzer.getGesperrtVon()));
+                                "gesperrt von " + model.getBenutzerName(selectedNutzer.getGesperrtVon()));
                     }
                 } else {
                     entfernenButton.setText("sperren");
@@ -492,97 +490,95 @@ public class ControllerNutzerVerwaltung {
             }
         }
     }
-    
+
     public void hinzu(ActionEvent event) {
-        if (selectedNutzer!= null){
+        if (selectedNutzer != null) {
             int anzahl = 4 - schulerList.getItems().size();
-            if(selectedNutzer!= null && anzahl > 0){
+            if (selectedNutzer != null && anzahl > 0) {
                 schulerList.getItems().add(0, selectedNutzer);
-                anzahl=anzahl-1;
+                anzahl = anzahl - 1;
                 hinweisText.setText("Du kannst noch " + anzahl + " Nutzer hinzufügen");
-            
+
             }
-            if(anzahl == 0){
+            if (anzahl == 0) {
                 hinweisText.setText("Bitte drucken");
             }
         }
-        
+
     }
-    
+
     public void druck(ActionEvent event) {
-        if(schulerList.getItems().size() != 0){
-            try{
+        if (schulerList.getItems().size() != 0) {
+            try {
                 File temp = new File("eulen/Karten.pdf");
                 PDDocument kart = Loader.loadPDF(temp);
                 PDAcroForm acroForm = kart.getDocumentCatalog().getAcroForm();
-                
+
                 String vorname = null;
                 if (acroForm != null) {
-                    for(int i = 1; i<=schulerList.getItems().size(); i++){
-                        Benutzer b = schulerList.getItems().get(i-1);
+                    for (int i = 1; i <= schulerList.getItems().size(); i++) {
+                        Benutzer b = schulerList.getItems().get(i - 1);
                         acroForm.getField("vorname" + i).setValue(b.getVorname());
                         acroForm.getField("nachname" + i).setValue(b.getName());
                         vorname = b.getVorname();
-                        
-                        String tempBar = "tempBar" +i+".png";
-                        try{
+
+                        String tempBar = "tempBar" + i + ".png";
+                        try {
                             Code128Writer barcodeWriter = new Code128Writer();
-                            
-                            
-                            BitMatrix bitMatrix = barcodeWriter.encode(String.valueOf(b.getId()), BarcodeFormat.CODE_128, 300, 100);
-                            
-                            java.awt.image.BufferedImage barcodeImage = com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(bitMatrix);
-                            
+
+                            BitMatrix bitMatrix = barcodeWriter.encode(String.valueOf(b.getId()),
+                                    BarcodeFormat.CODE_128, 300, 100);
+
+                            java.awt.image.BufferedImage barcodeImage = com.google.zxing.client.j2se.MatrixToImageWriter
+                                    .toBufferedImage(bitMatrix);
+
                             PDField platzhalterFeld = acroForm.getField("code" + i);
-                            
-                            if (platzhalterFeld != null && platzhalterFeld instanceof PDTerminalField){
-                                PDRectangle position = ((PDTerminalField) platzhalterFeld).getWidgets().get(0).getRectangle();
+
+                            if (platzhalterFeld != null && platzhalterFeld instanceof PDTerminalField) {
+                                PDRectangle position = ((PDTerminalField) platzhalterFeld).getWidgets().get(0)
+                                        .getRectangle();
                                 PDImageXObject pdImage = PDImageXObject.createFromFile(tempBar, kart);
-                                
+
                                 try (PDPageContentStream contentStream = new PDPageContentStream(
-                                    kart, kart.getPage(0), PDPageContentStream.AppendMode.APPEND, true, true)) {
-                
-                                    contentStream.drawImage(pdImage, 
-                                                            position.getLowerLeftX(), 
-                                                            position.getLowerLeftY(), 
-                                                            position.getWidth(), 
-                                                            position.getHeight());
-                                
+                                        kart, kart.getPage(0), PDPageContentStream.AppendMode.APPEND, true, true)) {
+
+                                    contentStream.drawImage(pdImage,
+                                            position.getLowerLeftX(),
+                                            position.getLowerLeftY(),
+                                            position.getWidth(),
+                                            position.getHeight());
+
                                 }
-                                
+
                                 platzhalterFeld.setValue("");
-                            
+
                             }
-                            
+
                             java.io.File tempFile = new java.io.File(tempBar);
-                            tempFile.deleteOnExit(); 
+                            tempFile.deleteOnExit();
                             acroForm.getFields().remove(platzhalterFeld);
-        
-                        }
-                        catch (Exception e){
-                            
+
+                        } catch (Exception e) {
+
                         }
                     }
                     acroForm.flatten();
-                    
+
                 }
 
-                if(vorname!= null){
+                if (vorname != null) {
                     File pdfDatei = new File("karten/Ausgefuellt_" + vorname + ".pdf");
                     kart.save(pdfDatei);
-                    if(Desktop.isDesktopSupported()){
+                    if (Desktop.isDesktopSupported()) {
                         Desktop desktop = Desktop.getDesktop();
                         desktop.open(pdfDatei);
                     }
                 }
-                 
-                 
-                
+
                 kart.close();
                 hinweisText.setText("");
                 schulerList.getItems().clear();
-            }
-            catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

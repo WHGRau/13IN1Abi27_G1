@@ -190,7 +190,7 @@ public class ControllerEinstellungen {
             MailService mailService = new MailService(model);
             mailService.sendeEmail(email, "Test-E-Mail Bibliothek", "Die E-Mail Konfiguration war erfolgreich!");
         }
-        toStartseite(null);
+        toStartseite(event);
     }
 
     @FXML
