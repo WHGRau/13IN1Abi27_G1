@@ -37,7 +37,6 @@ public class ControllerEinstellungen {
     @FXML
     private StackPane background;
 
-    // Neue Einstellungen
     @FXML
     private TextField ausleihDauerFeld;
     @FXML
@@ -61,7 +60,7 @@ public class ControllerEinstellungen {
 
     @FXML
     public void initialize() {
-        // Styling
+
         background.setStyle("-fx-background-color: #E9E9D3;");
 
         Platform.runLater(() -> {
@@ -106,7 +105,6 @@ public class ControllerEinstellungen {
         if (port != null)
             portFeld.setText(port);
 
-        // Neue Einstellungen laden
         String ausleihDauer = model.getEinstellung("ausleih_dauer_tage");
         if (ausleihDauer != null)
             ausleihDauerFeld.setText(ausleihDauer);
@@ -172,15 +170,13 @@ public class ControllerEinstellungen {
         String server = serverFeld.getText().trim();
         String port = portFeld.getText().trim();
 
-        // E-Mail Daten Speichern
         model.setEinstellung("email_adresse", email);
         model.setEinstellung("email_passwort", passwort);
         model.setEinstellung("smtp_server", server);
         model.setEinstellung("smtp_port", port);
 
-        // Neue Einstellungen Speichern
         model.setEinstellung("ausleih_dauer_tage", ausleihDauerFeld.getText().trim());
-        
+
         model.setEinstellung("reservierungen_aktiv", reservierungenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("reservierung_dauer_tage", reservierungAbholzeitFeld.getText().trim());
         model.setEinstellung("reservierung_sperre_tage", reservierungSperrzeitFeld.getText().trim());
@@ -194,12 +190,6 @@ public class ControllerEinstellungen {
             model.setEinstellung("buechersuche_datenbank", dbSelection);
 
         model.setEinstellung("buechersuche_api_key", buechersucheApiKeyFeld.getText().trim());
-
-        // Optional: Send a test email
-        if (!email.isEmpty() && !passwort.isEmpty() && !server.isEmpty() && !port.isEmpty()) {
-            MailService mailService = new MailService(model);
-            mailService.sendeEmail(email, "Test-E-Mail Bibliothek", "Die E-Mail Konfiguration war erfolgreich!");
-        }
         toStartseite(event);
     }
 
