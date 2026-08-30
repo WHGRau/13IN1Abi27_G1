@@ -224,6 +224,12 @@ public class ControllerLehrerStartseite {
                     long jetzt = System.currentTimeMillis();
                     if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
                             ausleihdauerFeld.setEditable(false);
+                            String e = ausleihdauerFeld.getText();
+                            if (e != null){
+                                e = e.substring(0, e.length()-1);
+                                ausleihdauerFeld.setText(e);
+                            }
+                            
                         } 
                         else{
                             ausleihdauerFeld.setEditable(true);

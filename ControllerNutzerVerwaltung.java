@@ -521,9 +521,11 @@ public class ControllerNutzerVerwaltung {
                         String tempBar = "tempBar" +i+".png";
                         try{
                             Code128Writer barcodeWriter = new Code128Writer();
+                            
+                            
                             BitMatrix bitMatrix = barcodeWriter.encode(String.valueOf(b.getId()), BarcodeFormat.CODE_128, 300, 100);
-                            Path path = FileSystems.getDefault().getPath(tempBar);
-                            MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
+                            
+                            java.awt.image.BufferedImage barcodeImage = com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(bitMatrix);
                             
                             PDField platzhalterFeld = acroForm.getField("code" + i);
                             
