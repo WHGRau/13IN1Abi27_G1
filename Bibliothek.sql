@@ -126,6 +126,7 @@ CREATE TABLE `einstellungen` (
 --
 
 INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
+('ausleih_dauer_tage', '28'),
 ('buechersuche_api_key', 'AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI'),
 ('buechersuche_datenbank', 'Google Books'),
 ('email_adresse', 'euleinc@gmail.com'),

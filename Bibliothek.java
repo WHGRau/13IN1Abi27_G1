@@ -615,11 +615,25 @@ public class Bibliothek {
     public int getReservierungDauer() {
         String dauerStr = getEinstellung("reservierung_dauer_tage");
         try {
-            if (dauerStr != null)
+            if (dauerStr != null) {
                 return Integer.parseInt(dauerStr);
+            }
         } catch (NumberFormatException e) {
+            System.err.println("Ungültiger Wert für reservierung_dauer_tage: " + dauerStr);
         }
-        return 14; // Default
+        return 7; // Default 7 Tage
+    }
+
+    public int getAusleihDauer() {
+        String dauerStr = getEinstellung("ausleih_dauer_tage");
+        try {
+            if (dauerStr != null) {
+                return Integer.parseInt(dauerStr);
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("Ungültiger Wert für ausleih_dauer_tage: " + dauerStr);
+        }
+        return 28; // Default 28 Tage
     }
 
     public int getReservierungSperre() {

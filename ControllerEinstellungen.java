@@ -39,6 +39,8 @@ public class ControllerEinstellungen {
 
     // Neue Einstellungen
     @FXML
+    private TextField ausleihDauerFeld;
+    @FXML
     private CheckBox reservierungenAktivierenCheckBox;
     @FXML
     private TextField reservierungAbholzeitFeld;
@@ -105,6 +107,12 @@ public class ControllerEinstellungen {
             portFeld.setText(port);
 
         // Neue Einstellungen laden
+        String ausleihDauer = model.getEinstellung("ausleih_dauer_tage");
+        if (ausleihDauer != null)
+            ausleihDauerFeld.setText(ausleihDauer);
+        else
+            ausleihDauerFeld.setText("28");
+
         String resAktiv = model.getEinstellung("reservierungen_aktiv");
         if (resAktiv != null)
             reservierungenAktivierenCheckBox.setSelected(resAktiv.equals("1"));
@@ -171,6 +179,8 @@ public class ControllerEinstellungen {
         model.setEinstellung("smtp_port", port);
 
         // Neue Einstellungen Speichern
+        model.setEinstellung("ausleih_dauer_tage", ausleihDauerFeld.getText().trim());
+        
         model.setEinstellung("reservierungen_aktiv", reservierungenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("reservierung_dauer_tage", reservierungAbholzeitFeld.getText().trim());
         model.setEinstellung("reservierung_sperre_tage", reservierungSperrzeitFeld.getText().trim());

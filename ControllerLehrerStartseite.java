@@ -206,6 +206,9 @@ public class ControllerLehrerStartseite {
 
     public void setModel(Bibliothek model) {
         this.model = model;
+        
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
+        
         loadVerliehenTabelle();
         loadReserviertTabelle();
         
@@ -242,8 +245,6 @@ public class ControllerLehrerStartseite {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         rueckgaengigButton.setDisable(true);
-
-        ausleihdauerFeld.setText("28");
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
         reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
@@ -490,7 +491,7 @@ public class ControllerLehrerStartseite {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         model.abbrechen();
-        ausleihdauerFeld.setText("28");
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
@@ -501,7 +502,7 @@ public class ControllerLehrerStartseite {
         rueckgaengigButton.setDisable(false);
         model.buchRueckgabe();
         model.abbrechen();
-        ausleihdauerFeld.setText("28");
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         feedbackText.setText("Buch erfolgreich zurückgegeben.");
@@ -518,7 +519,7 @@ public class ControllerLehrerStartseite {
             if (dauer >= 1 && dauer <= 200) {
                 model.buchLeihen(dauer);
                 model.abbrechen();
-                ausleihdauerFeld.setText("28");
+                ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);
                 feedbackText.setText("Bücher erfolgreich verliehen.");
