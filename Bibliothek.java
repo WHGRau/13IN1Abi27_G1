@@ -25,7 +25,7 @@ public class Bibliothek {
     public void erinnerungenPruefenUndVersenden() {
         // 2 Tage vorher Erinnerung
         dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe = DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY) AND ausleihen.erinnerung_2tage_gesendet = 0");
+                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY) AND ausleihen.geplante_rueckgabe > CURRENT_DATE() AND ausleihen.erinnerung_2tage_gesendet = 0");
         QueryResult result2Tage = dbConnector.getCurrentQueryResult();
         if (result2Tage != null && result2Tage.getRowCount() > 0) {
             MailService mailService = new MailService(this);
@@ -34,7 +34,10 @@ public class Bibliothek {
                 String email = result2Tage.getData()[i][1];
                 String vorname = result2Tage.getData()[i][2];
                 String titel = result2Tage.getData()[i][3];
-                mailService.sendeMahnungMail(email, vorname, titel, "2_Tage_vorher");
+                String datum = result2Tage.getData()[i][5];
+                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
+                    mailService.sendeMahnungMail(email, vorname, titel, "2_Tage_vorher", datum);
+                }
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = " + ausleihId);
             }
@@ -42,7 +45,7 @@ public class Bibliothek {
 
         // Stichtag Erinnerung
         dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe = CURRENT_DATE() AND ausleihen.erinnerung_heute_gesendet = 0");
+                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= CURRENT_DATE() AND ausleihen.geplante_rueckgabe > DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_heute_gesendet = 0");
         QueryResult resultStichtag = dbConnector.getCurrentQueryResult();
         if (resultStichtag != null && resultStichtag.getRowCount() > 0) {
             MailService mailService = new MailService(this);
@@ -51,7 +54,10 @@ public class Bibliothek {
                 String email = resultStichtag.getData()[i][1];
                 String vorname = resultStichtag.getData()[i][2];
                 String titel = resultStichtag.getData()[i][3];
-                mailService.sendeMahnungMail(email, vorname, titel, "Stichtag");
+                String datum = resultStichtag.getData()[i][5];
+                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
+                    mailService.sendeMahnungMail(email, vorname, titel, "Stichtag", datum);
+                }
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = " + ausleihId);
             }
@@ -59,7 +65,7 @@ public class Bibliothek {
 
         // 1 Woche überfällig
         dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe = DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_1woche_gesendet = 0");
+                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_1woche_gesendet = 0");
         QueryResult result1Woche = dbConnector.getCurrentQueryResult();
         if (result1Woche != null && result1Woche.getRowCount() > 0) {
             MailService mailService = new MailService(this);
@@ -68,7 +74,10 @@ public class Bibliothek {
                 String email = result1Woche.getData()[i][1];
                 String vorname = result1Woche.getData()[i][2];
                 String titel = result1Woche.getData()[i][3];
-                mailService.sendeMahnungMail(email, vorname, titel, "1_Woche_danach");
+                String datum = result1Woche.getData()[i][5];
+                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
+                    mailService.sendeMahnungMail(email, vorname, titel, "1_Woche_danach", datum);
+                }
                 dbConnector.executeStatement(
                         "UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = " + ausleihId);
             }
@@ -606,11 +615,25 @@ public class Bibliothek {
     public int getReservierungDauer() {
         String dauerStr = getEinstellung("reservierung_dauer_tage");
         try {
-            if (dauerStr != null)
+            if (dauerStr != null) {
                 return Integer.parseInt(dauerStr);
+            }
         } catch (NumberFormatException e) {
+            System.err.println("Ungültiger Wert für reservierung_dauer_tage: " + dauerStr);
         }
-        return 14; // Default
+        return 7; // Default 7 Tage
+    }
+
+    public int getAusleihDauer() {
+        String dauerStr = getEinstellung("ausleih_dauer_tage");
+        try {
+            if (dauerStr != null) {
+                return Integer.parseInt(dauerStr);
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("Ungültiger Wert für ausleih_dauer_tage: " + dauerStr);
+        }
+        return 28; // Default 28 Tage
     }
 
     public int getReservierungSperre() {

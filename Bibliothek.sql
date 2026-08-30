@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 29. Aug 2026 um 17:20
+-- Erstellungszeit: 30. Aug 2026 um 13:40
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -27,24 +27,26 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `ausleihen`
 --
 
-DROP TABLE IF EXISTS `ausleihen`;
 CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
   `ausleihdatum` date NOT NULL,
   `geplante_rueckgabe` date NOT NULL,
   `ruckgabe_datum` date DEFAULT NULL,
-  `id` int(11) NOT NULL
+  `id` int(11) NOT NULL,
+  `erinnerung_2tage_gesendet` tinyint(1) NOT NULL DEFAULT 0,
+  `erinnerung_heute_gesendet` tinyint(1) NOT NULL DEFAULT 0,
+  `erinnerung_1woche_gesendet` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `ausleihen`
 --
 
-INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`) VALUES
-(10000008, '978-3125739291', '2026-08-20', '2026-09-20', NULL, 19),
-(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20),
-(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21);
+INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`) VALUES
+(10000008, '978-3125739291', '2026-08-20', '2026-09-20', NULL, 19, 0, 0, 0),
+(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20, 0, 0, 0),
+(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -52,7 +54,6 @@ INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckg
 -- Tabellenstruktur für Tabelle `benutzer`
 --
 
-DROP TABLE IF EXISTS `benutzer`;
 CREATE TABLE `benutzer` (
   `id` int(11) NOT NULL,
   `vorname` varchar(100) NOT NULL,
@@ -68,15 +69,15 @@ CREATE TABLE `benutzer` (
 -- Daten für Tabelle `benutzer`
 --
 
-INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`) VALUES
-(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0),
-(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1),
-(10000009, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1),
-(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1),
-(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1),
-(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1),
-(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1),
-(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1);
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`) VALUES
+(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0, NULL),
+(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL),
+(10000009, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL),
+(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL),
+(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL),
+(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL),
+(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL),
+(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -84,7 +85,6 @@ INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle
 -- Tabellenstruktur für Tabelle `buecher`
 --
 
-DROP TABLE IF EXISTS `buecher`;
 CREATE TABLE `buecher` (
   `isbn` varchar(20) NOT NULL,
   `titel` varchar(255) NOT NULL,
@@ -126,6 +126,7 @@ CREATE TABLE `einstellungen` (
 --
 
 INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
+('ausleih_dauer_tage', '28'),
 ('buechersuche_api_key', 'AIzaSyA59yFeATSjQo9pIgPAzamkbUWUzZ6zLtI'),
 ('buechersuche_datenbank', 'Google Books'),
 ('email_adresse', 'euleinc@gmail.com'),
@@ -145,22 +146,22 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 -- Tabellenstruktur für Tabelle `reservierungen`
 --
 
-DROP TABLE IF EXISTS `reservierungen`;
 CREATE TABLE `reservierungen` (
   `id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
   `schueler_id` int(11) NOT NULL,
   `status` enum('wartend','bereit','abgeschlossen','abgesagt') NOT NULL,
   `reservierung_beginn` date DEFAULT NULL,
-  `reservierung_ende` date DEFAULT NULL
+  `reservierung_ende` date DEFAULT NULL,
+  `email_gesendet` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `reservierungen`
 --
 
-INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`) VALUES
-(8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03');
+INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`, `email_gesendet`) VALUES
+(8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03', 0);
 
 --
 -- Indizes der exportierten Tabellen
