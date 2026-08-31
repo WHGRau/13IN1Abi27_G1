@@ -127,8 +127,7 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private ListView<Benutzer> schulerList;
 
-    @FXML
-    private TextField schulerausweis;
+    
 
     public static class tabelleZeile {
         private String isbn;
@@ -233,7 +232,7 @@ public class ControllerNutzerVerwaltung {
             }
         });
 
-        schulerausweis.setEditable(false);
+        
 
         schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
             @Override
@@ -522,7 +521,7 @@ public class ControllerNutzerVerwaltung {
                         acroForm.getField("nachname" + i).setValue(b.getName());
                         vorname = b.getVorname();
 
-                        String tempBar = "tempBar" + i + ".png";
+                        
                         try {
                             Code128Writer barcodeWriter = new Code128Writer();
 
@@ -537,7 +536,7 @@ public class ControllerNutzerVerwaltung {
                             if (platzhalterFeld != null && platzhalterFeld instanceof PDTerminalField) {
                                 PDRectangle position = ((PDTerminalField) platzhalterFeld).getWidgets().get(0)
                                         .getRectangle();
-                                PDImageXObject pdImage = PDImageXObject.createFromFile(tempBar, kart);
+                                PDImageXObject pdImage = org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory.createFromImage(kart, barcodeImage);
 
                                 try (PDPageContentStream contentStream = new PDPageContentStream(
                                         kart, kart.getPage(0), PDPageContentStream.AppendMode.APPEND, true, true)) {
@@ -554,8 +553,7 @@ public class ControllerNutzerVerwaltung {
 
                             }
 
-                            java.io.File tempFile = new java.io.File(tempBar);
-                            tempFile.deleteOnExit();
+                            
                             acroForm.getFields().remove(platzhalterFeld);
 
                         } catch (Exception e) {
