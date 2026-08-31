@@ -127,8 +127,6 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private ListView<Benutzer> schulerList;
 
-    @FXML
-    private TextField schulerausweis;
 
     public static class tabelleZeile {
         private String isbn;
@@ -232,8 +230,6 @@ public class ControllerNutzerVerwaltung {
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
-
-        schulerausweis.setEditable(false);
 
         schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
             @Override
