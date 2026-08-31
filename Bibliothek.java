@@ -5,6 +5,9 @@ import javax.swing.event.*;
 import java.sql.*;
 import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 
 public class Bibliothek {
     private DatabaseConnector dbConnector;
@@ -12,11 +15,11 @@ public class Bibliothek {
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
     private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
-
+    private LocalDate currentDate;
     public Bibliothek() {
         dbVerbinden();
         reservierungenAktualisieren();
-        
+        lateDaysAktualisieren();
         
     }
 
@@ -771,22 +774,29 @@ public class Bibliothek {
         return score;
     }
     
-    private void lateDaysAktualisieren(){
-            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihe WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL");
+    public void lateDaysAktualisieren(){
+        LocalDate newDate = LocalDate.now();
+        if(!currentDate.isEqual(newDate)){
+            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL");
             QueryResult result = dbConnector.getCurrentQueryResult();
-
+            int addedDaysLate = (int) ChronoUnit.DAYS.between(currentDate, newDate); 
             if (result != null && result.getRowCount() > 0) {
                 for(int i = 0; i < result.getRowCount(); i++){
                     int schuelerID = Integer.parseInt(result.getData()[i][0]);
                     String isbn = result.getData()[i][1];
                 
-                    dbConnector.executeStatement("SELECT late_days FROM benutzer WHERE id = "+schuelerID+"");
+                    dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+schuelerID+"");
                     int lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                    if(lateDays + getTageZuSpaet(isbn) > 14){
-                        sperren(schuelerID);
+                    if(lateDays + addedDaysLate > 14){
+                         sperren(schuelerID);
                     }
+                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+addedDaysLate+" WHERE id = "+schuelerID+"");
                 }
             }
+            
+        }
+        currentDate = newDate;
+    }
     }
     
-}
+

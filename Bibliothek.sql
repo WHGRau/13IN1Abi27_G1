@@ -66,7 +66,7 @@ CREATE TABLE `benutzer` (
 -- Daten für Tabelle `benutzer`
 --
 
-INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`) VALUES
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`,`tage_spaet`) VALUES
 (7, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0,0),
 (8, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1,0),
 (9, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1,0),
