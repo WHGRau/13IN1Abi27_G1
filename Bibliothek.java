@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
+import java.io.IOException;
+import java.nio.file.*;
 
 public class Bibliothek {
     private DatabaseConnector dbConnector;
@@ -15,7 +16,8 @@ public class Bibliothek {
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
     private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
-    private LocalDate currentDate;
+    private final String FILE_NAME = "lastOpened.txt";
+    private LocalDate currentDate = readLastOpened();
     public Bibliothek() {
         dbVerbinden();
         reservierungenAktualisieren();
@@ -795,7 +797,24 @@ public class Bibliothek {
             }
             
         }
-        currentDate = newDate;
+        saveDate();
+    }
+    
+    private LocalDate readLastOpened(){
+        try{
+            String fileContent = Files.readString(Paths.get(FILE_NAME));
+            LocalDate lastDate = LocalDate.parse(fileContent.trim());
+            return lastDate;
+        }
+        catch(IOException e){
+            return null;
+        }
+    }
+    private void saveDate(){
+        try{
+            Files.writeString(Paths.get(FILE_NAME), LocalDate.now().toString());
+        }
+        catch(IOException e){}
     }
     }
     
