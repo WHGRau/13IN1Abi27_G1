@@ -20,17 +20,11 @@ public class Bibliothek {
         dbVerbinden();
         reservierungenAktualisieren();
         lateDaysAktualisieren();
-        
-    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
+    } 
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
 
-    public Bibliothek() {
-        dbVerbinden();
-        reservierungenAktualisieren();
-        erinnerungenPruefenUndVersenden();
-    }
 
     public void erinnerungenPruefenUndVersenden() {
         // 2 Tage vorher Erinnerung
@@ -210,7 +204,7 @@ public class Bibliothek {
             
         }
     }
-
+    }   
     public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
         if (isLehrer()) {
             if (titel != null)
@@ -1002,31 +996,49 @@ public class Bibliothek {
     }
     
     public void lateDaysAktualisieren(){
-        LocalDate newDate = LocalDate.now();
         
-            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL");
+            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
             QueryResult result = dbConnector.getCurrentQueryResult();
-        
+            int sumDaysLate = 0;
+            int lastStudent = -1;
+            int lateDays;
             if (result != null && result.getRowCount() > 0) {
                 for(int i = 0; i < result.getRowCount(); i++){
                     int schuelerID = Integer.parseInt(result.getData()[i][0]);
                     String isbn = result.getData()[i][1];
-                
-                    dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+schuelerID+"");
-                    int lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                    if(lateDays + getTageZuSpaet(isbn) > 14){
-                         sperren(schuelerID);
+                    
+                    
+                    if(schuelerID == lastStudent){
+                        sumDaysLate += getTageZuSpaet(isbn);
+                    }
+                    else{
+                        if(lastStudent != -1){
+                            dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
+                            lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                            if(lateDays + sumDaysLate > 14){
+                                 sperren(lastStudent);
+                            }
+                            }
+                        sumDaysLate = getTageZuSpaet(isbn);
                     }
                     
+                    lastStudent = schuelerID;
                 }
+                dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
+                lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                if(lateDays + sumDaysLate > 14){
+                     sperren(lastStudent);
+                }
+                
+                    }
             }
             
         
         
-    }
     
     
-    }
+    
+    
     
 
 
