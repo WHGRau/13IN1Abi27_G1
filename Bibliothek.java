@@ -114,9 +114,8 @@ public class Bibliothek {
                     dbConnector.executeStatement(sql);
                     //dbConnector.executeStatement(
                             //"UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + erfassteBuecher.get(i) + "'");
-                    int da = Integer.parseInt(result.getData()[1][0]);
-                    da = da + 1;
-                    dbConnector.executeStatement("UPDATE buecher SET anzahlLiehen = '"+da+"' WHERE isbn = '"+erfassteBuecher.get(i)+"'");
+                    hinzuLI(erfassteBuecher.get(i));
+                    loeschDA(erfassteBuecher.get(i));
                     updateBuchStatus(erfassteBuecher.get(i));
                     if (result.getData()[0][0].equals("reserviert")) {
                         dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgeschlossen' WHERE isbn = '"
@@ -181,8 +180,9 @@ public class Bibliothek {
                         mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
                     }
                 } else {
-                    dbConnector
-                            .executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
+                    loeschLI(isbn);
+                    hinzuDA(isbn);
+                    updateBuchStatus(isbn);
                 }
             }
         }
@@ -205,8 +205,8 @@ public class Bibliothek {
                 dbConnector.executeStatement("UPDATE buecher SET anzahlDa = '"+da+"' WHERE isbn = '"+isbn+"'");
             }
             else{
-                String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES('"
-                    + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
+                String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status, anzahlDa)" + " VALUES('"
+                    + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar', 1)";
                 dbConnector.executeStatement(sql);
             }
         }
@@ -449,7 +449,7 @@ public class Bibliothek {
     }
 
     public int login(String email, String passwort) {
-        // Vorname grosgeschrieben ist das Passwort
+        // Vorname großgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
                 "SELECT id, passwort FROM benutzer WHERE email = '" + email.toLowerCase() + "'");
@@ -1061,4 +1061,71 @@ public class Bibliothek {
         }
     }
 
+    private void hinzuDA(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    da = da + 1;
+                    dbConnector.executeStatement("UPDATE buecher SET anzahlDa = '"+da+"' WHERE isbn = '"+isbn+"'");
+                } 
+    }
+    
+    private void hinzuLI(String isbn){
+         dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    da = da + 1;
+                    dbConnector.executeStatement("UPDATE buecher SET anzahlLiehen = '"+da+"' WHERE isbn = '"+isbn+"'");
+                }
+    }
+    
+    private void hinzuRE(String isbn){
+        dbConnector.executeStatement("SELECT anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    da = da + 1;
+                    dbConnector.executeStatement("UPDATE buecher SET anzahlRe = '"+da+"' WHERE isbn = '"+isbn+"'");
+                } 
+    }
+    
+    private void loeschDA(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    if(da!=0){
+                        da = da - 1;
+                        dbConnector.executeStatement("UPDATE buecher SET anzahlDa = '"+da+"' WHERE isbn = '"+isbn+"'");
+                    }
+                }
+    }
+    
+    private void loeschLI(String isbn){
+        dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    if(da!=0){
+                        da = da - 1;
+                        dbConnector.executeStatement("UPDATE buecher SET anzahlLiehen = '"+da+"' WHERE isbn = '"+isbn+"'");
+                    }
+                } 
+    }
+    
+    private void loeschRE(String isbn){
+        dbConnector.executeStatement("SELECT anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                if (result != null && result.getRowCount() > 0) {
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    if(da!=0){
+                        da = da - 1;
+                        dbConnector.executeStatement("UPDATE buecher SET anzahlRe = '"+da+"' WHERE isbn = '"+isbn+"'");
+                    }
+                } 
+    }
+    
+    
 }
