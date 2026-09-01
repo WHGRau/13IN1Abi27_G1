@@ -50,7 +50,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
    <children>
       <VBox prefHeight="1078.0" prefWidth="1884.0" style="-fx-background-color: #E9E9D3;">
         <children>
@@ -140,6 +140,11 @@
                         <Image url="@../eulen/kleineEule.png" />
                      </image>
                   </ImageView>
+                  <Text fx:id="gesperrtText" fill="RED" layoutX="274.0" layoutY="435.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Ihr Account wurde gesperrt. Bitte sprechen Sie mit einer zuständigen Lehrkraft." textAlignment="CENTER" wrappingWidth="1377.9999389648438">
+                     <font>
+                        <Font size="56.0" />
+                     </font>
+                  </Text>
                </children>
           </AnchorPane>
         </children>
