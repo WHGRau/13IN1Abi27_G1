@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.io.IOException;
-import java.nio.file.*;
+
 
 public class Bibliothek {
     private DatabaseConnector dbConnector;
@@ -16,8 +15,7 @@ public class Bibliothek {
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
     private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
-    private final String FILE_NAME = "lastOpened.txt";
-    private LocalDate currentDate = readLastOpened();
+    
     public Bibliothek() {
         dbVerbinden();
         reservierungenAktualisieren();
@@ -778,10 +776,10 @@ public class Bibliothek {
     
     public void lateDaysAktualisieren(){
         LocalDate newDate = LocalDate.now();
-        if(!currentDate.isEqual(newDate)){
+        
             dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL");
             QueryResult result = dbConnector.getCurrentQueryResult();
-            int addedDaysLate = (int) ChronoUnit.DAYS.between(currentDate, newDate); 
+        
             if (result != null && result.getRowCount() > 0) {
                 for(int i = 0; i < result.getRowCount(); i++){
                     int schuelerID = Integer.parseInt(result.getData()[i][0]);
@@ -789,33 +787,18 @@ public class Bibliothek {
                 
                     dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+schuelerID+"");
                     int lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                    if(lateDays + addedDaysLate > 14){
+                    if(lateDays + getTageZuSpaet(isbn) > 14){
                          sperren(schuelerID);
                     }
-                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+addedDaysLate+" WHERE id = "+schuelerID+"");
+                    
                 }
             }
             
-        }
-        saveDate();
+        
+        
     }
     
-    private LocalDate readLastOpened(){
-        try{
-            String fileContent = Files.readString(Paths.get(FILE_NAME));
-            LocalDate lastDate = LocalDate.parse(fileContent.trim());
-            return lastDate;
-        }
-        catch(IOException e){
-            return null;
-        }
-    }
-    private void saveDate(){
-        try{
-            Files.writeString(Paths.get(FILE_NAME), LocalDate.now().toString());
-        }
-        catch(IOException e){}
-    }
+    
     }
     
 
