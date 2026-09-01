@@ -287,6 +287,8 @@ public class Bibliothek {
         // 10: schueler gesperrt
         // 11: Buch ist reserviert, bitte Schüler scannen
         // 12: enthält für Andere reservierte Bücher
+        // 13: Buch altersbeschr�nkt
+        // 14: Sch�ler zu jung
 
         if (isLehrer()) {
             dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + code + "'");
@@ -1023,5 +1025,10 @@ public class Bibliothek {
                 dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
             }
         }
+    }
+    
+    private int getNutzerAlter(int nutzerId){
+        dbConnector.executeStatement("SELECT geburtsdatum FROM benutzer WHERE id = nutzerId");
+        
     }
 }
