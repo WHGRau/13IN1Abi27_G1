@@ -22,6 +22,7 @@ import java.io.IOException;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 
+import java.time.LocalDate;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import com.sun.javafx.tk.Toolkit;
@@ -30,6 +31,7 @@ import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
+import javafx.scene.input.KeyEvent;
 
 public class ControllerLehrerStartseite {
 
@@ -39,6 +41,10 @@ public class ControllerLehrerStartseite {
     
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
+    
+    private final StringBuilder isbnbuild= new StringBuilder();
+    private String isbn;
+    private long letzteTastenZeit;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -60,6 +66,24 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private TableColumn<tabelleZeile, Label> verliehenTabelleGeplanteRueckgabe;
+
+    @FXML
+    private TableView<tabelleZeileReservierung> reserviertTabelle;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleIsbn;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleTitel;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleName;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleVorname;
+
+    @FXML
+    private TableColumn<tabelleZeileReservierung, String> reserviertTabelleEmail;
 
     @FXML
     private TextField codeFeld;
@@ -90,6 +114,10 @@ public class ControllerLehrerStartseite {
     
     @FXML
     private StackPane background;
+
+    @FXML
+    private Button rueckgaengigButton;
+
 
     public static class tabelleZeile {
         private String isbn;
@@ -140,9 +168,49 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public static class tabelleZeileReservierung {
+        private String isbn;
+        private String titel;
+        private String nachname;
+        private String vorname;
+        private String email;
+
+        public tabelleZeileReservierung(String isbn, String titel, String nachname, String vorname, String email) {
+            this.isbn = isbn;
+            this.titel = titel;
+            this.nachname = nachname;
+            this.vorname = vorname;
+            this.email = email;
+        }
+
+        public String getIsbn() {
+            return isbn;
+        }
+
+        public String getTitel() {
+            return titel;
+        }
+
+        public String getNachname() {
+            return nachname;
+        }
+
+        public String getVorname() {
+            return vorname;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+    }
+
     public void setModel(Bibliothek model) {
         this.model = model;
+        
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
+        
         loadVerliehenTabelle();
+        loadReserviertTabelle();
         
         String text = "Hallo, " + model.getName() + "!";
         //dynamisch die Schriftgrose an Text Lange anpassen
@@ -168,12 +236,18 @@ public class ControllerLehrerStartseite {
         verliehenTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         verliehenTabelleGeplanteRueckgabe.setCellValueFactory(new PropertyValueFactory<>("geplanteRueckgabe"));
 
+        reserviertTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
+        reserviertTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
+        reserviertTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
+        reserviertTabelleVorname.setCellValueFactory(new PropertyValueFactory<>("vorname"));
+        reserviertTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
-
-        ausleihdauerFeld.setText("28");
+        rueckgaengigButton.setDisable(true);
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
+        reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
 
         gescanntListe.setCellFactory(lv -> new javafx.scene.control.ListCell<String>() {
             @Override
@@ -213,6 +287,30 @@ public class ControllerLehrerStartseite {
                 background.setMaxHeight(targetHeight);
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+                
+                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
+                    long jetzt = System.currentTimeMillis();
+                    if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
+                            ausleihdauerFeld.setEditable(false);
+                            String e = ausleihdauerFeld.getText();
+                            if (e != null){
+                                e = e.substring(0, e.length()-1);
+                                ausleihdauerFeld.setText(e);
+                            }
+                            
+                        } 
+                        else{
+                            ausleihdauerFeld.setEditable(true);
+                        }
+                    letzteTastenZeit = jetzt;
+                    
+                });
+            }
+        });
+        
+        background.sceneProperty().addListener((observable, oldScene, newScene) ->{
+            if(newScene != null){
+                registerGlobalScanner(newScene);
             }
         });
     }
@@ -238,12 +336,60 @@ public class ControllerLehrerStartseite {
             }
         }
     }
+    
+    public void registerGlobalScanner(javafx.scene.Scene scene){
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event ->{
+            String character = event.getText();
+             if(event.getCode()== javafx.scene.input.KeyCode.ENTER){
+                 String gescanntISBN = isbnbuild.toString().trim();
+                 
+                 if(!gescanntISBN.isEmpty()){
+                     //fertige ISBN ist in ge...
+                     isbn = gescanntISBN;
+                     isbnbuild.setLength(0);
+                     scannen();
+                 }
+                 event.consume();
+             }
+             else{
+                 isbnbuild.append(character);
+             }
+        });
+    }
+
+    public void loadReserviertTabelle() {
+        QueryResult result = model.getAlleReservierungen();
+        if (result != null) {
+            reserviertTabelle.getItems().clear();
+            String[][] data = result.getData();
+            for (int i = 0; i < result.getRowCount(); i++) {
+                if (data[i].length >= 5) {
+                    String isbn = data[i][0];
+                    String titel = data[i][1];
+                    String nachname = data[i][2];
+                    String vorname = data[i][3];
+                    String email = data[i][4];
+
+                    tabelleZeileReservierung zeile = new tabelleZeileReservierung(isbn, titel, nachname, vorname, email);
+                    reserviertTabelle.getItems().add(zeile);
+                }
+            }
+        }
+    }
 
     public void scannen() {
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
-        String code = codeFeld.getText();
+        String code;
+        if(isbn != null){
+            code = isbn;
+            isbn = null;
+        }
+        else{
+            code = codeFeld.getText();
+        }
+        
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
@@ -287,6 +433,7 @@ public class ControllerLehrerStartseite {
                 }
                 break;
             case 7:
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText(
                         "Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
                 break;
@@ -344,7 +491,7 @@ public class ControllerLehrerStartseite {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         model.abbrechen();
-        ausleihdauerFeld.setText("28");
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
@@ -352,15 +499,18 @@ public class ControllerLehrerStartseite {
     }
 
     public void zurueckgeben() {
+        rueckgaengigButton.setDisable(false);
         model.buchRueckgabe();
         model.abbrechen();
-        ausleihdauerFeld.setText("28");
+        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         feedbackText.setText("Buch erfolgreich zurückgegeben.");
         loadVerliehenTabelle();
+        loadReserviertTabelle();
         updateGescanntListe();
         feedbackZuruecksetzen();
+        letzteAktionAnzeigen();
     }
 
     public void ausleihen() {
@@ -369,14 +519,18 @@ public class ControllerLehrerStartseite {
             if (dauer >= 1 && dauer <= 200) {
                 model.buchLeihen(dauer);
                 model.abbrechen();
-                ausleihdauerFeld.setText("28");
+                ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);
                 feedbackText.setText("Bücher erfolgreich verliehen.");
                 loadVerliehenTabelle();
+                loadReserviertTabelle();
                 updateGescanntListe();
                 feedbackZuruecksetzen();
+                letzteAktionAnzeigen();
+                rueckgaengigButton.setDisable(false);
             } else {
+                feedbackText.setFill(Color.RED);
                 feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
             }
         } catch (NumberFormatException e) {
@@ -433,4 +587,62 @@ public class ControllerLehrerStartseite {
             e.printStackTrace();
         }
     }
+
+    public void toEinstellungen(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
+            Parent root = loader.load();
+            
+            ControllerEinstellungen controller = loader.getController();
+            controller.setModel(model);
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void gescanntesBuchEntfernen() {
+        int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            model.gescanntesBuchEntfernen(selectedIndex);
+            updateGescanntListe();
+            
+            if (model.getErfassteBuecherNamen().isEmpty()) {
+                ausleihenButton.setDisable(true);
+                zuruecknehmenButton.setDisable(true);
+            }
+        }
+    }
+
+    public void letzteAktionAnzeigen(){
+        ArrayList<String> liste = new ArrayList<>();
+        liste.add("Letzte Aktion: ");
+        liste.addAll(model.getLetzteBuecher());
+        if (model.letzteAktionAusleihen()) {
+            liste.add("verliehen an: " + model.getLetzterSchuelerName());
+        }else{
+            liste.add("zurückgenommen von: " + model.getLetzterSchuelerName());
+        }
+        gescanntListe.getItems().clear();
+        gescanntListe.getItems().addAll(liste);
+    }
+
+    public void letzteAktionZureucknehmen(){
+        model.letzteAktionZuruecknehmen();
+        loadVerliehenTabelle();
+        loadReserviertTabelle();
+        updateGescanntListe();
+        feedbackZuruecksetzen();
+        letzteAktionAnzeigen();
+        rueckgaengigButton.setDisable(true);
+        feedbackText.setFill(Color.BLACK);
+        feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
+        gescanntListe.getItems().clear();
+    }
+
+
 }

@@ -18,12 +18,30 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import java.io.File;
+import org.apache.pdfbox.Loader;
+import java.awt.Desktop;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDTerminalField;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.oned.Code128Writer;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
@@ -72,7 +90,7 @@ public class ControllerNutzerVerwaltung {
 
     @FXML
     private Button entfernenButton;
-    
+
     @FXML
     private ChoiceBox<String> rolleAuswahl;
 
@@ -93,9 +111,23 @@ public class ControllerNutzerVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
-    
+
     @FXML
     private StackPane background;
+
+    @FXML
+    private Text hinweisText;
+
+    @FXML
+    private Button addButton;
+
+    @FXML
+    private Button druckenButton;
+
+    @FXML
+    private ListView<Benutzer> schulerList;
+
+    
 
     public static class tabelleZeile {
         private String isbn;
@@ -133,7 +165,6 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
-
     public void initialize() {
         rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
         rolleAuswahl.setDisable(true);
@@ -149,7 +180,6 @@ public class ControllerNutzerVerwaltung {
         verlaufGeliehenSpalte.setCellValueFactory(new PropertyValueFactory<>("geliehen"));
         verlaufGeplRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("geplRueckgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
-
 
         verlaufRueckgabeSpalte.setCellFactory(column -> new TableCell<tabelleZeile, String>() {
             @Override
@@ -179,27 +209,40 @@ public class ControllerNutzerVerwaltung {
                 }
             }
         });
-        
-        Platform.runLater(() ->{
+
+        Platform.runLater(() -> {
             Scene scene = background.getScene();
-            if(scene != null){
+            if (scene != null) {
                 final double targetWidth = 1920.0;
                 final double targetHeight = 1080.0;
-        
+
                 Scale scale = new Scale(1, 1, 0, 0);
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-                
-                
+
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
-                
+
                 background.setPrefWidth(targetWidth);
                 background.setPrefHeight(targetHeight);
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
-                
+
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
+            }
+        });
+
+        
+
+        schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
+            @Override
+            protected void updateItem(Benutzer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getEmail());
+                }
             }
         });
     }
@@ -243,7 +286,7 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setText(selectedNutzer.getEmail());
                 nameFeld.setText(selectedNutzer.getName());
                 vornameFeld.setText(selectedNutzer.getVorname());
-                
+
                 if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
                     rolleAuswahl.setValue("Lehrer");
                 } else {
@@ -253,8 +296,15 @@ public class ControllerNutzerVerwaltung {
                 bearbeitenButton.setDisable(false);
                 if (!selectedNutzer.isFreigeschaltet()) {
                     entfernenButton.setText("freigeben");
+                    if (selectedNutzer.getGesperrtVon() == 0) {
+                        statusText.setText("automatisch gesperrt");
+                    } else {
+                        statusText.setText(
+                                "gesperrt von " + model.getBenutzerName(selectedNutzer.getGesperrtVon()));
+                    }
                 } else {
-                    entfernenButton.setText("entfernen");
+                    entfernenButton.setText("sperren");
+                    statusText.setText("");
                 }
                 entfernenButton.setDisable(false);
                 loadVerlaufTabelle();
@@ -279,7 +329,7 @@ public class ControllerNutzerVerwaltung {
                 errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
                 return;
             }
-            
+
             bearbeitenAktiv = false;
             bearbeitenButton.setText("bearbeiten");
             emailFeld.setEditable(false);
@@ -291,21 +341,23 @@ public class ControllerNutzerVerwaltung {
             neuButton.setDisable(false);
 
             entfernenButton.setDisable(false);
-            
+
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
             }
-            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(), vornameFeld.getText());
-            
-            if(!passwortFeld.getText().equals("")){
+            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(),
+                    vornameFeld.getText());
+
+            if (!passwortFeld.getText().equals("")) {
                 model.passwortAendern(selectedNutzer.getId(), passwortFeld.getText());
             }
             suchen();
 
         } else {
             if (neuAktiv) {
-                if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty() || passwortFeld.getText().isEmpty()) {
+                if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
+                        || passwortFeld.getText().isEmpty()) {
                     errorText.setText("Bitte füllen Sie alle Felder aus!");
                     return;
                 }
@@ -322,7 +374,8 @@ public class ControllerNutzerVerwaltung {
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
                 }
-                model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(),nameFeld.getText(),vornameFeld.getText());
+                model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(), nameFeld.getText(),
+                        vornameFeld.getText());
                 suchen();
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
@@ -359,11 +412,10 @@ public class ControllerNutzerVerwaltung {
             return;
         }
 
-
         if (!selectedNutzer.isFreigeschaltet()) {
-            model.sperren(selectedNutzer.getId());
-        } else {
             model.entsperren(selectedNutzer.getId());
+        } else {
+            model.sperren(selectedNutzer.getId());
         }
 
         suchen();
@@ -434,6 +486,98 @@ public class ControllerNutzerVerwaltung {
                     verlaufTabelle.getItems().add(zeile);
 
                 }
+            }
+        }
+    }
+
+    public void hinzu(ActionEvent event) {
+        if (selectedNutzer != null) {
+            int anzahl = 4 - schulerList.getItems().size();
+            if (selectedNutzer != null && anzahl > 0) {
+                schulerList.getItems().add(0, selectedNutzer);
+                anzahl = anzahl - 1;
+                hinweisText.setText("Du kannst noch " + anzahl + " Nutzer hinzufügen");
+
+            }
+            if (anzahl == 0) {
+                hinweisText.setText("Bitte drucken");
+            }
+        }
+
+    }
+
+    public void druck(ActionEvent event) {
+        if (schulerList.getItems().size() != 0) {
+            try {
+                File temp = new File("eulen/Karten.pdf");
+                PDDocument kart = Loader.loadPDF(temp);
+                PDAcroForm acroForm = kart.getDocumentCatalog().getAcroForm();
+
+                String vorname = null;
+                if (acroForm != null) {
+                    for (int i = 1; i <= schulerList.getItems().size(); i++) {
+                        Benutzer b = schulerList.getItems().get(i - 1);
+                        acroForm.getField("vorname" + i).setValue(b.getVorname());
+                        acroForm.getField("nachname" + i).setValue(b.getName());
+                        vorname = b.getVorname();
+
+                        
+                        try {
+                            Code128Writer barcodeWriter = new Code128Writer();
+
+                            BitMatrix bitMatrix = barcodeWriter.encode(String.valueOf(b.getId()),
+                                    BarcodeFormat.CODE_128, 300, 100);
+
+                            java.awt.image.BufferedImage barcodeImage = com.google.zxing.client.j2se.MatrixToImageWriter
+                                    .toBufferedImage(bitMatrix);
+
+                            PDField platzhalterFeld = acroForm.getField("code" + i);
+
+                            if (platzhalterFeld != null && platzhalterFeld instanceof PDTerminalField) {
+                                PDRectangle position = ((PDTerminalField) platzhalterFeld).getWidgets().get(0)
+                                        .getRectangle();
+                                PDImageXObject pdImage = org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory.createFromImage(kart, barcodeImage);
+
+                                try (PDPageContentStream contentStream = new PDPageContentStream(
+                                        kart, kart.getPage(0), PDPageContentStream.AppendMode.APPEND, true, true)) {
+
+                                    contentStream.drawImage(pdImage,
+                                            position.getLowerLeftX(),
+                                            position.getLowerLeftY(),
+                                            position.getWidth(),
+                                            position.getHeight());
+
+                                }
+
+                                platzhalterFeld.setValue("");
+
+                            }
+
+                            
+                            acroForm.getFields().remove(platzhalterFeld);
+
+                        } catch (Exception e) {
+
+                        }
+                    }
+                    acroForm.flatten();
+
+                }
+
+                if (vorname != null) {
+                    File pdfDatei = new File("karten/Ausgefuellt_" + vorname + ".pdf");
+                    kart.save(pdfDatei);
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop desktop = Desktop.getDesktop();
+                        desktop.open(pdfDatei);
+                    }
+                }
+
+                kart.close();
+                hinweisText.setText("");
+                schulerList.getItems().clear();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

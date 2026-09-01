@@ -16,8 +16,9 @@ public class Benutzer
     private int id;
     private boolean freigeschaltet;
     private int lateDays;
+    private int gesperrtVon;
     
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet)
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
     {
         email = pEmail;
         passwort = pPw;
@@ -27,6 +28,7 @@ public class Benutzer
         id = pId;
         freigeschaltet = pFreigeschaltet;
         lateDays = 0;
+        gesperrtVon = pGesperrtVon;
     }
 
     public String getEmail() {
@@ -64,4 +66,8 @@ public class Benutzer
     public int getLateDays(){
         return lateDays;
     }
+    public int getGesperrtVon() {
+        return gesperrtVon;
+    }
+    
 }
