@@ -135,37 +135,30 @@ public class Bibliothek {
             if (erfassteBuecher.isEmpty())
                 return;
             String isbn = erfassteBuecher.get(0);
-            dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + isbn + "'");
+            dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '" + isbn + "'");
             QueryResult result = dbConnector.getCurrentQueryResult();
-
-            if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
+            //Schuler auch zu ruckgabe scannen
+            letzterSchueler = erfassterSchueler;
+            if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
                 letzteAktionAusleihen = false;
                 letzteBuecher.clear();
                 letzteBuecher.add(isbn);
-                dbConnector.executeStatement(
-                        "SELECT schueler_id FROM ausleihen WHERE isbn = '" + isbn + "' AND ruckgabe_datum IS NULL");
-                QueryResult schuelerResult = dbConnector.getCurrentQueryResult();
-                if (schuelerResult != null && schuelerResult.getRowCount() > 0) {
-                    letzterSchueler = Integer.parseInt(schuelerResult.getData()[0][0]);
-                }
+                
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
-                                + "' AND ruckgabe_datum IS NULL");
+                                + "' AND ruckgabe_datum IS NULL AND schueler_id ='" + letzterSchueler+"'");
 
                 dbConnector.executeStatement(
                         "SELECT status FROM reservierungen WHERE isbn = '" + isbn + "' AND status = 'wartend'");
                 QueryResult resResult = dbConnector.getCurrentQueryResult();
 
                 if (resResult != null && resResult.getRowCount() > 0) {
-                    dbConnector
-                            .executeStatement("UPDATE buecher SET status = 'reserviert' WHERE isbn = '" + isbn + "'");
+                    hinzuRE(isbn);
+                    loeschLI(isbn);
+                    updateBuchStatus(isbn);
+                    //hier
 
-                    int dauer = getReservierungDauer();
-                    dbConnector.executeStatement(
-                            "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL "
-                                    + dauer + " DAY) WHERE isbn = '"
-                                    + isbn
-                                    + "' AND status = 'wartend'");
+                    updateReservierung(isbn);
 
                     // Email senden an den wartenden SchÃ¼ler
                     dbConnector.executeStatement(
@@ -449,7 +442,7 @@ public class Bibliothek {
     }
 
     public int login(String email, String passwort) {
-        // Vorname großgeschrieben ist das Passwort
+        // Vorname grosgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
                 "SELECT id, passwort FROM benutzer WHERE email = '" + email.toLowerCase() + "'");
@@ -692,10 +685,12 @@ public class Bibliothek {
                     + "' AND (status = 'wartend' OR status = 'bereit') AND schueler_id = " + angemeldet);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
-                if (result.getData()[0][1].equals("bereit")) {
-                    dbConnector
-                            .executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
+                if (result.getData()[0][1].equals("bereit")) {        
+                    hinzuDA(isbn);
+                    loeschRE(isbn);
+                    updateBuchStatus(isbn);
                 } else {
+                    //?
                     dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
                 }
                 dbConnector.executeStatement(
@@ -826,7 +821,7 @@ public class Bibliothek {
         }
     }
 
-    //da
+    //dani
     public void reservierungenAktualisieren() {
 
         dbConnector.executeStatement(
@@ -836,8 +831,10 @@ public class Bibliothek {
             for (int i = 0; i < result.getRowCount(); i++) {
                 String id = result.getData()[i][0];
                 dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgelaufen' WHERE id = " + id + ";");
-                dbConnector.executeStatement(
-                        "UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + result.getData()[i][1] + "';");
+                hinzuDA(result.getData()[i][1]);
+                loeschRE(result.getData()[i][1]);
+                updateBuchStatus(result.getData()[i][1]);
+                
             }
         }
     }
@@ -1015,9 +1012,8 @@ public class Bibliothek {
                 dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '"+isbn+"'");
                 QueryResult result = dbConnector.getCurrentQueryResult();
                         
-                int da = Integer.parseInt(result.getData()[0][0]);
-                da = da + 1;
-                dbConnector.executeStatement("UPDATE buecher SET anzahlLiehen = '"+da+"' WHERE isbn = '"+isbn+"'");
+                hinzuDA(isbn);
+                loeschLI(isbn);
                 updateBuchStatus(isbn);
                 //dbConnector.executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
             }
@@ -1027,12 +1023,11 @@ public class Bibliothek {
                 dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = NULL WHERE isbn = '" + isbn
                         + "' AND schueler_id = " + letzterSchueler + " ORDER BY ausleihdatum DESC LIMIT 1");
                         
-                dbConnector.executeStatement("SELECT anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
-                QueryResult result = dbConnector.getCurrentQueryResult();
+               
                         
-                int da = Integer.parseInt(result.getData()[0][0]);
-                da = da + 1;
-                dbConnector.executeStatement("UPDATE buecher SET anzahlRes = '"+da+"' WHERE isbn = '"+isbn+"'");
+                hinzuLI(isbn);
+                //schau ob res
+                loeschDA(isbn);
                 updateBuchStatus(isbn);
                 //dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
             }
@@ -1127,5 +1122,18 @@ public class Bibliothek {
                 } 
     }
     
+    private void updateReservierung(String isbn){
+        int dauer = getReservierungDauer();
+        dbConnector.executeStatement("SELECT id FROM reservierung WHERE isbn= '"+ isbn
+                                    + "' AND status = 'wartend' ORDER BY reservierung_beginn");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        
+        if(result != null && result.getRowCount() > 0){
+            dbConnector.executeStatement(
+                            "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL "
+                                    + dauer + " DAY) WHERE id ='" +result.getData()[0][0] + "'");
+        }
+        
+    }
     
 }

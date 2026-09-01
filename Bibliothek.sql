@@ -42,9 +42,9 @@ CREATE TABLE `ausleihen` (
 --
 
 INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`) VALUES
-(8, '978-3125739291', '2026-08-17', '2026-09-20', '2026-08-29', 16),
-(8, '978-3608126013', '2026-08-17', '2026-09-20', NULL, 17),
-(13, '978-3551321022', '2026-08-20', '2026-09-09', NULL, 18);
+(10000008, '978-3125739291', '2026-08-17', '2026-09-20', '2026-08-29', 16),
+(10000008, '978-3608126013', '2026-08-17', '2026-09-20', NULL, 17),
+(10000013, '978-3551321022', '2026-08-20', '2026-09-09', NULL, 18);
 
 -- --------------------------------------------------------
 
@@ -69,13 +69,13 @@ CREATE TABLE `benutzer` (
 --
 
 INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`) VALUES
-(7, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0, NULL),
-(8, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL),
-(9, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL),
-(10, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL),
-(11, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL),
-(12, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL),
-(13, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL);
+(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0, NULL),
+(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL),
+(10000009, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL),
+(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL),
+(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL),
+(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL),
+(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -163,9 +163,9 @@ CREATE TABLE `reservierungen` (
 --
 
 INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`) VALUES
-(7, '978-3551317148', 11, 'bereit', '2026-08-20', '2026-09-03'),
-(8, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12'),
-(9, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12');
+(10000007, '978-3551317148', 11, 'bereit', '2026-08-20', '2026-09-03'),
+(10000008, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12'),
+(10000009, '978-0261102217', 7, 'abgesagt', '2026-08-29', '2026-09-12');
 
 --
 -- Indizes der exportierten Tabellen
@@ -220,7 +220,7 @@ ALTER TABLE `ausleihen`
 -- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000016;
 
 --
 -- AUTO_INCREMENT für Tabelle `reservierungen`
