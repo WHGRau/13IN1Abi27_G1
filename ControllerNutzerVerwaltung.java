@@ -12,6 +12,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.paint.Color;
 
 import java.time.LocalDate;
@@ -19,6 +20,9 @@ import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
@@ -92,7 +96,12 @@ public class ControllerNutzerVerwaltung {
     private Button entfernenButton;
 
     @FXML
+    private Button loeschenButton;
+
+    @FXML
     private ChoiceBox<String> rolleAuswahl;
+    @FXML
+    private DatePicker geburtsdatumPicker;
 
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
@@ -174,6 +183,7 @@ public class ControllerNutzerVerwaltung {
         verlaufTabelle.setPlaceholder(new Label("noch kein Buch entliehen"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
+        loeschenButton.setDisable(true);
 
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufTitelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
@@ -293,6 +303,16 @@ public class ControllerNutzerVerwaltung {
                     rolleAuswahl.setValue("Schüler");
                 }
 
+                if (selectedNutzer.getGeburtsdatum() != null && !selectedNutzer.getGeburtsdatum().equals("null") && !selectedNutzer.getGeburtsdatum().isEmpty()) {
+                    try {
+                        geburtsdatumPicker.setValue(LocalDate.parse(selectedNutzer.getGeburtsdatum()));
+                    } catch (Exception e) {
+                        geburtsdatumPicker.setValue(null);
+                    }
+                } else {
+                    geburtsdatumPicker.setValue(null);
+                }
+
                 bearbeitenButton.setDisable(false);
                 if (!selectedNutzer.isFreigeschaltet()) {
                     entfernenButton.setText("freigeben");
@@ -307,6 +327,7 @@ public class ControllerNutzerVerwaltung {
                     statusText.setText("");
                 }
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 loadVerlaufTabelle();
             }
         }
@@ -337,17 +358,20 @@ public class ControllerNutzerVerwaltung {
             vornameFeld.setEditable(false);
             passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
 
             entfernenButton.setDisable(false);
+            loeschenButton.setDisable(false);
 
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
             }
+            String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
             model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(),
-                    vornameFeld.getText());
+                    vornameFeld.getText(), gebDatum);
 
             if (!passwortFeld.getText().equals("")) {
                 model.passwortAendern(selectedNutzer.getId(), passwortFeld.getText());
@@ -374,8 +398,9 @@ public class ControllerNutzerVerwaltung {
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
                 }
+                String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
                 model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(), nameFeld.getText(),
-                        vornameFeld.getText());
+                        vornameFeld.getText(), gebDatum);
                 suchen();
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
@@ -384,13 +409,16 @@ public class ControllerNutzerVerwaltung {
                 vornameFeld.setEditable(false);
                 passwortFeld.setEditable(false);
                 rolleAuswahl.setDisable(true);
+                geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
                 neuButton.setText("neu");
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 emailFeld.clear();
                 nameFeld.clear();
                 vornameFeld.clear();
                 passwortFeld.clear();
+                geburtsdatumPicker.setValue(null);
 
             } else {
                 bearbeitenAktiv = true;
@@ -400,9 +428,11 @@ public class ControllerNutzerVerwaltung {
                 vornameFeld.setEditable(true);
                 passwortFeld.setEditable(true);
                 rolleAuswahl.setDisable(false);
+                geburtsdatumPicker.setDisable(false);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
+                loeschenButton.setDisable(true);
             }
         }
     }
@@ -435,6 +465,7 @@ public class ControllerNutzerVerwaltung {
 
             neuButton.setText("abbrechen");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("speichern");
             bearbeitenButton.setDisable(false);
             emailFeld.clear();
@@ -447,11 +478,14 @@ public class ControllerNutzerVerwaltung {
             vornameFeld.setEditable(true);
             passwortFeld.setEditable(true);
             rolleAuswahl.setDisable(false);
+            geburtsdatumPicker.setDisable(false);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(true);
             neuAktiv = true;
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("bearbeiten");
             emailFeld.clear();
             nameFeld.clear();
@@ -462,9 +496,39 @@ public class ControllerNutzerVerwaltung {
             vornameFeld.setEditable(false);
             passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
+        }
+    }
+
+    public void nutzerLoeschen() {
+        if (selectedNutzer == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Nutzer löschen");
+        alert.setHeaderText("Möchten Sie diesen Nutzer wirklich löschen?");
+        alert.setContentText("Nutzer: " + selectedNutzer.getVorname() + " " + selectedNutzer.getName() + " (" + selectedNutzer.getEmail() + ")\n\nDiese Aktion kann nicht rückgängig gemacht werden.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            model.benutzerLoeschen(selectedNutzer.getId());
+            selectedNutzer = null;
+            emailFeld.clear();
+            nameFeld.clear();
+            vornameFeld.clear();
+            passwortFeld.clear();
+            geburtsdatumPicker.setValue(null);
+            statusText.setText("");
+            verlaufTabelle.getItems().clear();
+            bearbeitenButton.setDisable(true);
+            entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
+            suchen();
         }
     }
 

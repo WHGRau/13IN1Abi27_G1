@@ -204,6 +204,10 @@ public class ControllerBuecherVerwaltung {
 
                             buchDatenAbrufen(barcodePuffer);
                             barcodePuffer = "";
+                            event.consume();
+                        } else if (!isbnFeld.getText().isEmpty()) {
+                            bearbeitenButton.fire();
+                            event.consume();
                         }
                     }
                 });
@@ -330,21 +334,14 @@ public class ControllerBuecherVerwaltung {
                     model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
                             jahr, beschreibungFeld.getText());
                     suchen();
-                    neuAktiv = false;
-                    bearbeitenButton.setText("bearbeiten");
-                    titelFeld.setEditable(false);
-                    autorFeld.setEditable(false);
-                    jahrFeld.setEditable(false);
-                    beschreibungFeld.setEditable(false);
-                    zurueckButton.setDisable(false);
-                    neuButton.setText("neu");
-                    entfernenButton.setDisable(false);
-                    searchBar.setEditable(true);
+                    
+
                     titelFeld.clear();
                     autorFeld.clear();
                     jahrFeld.clear();
                     beschreibungFeld.clear();
                     isbnFeld.clear();
+                    Platform.runLater(() -> isbnFeld.requestFocus());
                 } catch (NumberFormatException e) {
                     errorText.setText("Fehler: Ungültiges Jahr");
                     e.printStackTrace();
