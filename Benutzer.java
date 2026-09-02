@@ -15,6 +15,7 @@ public class Benutzer
     private String rolle;
     private int id;
     private boolean freigeschaltet;
+    private int lateDays;
     private int gesperrtVon;
     
     public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
@@ -26,6 +27,7 @@ public class Benutzer
         rolle = pRolle;
         id = pId;
         freigeschaltet = pFreigeschaltet;
+        lateDays = 0;
         gesperrtVon = pGesperrtVon;
     }
 
@@ -57,6 +59,13 @@ public class Benutzer
         return freigeschaltet;
     }
     
+    public void setLateDays(int days){
+        lateDays = days;
+    }
+    
+    public int getLateDays(){
+        return lateDays;
+    }
     public int getGesperrtVon() {
         return gesperrtVon;
     }
