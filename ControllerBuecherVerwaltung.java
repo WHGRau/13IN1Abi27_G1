@@ -26,6 +26,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
+import javafx.scene.control.CheckBox;
 
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
@@ -78,6 +79,9 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Button entfernenButton;
 
+    @FXML
+    private CheckBox schuler;
+    
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
 
@@ -311,8 +315,7 @@ public class ControllerBuecherVerwaltung {
             try {
                 int jahr = Integer.parseInt(jahrFeld.getText().trim());
                 model.buchBearbeiten(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
-                        jahr, beschreibungFeld.getText(),
-                        selectedBuch.getStatus());
+                        jahr, beschreibungFeld.getText());
                 suchen();
             } catch (NumberFormatException e) {
                 errorText.setText("Fehler: Ungültiges Jahr");
@@ -369,8 +372,15 @@ public class ControllerBuecherVerwaltung {
         }
 
         String savedIsbn = selectedBuch.getIsbn();
-
+        
+        if(schuler.isSelected()){
+            
+        }
+        
         if (!selectedBuch.getStatus().equals("entfernt")) {
+            if(schuler.isSelected()){
+                
+            }
             model.buchLoeschen(selectedBuch.getIsbn());
         } else {
             model.buchFreigeben(selectedBuch.getIsbn());
