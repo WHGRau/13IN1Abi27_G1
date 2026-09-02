@@ -152,10 +152,8 @@ public class Bibliothek {
                 if(getTageZuSpaet(isbn)> 0){
                     dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"'");
                     int schuelerID = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"'");
-                    int aktuell = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
                     int newLateDays = getTageZuSpaet(isbn);
-                    dbConnector.executeStatement("UPDATE benutzer SET late_days = "+newLateDays+" WHERE id = "+schuelerID+"");
+                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+newLateDays+" WHERE id = "+schuelerID+"");
                 letzteAktionAusleihen = false;
                 letzteBuecher.clear();
                 letzteBuecher.add(isbn);
@@ -996,7 +994,7 @@ public class Bibliothek {
     }
     
     public void lateDaysAktualisieren(){
-        
+            int sperrungTage = Integer.parseInt(getEinstellung("sperren_verspaetung_tage"));
             dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
             QueryResult result = dbConnector.getCurrentQueryResult();
             int sumDaysLate = 0;
@@ -1015,7 +1013,7 @@ public class Bibliothek {
                         if(lastStudent != -1){
                             dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
                             lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                            if(lateDays + sumDaysLate > 14){
+                            if(lateDays + sumDaysLate > sperrungTage){
                                  sperren(lastStudent);
                             }
                             }
