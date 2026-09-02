@@ -399,7 +399,7 @@ public class ControllerNutzerVerwaltung {
                     rolle = "lehrer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
-                model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(), nameFeld.getText(),
+                model.neuerBenutzer(rolle, emailFeld.getText(), nameFeld.getText(),
                         vornameFeld.getText(), gebDatum);
                 suchen();
                 neuAktiv = false;

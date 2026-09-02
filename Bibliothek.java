@@ -5,6 +5,7 @@ import javax.swing.event.*;
 import java.sql.*;
 import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import java.util.Random;
 
 public class Bibliothek {
     private DatabaseConnector dbConnector;
@@ -15,6 +16,7 @@ public class Bibliothek {
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
+    private Random random = new Random();
 
     public Bibliothek() {
         dbVerbinden();
@@ -758,13 +760,16 @@ public class Bibliothek {
         return false;
     }
 
-    public void neuerBenutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, String pGeburtsdatum) {
+    public void neuerBenutzer(String pRolle, String pEmail, String pNn, String pVn, String pGeburtsdatum) {
         if (isLehrer()) {
+            String passwort = Integer.toString(random.nextInt(10000000, 100000000)); 
             String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL" : "'" + pGeburtsdatum + "'";
             String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum)" + " VALUES('"
-                    + pVn + "', '" + pNn + "', '" + pEmail.toLowerCase() + "','" + hashen(pPw) + "','" + pRolle + "','"
+                    + pVn + "', '" + pNn + "', '" + pEmail.toLowerCase() + "','" + hashen(passwort) + "','" + pRolle + "','"
                     + 1 + "', " + gebDatumSql + ")";
             dbConnector.executeStatement(sql);
+            MailService mailService = new MailService(this);
+            mailService.sendeAnmeldeMail(pEmail, pVn + pNn, passwort);
         }
 
     }
