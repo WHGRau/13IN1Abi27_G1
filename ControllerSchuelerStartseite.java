@@ -320,4 +320,21 @@ public class ControllerSchuelerStartseite {
             }
         }
     }
+
+    public void passwortAendern(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
+            Parent root = loader.load();
+            passwortResetController controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

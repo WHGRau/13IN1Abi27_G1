@@ -69,9 +69,6 @@ public class ControllerNutzerVerwaltung {
     private TextField emailFeld;
 
     @FXML
-    private TextField passwortFeld;
-
-    @FXML
     private TextField nameFeld;
 
     @FXML
@@ -333,21 +330,33 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+
+    public void checkEmailWarnung() {
+        if (neuAktiv || bearbeitenAktiv) {
+            boolean isSchueler = "Schüler".equals(rolleAuswahl.getValue());
+            if (isSchueler && emailFeld.getText().trim().isEmpty()) {
+                errorText.setFill(Color.ORANGE);
+                errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+            } else {
+                errorText.setText("");
+            }
+        }
+    }
+
     public void bearbeiten(ActionEvent event) {
         if (selectedNutzer == null && !neuAktiv) {
             return;
         }
         if (bearbeitenAktiv) {
-            if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()) {
-                errorText.setText("Bitte füllen Sie Name, Vorname und E-Mail aus!");
+            boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+            if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty() || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                errorText.setFill(Color.RED);
+                errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
                 return;
             }
-            if (model.emailVorhanden(emailFeld.getText(), selectedNutzer.getId())) {
+            if (!emailFeld.getText().trim().isEmpty() && model.emailVorhanden(emailFeld.getText().trim(), selectedNutzer.getId())) {
+                errorText.setFill(Color.RED);
                 errorText.setText("Diese E-Mail ist bereits vergeben!");
-                return;
-            }
-            if (!passwortFeld.getText().isEmpty() && passwortFeld.getText().length() < 8) {
-                errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
                 return;
             }
 
@@ -356,7 +365,6 @@ public class ControllerNutzerVerwaltung {
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
             geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
@@ -370,27 +378,34 @@ public class ControllerNutzerVerwaltung {
                 rolle = "lehrer";
             }
             String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
-            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(),
+            
+            boolean isNeueEmail = selectedNutzer.getEmail() == null || selectedNutzer.getEmail().isEmpty();
+            boolean isJetztEmail = !emailFeld.getText().trim().isEmpty();
+
+            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText().trim(), nameFeld.getText(),
                     vornameFeld.getText(), gebDatum);
 
-            if (!passwortFeld.getText().equals("")) {
-                model.passwortAendern(selectedNutzer.getId(), passwortFeld.getText());
-            }
             suchen();
+            
+            if (isNeueEmail && isJetztEmail) {
+                 model.initialesPasswortSenden(emailFeld.getText().trim()); 
+                 errorText.setFill(Color.GREEN);
+                 errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+            } else {
+                 errorText.setText("");
+            }
 
         } else {
             if (neuAktiv) {
-                if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                        || passwortFeld.getText().isEmpty()) {
-                    errorText.setText("Bitte füllen Sie alle Felder aus!");
+                boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+                if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty() || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
                     return;
                 }
-                if (model.emailVorhanden(emailFeld.getText(), -1)) {
+                if (!emailFeld.getText().trim().isEmpty() && model.emailVorhanden(emailFeld.getText().trim(), -1)) {
+                    errorText.setFill(Color.RED);
                     errorText.setText("Diese E-Mail ist bereits vergeben!");
-                    return;
-                }
-                if (passwortFeld.getText().length() < 8) {
-                    errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
                     return;
                 }
 
@@ -399,15 +414,20 @@ public class ControllerNutzerVerwaltung {
                     rolle = "lehrer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
-                model.neuerBenutzer(rolle, emailFeld.getText(), nameFeld.getText(),
+                model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
                         vornameFeld.getText(), gebDatum);
                 suchen();
+                if (!emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.GREEN);
+                    errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                } else {
+                    errorText.setText("");
+                }
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
                 emailFeld.setEditable(false);
                 nameFeld.setEditable(false);
                 vornameFeld.setEditable(false);
-                passwortFeld.setEditable(false);
                 rolleAuswahl.setDisable(true);
                 geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
@@ -417,7 +437,6 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.clear();
                 nameFeld.clear();
                 vornameFeld.clear();
-                passwortFeld.clear();
                 geburtsdatumPicker.setValue(null);
 
             } else {
@@ -426,13 +445,13 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setEditable(true);
                 nameFeld.setEditable(true);
                 vornameFeld.setEditable(true);
-                passwortFeld.setEditable(true);
                 rolleAuswahl.setDisable(false);
                 geburtsdatumPicker.setDisable(false);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
                 loeschenButton.setDisable(true);
+                checkEmailWarnung();
             }
         }
     }
@@ -471,17 +490,16 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
             rolleAuswahl.setValue("Schüler");
             emailFeld.setEditable(true);
             nameFeld.setEditable(true);
             vornameFeld.setEditable(true);
-            passwortFeld.setEditable(true);
             rolleAuswahl.setDisable(false);
             geburtsdatumPicker.setDisable(false);
             geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(true);
             neuAktiv = true;
+            checkEmailWarnung();
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
@@ -490,11 +508,9 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
             geburtsdatumPicker.setDisable(true);
             geburtsdatumPicker.setValue(null);
@@ -521,7 +537,6 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
             geburtsdatumPicker.setValue(null);
             statusText.setText("");
             verlaufTabelle.getItems().clear();

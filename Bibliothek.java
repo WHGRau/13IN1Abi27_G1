@@ -473,14 +473,18 @@ public class Bibliothek {
         // Vorname grosgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
-                "SELECT id, passwort FROM benutzer WHERE email = '" + email.toLowerCase() + "'");
+                "SELECT id, passwort, passwortAendern FROM benutzer WHERE email = '" + email.toLowerCase() + "'");
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
 
             gespeichertesPasswort = result.getData()[0][1];
             boolean passwortStimmt = passwordEncoder.matches(passwort, gespeichertesPasswort);
+
             if (passwortStimmt) {
                 angemeldet = Integer.parseInt(result.getData()[0][0]);
+                if(result.getData()[0][2].equals("1")){
+                    return 2;
+                }
                 return 1;
             }
 
@@ -764,12 +768,14 @@ public class Bibliothek {
         if (isLehrer()) {
             String passwort = Integer.toString(random.nextInt(10000000, 100000000)); 
             String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL" : "'" + pGeburtsdatum + "'";
-            String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum)" + " VALUES('"
-                    + pVn + "', '" + pNn + "', '" + pEmail.toLowerCase() + "','" + hashen(passwort) + "','" + pRolle + "','"
-                    + 1 + "', " + gebDatumSql + ")";
+            String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? "NULL" : "'" + pEmail.toLowerCase() + "'";
+            String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum, passwortAendern)" + " VALUES('"
+                    + pVn + "', '" + pNn + "', " + emailSql + ",'" + hashen(passwort) + "','" + pRolle + "','"
+                    + 1 + "', " + gebDatumSql + ", '1')";
             dbConnector.executeStatement(sql);
-            MailService mailService = new MailService(this);
-            mailService.sendeAnmeldeMail(pEmail, pVn + pNn, passwort);
+            if (pEmail != null && !pEmail.trim().isEmpty()) {
+                initialesPasswortSenden(pEmail);
+            }
         }
 
     }
@@ -827,9 +833,10 @@ public class Bibliothek {
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
                 String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL" : "'" + pGeburtsdatum + "'";
+                String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? "NULL" : "'" + pEmail.toLowerCase() + "'";
                 dbConnector.executeStatement(
                         "UPDATE benutzer SET vorname = '" + pVn + "', nachname = '" + pNn + "', rolle = '" + pRolle
-                                + "', email = '" + pEmail.toLowerCase() + "', geburtsdatum = " + gebDatumSql + " WHERE id = '" + pID + "'");
+                                + "', email = " + emailSql + ", geburtsdatum = " + gebDatumSql + " WHERE id = '" + pID + "'");
 
             }
         }
@@ -1115,5 +1122,31 @@ public class Bibliothek {
             }
         }
         return 0;
+    }
+
+    public void passwortAendern(String passwort) {
+        dbConnector.executeStatement("UPDATE benutzer SET passwort = '" + passwordEncoder.encode(passwort) + "', passwortAendern = '0' WHERE id = " + angemeldet);
+    }
+
+    public void passwortVergessen(String email) {
+        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = '" + email + "'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            String passwort = Integer.toString(random.nextInt(10000000, 100000000));
+            dbConnector.executeStatement("UPDATE benutzer SET passwort = '" + passwordEncoder.encode(passwort) + "', passwortAendern = '1' WHERE email = '" + email + "'");
+            MailService mailService = new MailService(this);
+            mailService.sendePasswortResetMail(email, result.getData()[0][1] + " " + result.getData()[0][2], passwort);
+        }
+    }
+
+    public void initialesPasswortSenden(String email) {
+        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = '" + email + "'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            String passwort = Integer.toString(random.nextInt(10000000, 100000000));
+            dbConnector.executeStatement("UPDATE benutzer SET passwort = '" + passwordEncoder.encode(passwort) + "', passwortAendern = '1' WHERE email = '" + email + "'");
+            MailService mailService = new MailService(this);
+            mailService.sendeAnmeldeMail(email, result.getData()[0][1] + " " + result.getData()[0][2], passwort);
+        }
     }
 }

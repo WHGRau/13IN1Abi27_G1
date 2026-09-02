@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Erstellungszeit: 01. Sep 2026 um 10:24
--- Server-Version: 10.4.28-MariaDB
--- PHP-Version: 8.2.4
+-- Host: localhost
+-- Generation Time: Sep 02, 2026 at 06:18 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Datenbank: `bibliothek`
+-- Database: `Bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `ausleihen`
+-- Table structure for table `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
@@ -40,7 +40,7 @@ CREATE TABLE `ausleihen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `ausleihen`
+-- Dumping data for table `ausleihen`
 --
 
 INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`) VALUES
@@ -51,39 +51,40 @@ INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckg
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `benutzer`
+-- Table structure for table `benutzer`
 --
 
 CREATE TABLE `benutzer` (
   `id` int(11) NOT NULL,
   `vorname` varchar(100) NOT NULL,
   `nachname` varchar(100) NOT NULL,
-  `email` varchar(150) NOT NULL,
+  `email` varchar(150) DEFAULT NULL,
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer') NOT NULL,
   `freigeschaltet` tinyint(1) NOT NULL,
   `gesperrt_von` int(11) DEFAULT NULL,
-  `geburtsdatum` date DEFAULT NULL
+  `geburtsdatum` date DEFAULT NULL,
+  `passwortAendern` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `benutzer`
+-- Dumping data for table `benutzer`
 --
 
-INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`) VALUES
-(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0, NULL, NULL),
-(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL, NULL),
-(10000009, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL, NULL),
-(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL, NULL),
-(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL, NULL),
-(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL, NULL),
-(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL, NULL),
-(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1, NULL, NULL);
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`, `passwortAendern`) VALUES
+(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$A3QCmr7Z0kteBA3zb/sk1g$x3nKYQ4S4Ex7dP/5onZkryk7cuzVxje+CGL4xXLxpFc', 'schueler', 0, NULL, NULL, 0),
+(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL, NULL, 0),
+(10000009, 'Tina', 'Meier', 'Meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL, NULL, 0),
+(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL, NULL, 0),
+(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL, NULL, 0),
+(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL, NULL, 0),
+(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL, NULL, 0),
+(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `buecher`
+-- Table structure for table `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -97,7 +98,7 @@ CREATE TABLE `buecher` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `buecher`
+-- Dumping data for table `buecher`
 --
 
 INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`, `altersbeschraenkung`) VALUES
@@ -116,7 +117,7 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `einstellungen`
+-- Table structure for table `einstellungen`
 --
 
 CREATE TABLE `einstellungen` (
@@ -125,7 +126,7 @@ CREATE TABLE `einstellungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `einstellungen`
+-- Dumping data for table `einstellungen`
 --
 
 INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
@@ -146,7 +147,7 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 -- --------------------------------------------------------
 
 --
--- Tabellenstruktur für Tabelle `reservierungen`
+-- Table structure for table `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -160,18 +161,18 @@ CREATE TABLE `reservierungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Daten für Tabelle `reservierungen`
+-- Dumping data for table `reservierungen`
 --
 
 INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`, `email_gesendet`) VALUES
 (8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03', 0);
 
 --
--- Indizes der exportierten Tabellen
+-- Indexes for dumped tables
 --
 
 --
--- Indizes für die Tabelle `ausleihen`
+-- Indexes for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -179,26 +180,26 @@ ALTER TABLE `ausleihen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indizes für die Tabelle `benutzer`
+-- Indexes for table `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indizes für die Tabelle `buecher`
+-- Indexes for table `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indizes für die Tabelle `einstellungen`
+-- Indexes for table `einstellungen`
 --
 ALTER TABLE `einstellungen`
   ADD PRIMARY KEY (`schluessel`);
 
 --
--- Indizes für die Tabelle `reservierungen`
+-- Indexes for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -206,40 +207,40 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT für exportierte Tabellen
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT für Tabelle `ausleihen`
+-- AUTO_INCREMENT for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
--- AUTO_INCREMENT für Tabelle `benutzer`
+-- AUTO_INCREMENT for table `benutzer`
 --
 ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000015;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000016;
 
 --
--- AUTO_INCREMENT für Tabelle `reservierungen`
+-- AUTO_INCREMENT for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- Constraints der exportierten Tabellen
+-- Constraints for dumped tables
 --
 
 --
--- Constraints der Tabelle `ausleihen`
+-- Constraints for table `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
   ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints der Tabelle `reservierungen`
+-- Constraints for table `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,

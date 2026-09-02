@@ -190,20 +190,24 @@ public class ControllerBuecherVerwaltung {
 
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                     if (neuAktiv && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                        if (barcodePuffer.length() >= 10) {
-                            isbnFeld.setText(barcodePuffer);
+                        long jetzt = System.currentTimeMillis();
+                        if (jetzt - letzteTastenZeit < 200 || barcodePuffer.length() >= 10) {
+                            if (barcodePuffer.length() >= 10) {
+                                isbnFeld.setText(barcodePuffer);
 
-                            if (titelFeld.getText().equals(barcodePuffer))
-                                titelFeld.clear();
-                            if (autorFeld.getText().equals(barcodePuffer))
-                                autorFeld.clear();
-                            if (jahrFeld.getText().equals(barcodePuffer))
-                                jahrFeld.clear();
-                            if (beschreibungFeld.getText().equals(barcodePuffer))
-                                beschreibungFeld.clear();
+                                if (titelFeld.getText().equals(barcodePuffer))
+                                    titelFeld.clear();
+                                if (autorFeld.getText().equals(barcodePuffer))
+                                    autorFeld.clear();
+                                if (jahrFeld.getText().equals(barcodePuffer))
+                                    jahrFeld.clear();
+                                if (beschreibungFeld.getText().equals(barcodePuffer))
+                                    beschreibungFeld.clear();
 
-                            buchDatenAbrufen(barcodePuffer);
-                            barcodePuffer = "";
+                                buchDatenAbrufen(barcodePuffer);
+                                barcodePuffer = "";
+                            }
+                            letzteTastenZeit = jetzt;
                             event.consume();
                         } else if (!isbnFeld.getText().isEmpty()) {
                             bearbeitenButton.fire();

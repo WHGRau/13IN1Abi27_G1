@@ -99,7 +99,7 @@
                               <Label text="E-Mail:" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                  <font><Font size="16.0" /></font>
                               </Label>
-                              <TextField fx:id="emailFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                              <TextField fx:id="emailFeld" onKeyReleased="#checkEmailWarnung" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                  <font><Font size="15.0" /></font>
                               </TextField>
 
@@ -120,7 +120,7 @@
                               <Label text="Rolle:" GridPane.columnIndex="0" GridPane.rowIndex="3">
                                  <font><Font size="16.0" /></font>
                               </Label>
-                              <ChoiceBox fx:id="rolleAuswahl" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              <ChoiceBox fx:id="rolleAuswahl" onAction="#checkEmailWarnung" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                               <Label text="Geburtsdatum:" GridPane.columnIndex="0" GridPane.rowIndex="4">
                                  <font><Font size="16.0" /></font>

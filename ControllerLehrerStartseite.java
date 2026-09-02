@@ -616,6 +616,22 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public void passwortAendern(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
+            Parent root = loader.load();
+            passwortResetController controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void gescanntesBuchEntfernen() {
         int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
