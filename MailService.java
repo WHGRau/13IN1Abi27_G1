@@ -114,4 +114,15 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
+    public void sendeAnmeldeMail(String empfaengerEmail, String nutzerName, String passwort){
+        String betreff = "Willkommen in der Schülerbibliothek!";
+        String nachricht = "Hallo " + nutzerName + ",\n\n Wir freuen uns sehr, dass du dich für die Bibliothek angemeldet hast. \n Mit folgendem Passwort kannst du dich im Onlineportal anmelden: \n" + passwort + "\n Wir hoffen dich bald in der Bibliothek zu sehen! \n\n Viele Grüße, \n Deine Schülerbibliothek";
+        sendeEmail(empfaengerEmail, betreff, nachricht);
+    }
+
+    public void sendePasswortResetMail(String empfaengerEmail, String nutzerName, String passwort){
+        String betreff = "Passwort zurücksetzen";
+        String nachricht = "Hallo " + nutzerName + ",\n\n  \n Mit folgendem Passwort kannst du dich nun im Onlineportal anmelden: \n" + passwort + "\n Wir hoffen dich bald in der Bibliothek zu sehen! \n\n Viele Grüße, \n Deine Schülerbibliothek";
+        sendeEmail(empfaengerEmail, betreff, nachricht);
+    }
 }

@@ -12,6 +12,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.paint.Color;
 
 import java.time.LocalDate;
@@ -19,6 +20,11 @@ import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
@@ -48,6 +54,7 @@ public class ControllerNutzerVerwaltung {
     private Benutzer selectedNutzer;
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
+    private PauseTransition errorTextTimer;
 
     @FXML
     private TextField searchBar;
@@ -63,9 +70,6 @@ public class ControllerNutzerVerwaltung {
 
     @FXML
     private TextField emailFeld;
-
-    @FXML
-    private TextField passwortFeld;
 
     @FXML
     private TextField nameFeld;
@@ -92,7 +96,12 @@ public class ControllerNutzerVerwaltung {
     private Button entfernenButton;
 
     @FXML
+    private Button loeschenButton;
+
+    @FXML
     private ChoiceBox<String> rolleAuswahl;
+    @FXML
+    private DatePicker geburtsdatumPicker;
 
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
@@ -127,6 +136,9 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private ListView<Benutzer> schulerList;
 
+    @FXML
+    private TableColumn<tabelleZeile, String> verlaufLehrerSpalte;
+
     
 
     public static class tabelleZeile {
@@ -135,13 +147,15 @@ public class ControllerNutzerVerwaltung {
         private String geliehen;
         private String geplRueckgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe) {
+        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe, String lehrer) {
             this.isbn = isbn;
             this.titel = titel;
             this.geliehen = geliehen;
             this.geplRueckgabe = geplRueckgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
         public String getIsbn() {
@@ -163,48 +177,59 @@ public class ControllerNutzerVerwaltung {
         public String getRueckgabe() {
             return rueckgabe;
         }
+
+        public String getLehrer() {
+            return lehrer;
+        }
     }
 
     public void initialize() {
+        errorTextTimer = new PauseTransition(Duration.seconds(10));
+        errorTextTimer.setOnFinished(e -> errorText.setText(""));
         rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
         rolleAuswahl.setDisable(true);
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         nutzerTabelle.setPlaceholder(new Label("Keine Nutzer gefunden"));
+        nutzerTabelle.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            selectBenutzer();
+        });
         verlaufTabelle.setPlaceholder(new Label("noch kein Buch entliehen"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
+        loeschenButton.setDisable(true);
 
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufTitelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verlaufGeliehenSpalte.setCellValueFactory(new PropertyValueFactory<>("geliehen"));
         verlaufGeplRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("geplRueckgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        verlaufLehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         verlaufRueckgabeSpalte.setCellFactory(column -> new TableCell<tabelleZeile, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
+                if (empty || item == null || item.equals("null") || item.isEmpty()) {
+                    setText("");
                     setStyle("");
                 } else {
                     setText(item);
                     tabelleZeile zeile = getTableRow().getItem();
-                    if (zeile != null && zeile.getGeplRueckgabe() != null) {
+                    if (zeile != null && zeile.getGeplRueckgabe() != null && !zeile.getGeplRueckgabe().equals("null") && !zeile.getGeplRueckgabe().isEmpty()) {
                         try {
                             LocalDate gepl = LocalDate.parse(zeile.getGeplRueckgabe());
                             LocalDate rueck = LocalDate.parse(item);
                             if (rueck.isAfter(gepl)) {
                                 setTextFill(Color.RED);
                             } else {
-                                setTextFill(null);
+                                setTextFill(Color.BLACK);
                             }
                         } catch (Exception e) {
-                            setTextFill(null);
+                            setTextFill(Color.BLACK);
                         }
                     } else {
-                        setTextFill(null);
+                        setTextFill(Color.BLACK);
                     }
                 }
             }
@@ -279,6 +304,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     public void selectBenutzer() {
+        errorText.setText("");
+        if (errorTextTimer != null) errorTextTimer.stop();
         if (!bearbeitenAktiv) {
 
             selectedNutzer = nutzerTabelle.getSelectionModel().getSelectedItem();
@@ -291,6 +318,16 @@ public class ControllerNutzerVerwaltung {
                     rolleAuswahl.setValue("Lehrer");
                 } else {
                     rolleAuswahl.setValue("Schüler");
+                }
+
+                if (selectedNutzer.getGeburtsdatum() != null && !selectedNutzer.getGeburtsdatum().equals("null") && !selectedNutzer.getGeburtsdatum().isEmpty()) {
+                    try {
+                        geburtsdatumPicker.setValue(LocalDate.parse(selectedNutzer.getGeburtsdatum()));
+                    } catch (Exception e) {
+                        geburtsdatumPicker.setValue(null);
+                    }
+                } else {
+                    geburtsdatumPicker.setValue(null);
                 }
 
                 bearbeitenButton.setDisable(false);
@@ -307,7 +344,21 @@ public class ControllerNutzerVerwaltung {
                     statusText.setText("");
                 }
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 loadVerlaufTabelle();
+            }
+        }
+    }
+
+
+    public void checkEmailWarnung() {
+        if (neuAktiv || bearbeitenAktiv) {
+            boolean isSchueler = "Schüler".equals(rolleAuswahl.getValue());
+            if (isSchueler && emailFeld.getText().trim().isEmpty()) {
+                errorText.setFill(Color.ORANGE);
+                errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+            } else {
+                errorText.setText("");
             }
         }
     }
@@ -317,17 +368,23 @@ public class ControllerNutzerVerwaltung {
             return;
         }
         if (bearbeitenAktiv) {
-            if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()) {
-                errorText.setText("Bitte füllen Sie Name, Vorname und E-Mail aus!");
+            boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+            if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty() || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                errorText.setFill(Color.RED);
+                errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
                 return;
             }
-            if (model.emailVorhanden(emailFeld.getText(), selectedNutzer.getId())) {
+            if (!emailFeld.getText().trim().isEmpty() && model.emailVorhanden(emailFeld.getText().trim(), selectedNutzer.getId())) {
+                errorText.setFill(Color.RED);
                 errorText.setText("Diese E-Mail ist bereits vergeben!");
                 return;
             }
-            if (!passwortFeld.getText().isEmpty() && passwortFeld.getText().length() < 8) {
-                errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
-                return;
+            if (geburtsdatumPicker.getValue() != null) {
+                if (geburtsdatumPicker.getValue().isAfter(LocalDate.now().minusYears(5))) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("ungültiges Geburtsdatum!");
+                    return;
+                }
             }
 
             bearbeitenAktiv = false;
@@ -335,62 +392,90 @@ public class ControllerNutzerVerwaltung {
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
 
             entfernenButton.setDisable(false);
+            loeschenButton.setDisable(false);
 
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
             }
-            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(),
-                    vornameFeld.getText());
+            String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
+            
+            boolean isNeueEmail = selectedNutzer.getEmail() == null || selectedNutzer.getEmail().isEmpty();
+            boolean isJetztEmail = !emailFeld.getText().trim().isEmpty();
 
-            if (!passwortFeld.getText().equals("")) {
-                model.passwortAendern(selectedNutzer.getId(), passwortFeld.getText());
-            }
+            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                    vornameFeld.getText(), gebDatum);
+
             suchen();
+            
+            if (isNeueEmail && isJetztEmail) {
+                 model.initialesPasswortSenden(emailFeld.getText().trim()); 
+                 errorText.setFill(Color.GREEN);
+                 errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                 errorTextTimer.playFromStart();
+            } else {
+                 errorText.setText("");
+                 errorTextTimer.stop();
+            }
 
         } else {
             if (neuAktiv) {
-                if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                        || passwortFeld.getText().isEmpty()) {
-                    errorText.setText("Bitte füllen Sie alle Felder aus!");
+                boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+                if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty() || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
                     return;
                 }
-                if (model.emailVorhanden(emailFeld.getText(), -1)) {
+                if (!emailFeld.getText().trim().isEmpty() && model.emailVorhanden(emailFeld.getText().trim(), -1)) {
+                    errorText.setFill(Color.RED);
                     errorText.setText("Diese E-Mail ist bereits vergeben!");
                     return;
                 }
-                if (passwortFeld.getText().length() < 8) {
-                    errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
-                    return;
+                if (geburtsdatumPicker.getValue() != null) {
+                    if (geburtsdatumPicker.getValue().isAfter(LocalDate.now().minusYears(5))) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("Das Geburtsdatum muss mindestens 5 Jahre in der Vergangenheit liegen!");
+                        return;
+                    }
                 }
 
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
                 }
-                model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(), nameFeld.getText(),
-                        vornameFeld.getText());
+                String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
+                model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                        vornameFeld.getText(), gebDatum);
                 suchen();
+                if (!emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.GREEN);
+                    errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                    errorTextTimer.playFromStart();
+                } else {
+                    errorText.setText("");
+                    errorTextTimer.stop();
+                }
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
                 emailFeld.setEditable(false);
                 nameFeld.setEditable(false);
                 vornameFeld.setEditable(false);
-                passwortFeld.setEditable(false);
                 rolleAuswahl.setDisable(true);
+                geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
                 neuButton.setText("neu");
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 emailFeld.clear();
                 nameFeld.clear();
                 vornameFeld.clear();
-                passwortFeld.clear();
+                geburtsdatumPicker.setValue(null);
 
             } else {
                 bearbeitenAktiv = true;
@@ -398,11 +483,13 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setEditable(true);
                 nameFeld.setEditable(true);
                 vornameFeld.setEditable(true);
-                passwortFeld.setEditable(true);
                 rolleAuswahl.setDisable(false);
+                geburtsdatumPicker.setDisable(false);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
+                loeschenButton.setDisable(true);
+                checkEmailWarnung();
             }
         }
     }
@@ -431,40 +518,72 @@ public class ControllerNutzerVerwaltung {
     }
 
     public void nutzerErstellen() {
+        errorText.setText("");
+        if (errorTextTimer != null) errorTextTimer.stop();
         if (!neuAktiv) {
 
             neuButton.setText("abbrechen");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("speichern");
             bearbeitenButton.setDisable(false);
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
             rolleAuswahl.setValue("Schüler");
             emailFeld.setEditable(true);
             nameFeld.setEditable(true);
             vornameFeld.setEditable(true);
-            passwortFeld.setEditable(true);
             rolleAuswahl.setDisable(false);
+            geburtsdatumPicker.setDisable(false);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(true);
             neuAktiv = true;
+            checkEmailWarnung();
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("bearbeiten");
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
+        }
+    }
+
+    public void nutzerLoeschen() {
+        if (selectedNutzer == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Nutzer löschen");
+        alert.setHeaderText("Möchten Sie diesen Nutzer wirklich löschen?");
+        alert.setContentText("Nutzer: " + selectedNutzer.getVorname() + " " + selectedNutzer.getName() + " (" + selectedNutzer.getEmail() + ")\n\nDiese Aktion kann nicht rückgängig gemacht werden.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            model.benutzerLoeschen(selectedNutzer.getId());
+            selectedNutzer = null;
+            emailFeld.clear();
+            nameFeld.clear();
+            vornameFeld.clear();
+            geburtsdatumPicker.setValue(null);
+            statusText.setText("");
+            verlaufTabelle.getItems().clear();
+            bearbeitenButton.setDisable(true);
+            entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
+            suchen();
         }
     }
 
@@ -481,8 +600,9 @@ public class ControllerNutzerVerwaltung {
                     String geliehen = data[i][3];
                     String geplRueckgabe = data[i][4];
                     String rueckgabe = data[i][5];
+                    String lehrer = data[i][6];
 
-                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe, model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }

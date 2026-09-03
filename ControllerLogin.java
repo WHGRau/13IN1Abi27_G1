@@ -72,7 +72,8 @@ public class ControllerLogin {
     private StackPane background;
 
     public void login(ActionEvent event) {
-        if (model.login(emailFeld.getText(), passwortFeld.getText()) == 1) {
+        int feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        if (feedback == 1) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 if (model.isLehrer()) {
@@ -97,6 +98,20 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }else if (feedback == 2){
+            try {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
+                Parent root = loader.load();
+                passwortResetController controller = loader.getController();
+                controller.setModel(model);
+                Scene scene = new Scene(root);
+                scene.setFill(Color.web("#E9E9D3"));
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
@@ -112,6 +127,24 @@ public class ControllerLogin {
         if (event.getCode().equals(KeyCode.ENTER)) {
             loginButton.fire();
         }
+    }
+
+    public void passwortVergessen(ActionEvent event) {
+        String email = emailFeld.getText().trim();
+        if (istGueltigeEmail(email)) {
+            model.passwortVergessen(email);
+            fehlerText.setText("Bitte überprüfen Sie Ihr E-Mail-Postfach");
+        } else {
+            fehlerText.setText("Bitte geben Sie eine gültige E-Mail-Adresse ein");
+        }
+    }
+
+    private boolean istGueltigeEmail(String email) {
+        if (email == null) return false;
+        email = email.trim();
+        int atIndex = email.indexOf('@');
+        int lastDotIndex = email.lastIndexOf('.');
+        return atIndex > 0 && lastDotIndex > atIndex + 1 && lastDotIndex <= email.length() - 3;
     }
 
 }

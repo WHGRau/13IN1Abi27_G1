@@ -1,43 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--
-  Copyright (c) 2015, 2019, Gluon and/or its affiliates.
-  All rights reserved. Use is subject to license terms.
-
-  This file is available and licensed under the following license:
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions
-  are met:
-
-  - Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-  - Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the distribution.
-  - Neither the name of Oracle Corporation nor the names of its
-    contributors may be used to endorse or promote products derived
-    from this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
--->
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
@@ -45,6 +14,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -52,102 +22,153 @@
 
 <StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
    <children>
-      <VBox prefHeight="1078.0" prefWidth="1884.0" style="-fx-background-color: #E9E9D3;">
-        <children>
-          <MenuBar prefHeight="0.0" prefWidth="1277.0" style="-fx-background-color: #E9E9D3;" VBox.vgrow="NEVER">
-            <menus>
-              <Menu mnemonicParsing="false" text="File">
-                <items>
-                  <MenuItem mnemonicParsing="false" text="New" />
-                  <MenuItem mnemonicParsing="false" text="Open…" />
-                  <Menu mnemonicParsing="false" text="Open Recent" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Close" />
-                  <MenuItem mnemonicParsing="false" text="Save" />
-                  <MenuItem mnemonicParsing="false" text="Save As…" />
-                  <MenuItem mnemonicParsing="false" text="Revert" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Preferences…" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Quit" />
-                </items>
-              </Menu>
-              <Menu mnemonicParsing="false" text="Edit">
-                <items>
-                  <MenuItem mnemonicParsing="false" text="Undo" />
-                  <MenuItem mnemonicParsing="false" text="Redo" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Cut" />
-                  <MenuItem mnemonicParsing="false" text="Copy" />
-                  <MenuItem mnemonicParsing="false" text="Paste" />
-                  <MenuItem mnemonicParsing="false" text="Delete" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Select All" />
-                  <MenuItem mnemonicParsing="false" text="Unselect All" />
-                </items>
-              </Menu>
-              <Menu mnemonicParsing="false" text="Help">
-                <items>
-                  <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
-                </items>
-              </Menu>
-            </menus>
-          </MenuBar>
-          <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+      <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
+         <children>
+            <MenuBar prefWidth="1920.0" style="-fx-background-color: #E9E9D3;" VBox.vgrow="NEVER">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Close" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Delete" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            
+            <AnchorPane VBox.vgrow="ALWAYS">
                <children>
-                  <ImageView fitHeight="92.0" fitWidth="903.0" layoutX="491.0" layoutY="35.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../eulen/Bannar.png" />
-                     </image>
-                  </ImageView>
-                  <Text fx:id="nutzernameText" layoutX="541.0" layoutY="84.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" textAlignment="CENTER" wrappingWidth="802.8600044250488">
-                     <font>
-                        <Font name="Candara" size="55.0" />
-                     </font>
-                  </Text>
-                  <TableView fx:id="geliehenTabelle" layoutX="23.0" layoutY="240.0" prefHeight="200.0" prefWidth="413.0">
-                    <columns>
-                      <TableColumn fx:id="geliehenTitelSpalte" prefWidth="287.3333282470703" text="Titel" />
-                      <TableColumn fx:id="geliehenRueckgabeSpalte" minWidth="0.0" prefWidth="124.66667175292969" text="Rückgabe" />
-                    </columns>
-                  </TableView>
-                  <TableView fx:id="reserviertTabelle" layoutX="25.0" layoutY="558.0" prefHeight="200.0" prefWidth="448.0">
-                     <columns>
-                        <TableColumn fx:id="reserviertTitelSpalte" prefWidth="217.6666717529297" text="Titel" />
-                        <TableColumn fx:id="reserviertBisSpalte" minWidth="0.0" prefWidth="196.3333282470703" text="status" />
-                     </columns>
-                  </TableView>
-                  <TableView fx:id="verlaufTabelle" layoutX="478.0" layoutY="126.0" prefHeight="833.0" prefWidth="578.0">
-                    <columns>
-                      <TableColumn fx:id="verlaufTitelSpalte" prefWidth="230.33331298828125" text="Titel" />
-                      <TableColumn fx:id="verlaufAutorSpalte" prefWidth="153.66668701171875" text="Autor" />
-                        <TableColumn fx:id="verlaufIsbnSpalte" minWidth="0.0" prefWidth="113.3333740234375" text="ISBN" />
-                        <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="79.6666259765625" text="geliehen am" />
-                    </columns>
-                  </TableView>
+                  <!-- Header Area -->
+                  <!-- Logout Button in Top Left -->
                   <Button layoutX="23.0" layoutY="24.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="75.0" text="ausloggen" />
-                  <TextField fx:id="searchBar" layoutX="1109.0" layoutY="130.0" onKeyReleased="#suchen" promptText="suchen..." />
-                  <ListView fx:id="suchergebnisse" layoutX="1107.0" layoutY="210.0" onMouseClicked="#selectBuch" prefHeight="688.0" prefWidth="253.0" />
-                  <TextField fx:id="isbnFeld" editable="false" layoutX="1500.0" layoutY="162.0" />
-                  <TextField fx:id="titelFeld" editable="false" layoutX="1500.0" layoutY="215.0" />
-                  <TextField fx:id="autorFeld" editable="false" layoutX="1500.0" layoutY="275.0" />
-                  <TextField fx:id="jahrFeld" editable="false" layoutX="1501.0" layoutY="328.0" />
-                  <TextArea fx:id="beschreibungFeld" editable="false" layoutX="1500.0" layoutY="402.0" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
-                  <Text fx:id="statusText" layoutX="1504.0" layoutY="741.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:" />
-                  <Button fx:id="reservierenButton" layoutX="1500.0" layoutY="799.0" mnemonicParsing="false" onAction="#reservieren" text="reservieren" />
-                  <ImageView fitHeight="97.0" fitWidth="84.0" layoutY="969.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../eulen/kleineEule.png" />
-                     </image>
-                  </ImageView>
-                  <Text fx:id="gesperrtText" fill="RED" layoutX="274.0" layoutY="435.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Ihr Account wurde gesperrt. Bitte sprechen Sie mit einer zuständigen Lehrkraft." textAlignment="CENTER" wrappingWidth="1377.9999389648438">
+                  
+                  <!-- Banner and Username in Top Center -->
+                  <StackPane layoutX="491.0" layoutY="35.0" prefHeight="92.0" prefWidth="903.0">
+                     <children>
+                        <ImageView fitHeight="92.0" fitWidth="903.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../eulen/Bannar.png" />
+                           </image>
+                        </ImageView>
+                        <Text fx:id="nutzernameText" strokeType="OUTSIDE" strokeWidth="0.0" text="Hallo, Nutzername!" textAlignment="CENTER" StackPane.alignment="CENTER">
+                           <font>
+                              <Font name="Candara" size="55.0" />
+                           </font>
+                           <StackPane.margin>
+                              <Insets bottom="15.0" />
+                           </StackPane.margin>
+                        </Text>
+                     </children>
+                  </StackPane>
+                  
+                  <!-- Gesperrt Text -->
+                  <Text fx:id="gesperrtText" fill="RED" layoutX="274.0" layoutY="180.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Ihr Account wurde gesperrt. Bitte sprechen Sie mit einer zuständigen Lehrkraft." textAlignment="CENTER" visible="false" wrappingWidth="1377.9999389648438">
                      <font>
                         <Font size="56.0" />
                      </font>
                   </Text>
+                  
+                  <!-- Password Button in Top Right -->
+                  <Button layoutX="1740.0" layoutY="22.0" mnemonicParsing="false" onAction="#passwortAendern" text="Passwort ändern" />
+                  
+                  <!-- Main Content Area: 3 Columns -->
+                  <HBox layoutX="50.0" layoutY="180.0" prefHeight="850.0" prefWidth="1820.0" spacing="40.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="180.0">
+                     <children>
+                        
+                        <!-- Left Column: Meine Bücher -->
+                        <VBox prefWidth="500.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label text="Geliehene Bücher">
+                                 <font><Font name="System Bold" size="24.0" /></font>
+                              </Label>
+                              <TableView fx:id="geliehenTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                                <columns>
+                                  <TableColumn fx:id="geliehenTitelSpalte" prefWidth="300.0" text="Titel" />
+                                  <TableColumn fx:id="geliehenRueckgabeSpalte" prefWidth="150.0" text="Rückgabe" />
+                                </columns>
+                              </TableView>
+                              
+                              <Label text="Reservierte Bücher">
+                                 <font><Font name="System Bold" size="24.0" /></font>
+                              </Label>
+                              <TableView fx:id="reserviertTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                                 <columns>
+                                    <TableColumn fx:id="reserviertTitelSpalte" prefWidth="300.0" text="Titel" />
+                                    <TableColumn fx:id="reserviertBisSpalte" prefWidth="150.0" text="Status" />
+                                 </columns>
+                              </TableView>
+                           </children>
+                        </VBox>
+                        
+                        <!-- Center Column: Ausleihverlauf -->
+                        <VBox prefWidth="700.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label text="Mein Ausleihverlauf">
+                                 <font><Font name="System Bold" size="24.0" /></font>
+                              </Label>
+                              <TableView fx:id="verlaufTabelle" prefHeight="600.0" VBox.vgrow="ALWAYS">
+                                <columns>
+                                  <TableColumn fx:id="verlaufTitelSpalte" prefWidth="250.0" text="Titel" />
+                                  <TableColumn fx:id="verlaufAutorSpalte" prefWidth="150.0" text="Autor" />
+                                  <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="150.0" text="ISBN" />
+                                  <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="100.0" text="geliehen am" />
+                                </columns>
+                              </TableView>
+                           </children>
+                        </VBox>
+                        
+                        <!-- Right Column: Suche & Details -->
+                        <VBox prefWidth="500.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                           <children>
+                              <Label text="Bücher suchen">
+                                 <font><Font name="System Bold" size="24.0" /></font>
+                              </Label>
+                              <TextField fx:id="searchBar" onKeyReleased="#suchen" prefHeight="40.0" promptText="suchen...">
+                                 <font><Font size="18.0" /></font>
+                              </TextField>
+                              <ListView fx:id="suchergebnisse" onMouseClicked="#selectBuch" prefHeight="300.0" />
+                              
+                              <Label text="Buch Informationen">
+                                 <font><Font name="System Bold" size="20.0" /></font>
+                                 <VBox.margin><Insets top="10.0" /></VBox.margin>
+                              </Label>
+                              <TextArea fx:id="buchInfoFeld" editable="false" prefHeight="300.0" wrapText="true" VBox.vgrow="ALWAYS">
+                                 <font><Font size="16.0" /></font>
+                              </TextArea>
+                              
+                              <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                 <children>
+                                    <Button fx:id="reservierenButton" mnemonicParsing="false" onAction="#reservieren" prefHeight="40.0" text="reservieren">
+                                       <font><Font size="16.0" /></font>
+                                    </Button>
+                                    <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
+                                       <font><Font size="16.0" /></font>
+                                    </Text>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  
+                  <!-- Owl in Bottom Left Corner -->
+                  <ImageView fitHeight="97.0" fitWidth="84.0" layoutY="969.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+                     <image>
+                        <Image url="@../eulen/kleineEule.png" />
+                     </image>
+                  </ImageView>
+                  
                </children>
-          </AnchorPane>
-        </children>
+            </AnchorPane>
+         </children>
       </VBox>
    </children>
 </StackPane>

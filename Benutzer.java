@@ -16,8 +16,14 @@ public class Benutzer
     private int id;
     private boolean freigeschaltet;
     private int gesperrtVon;
+    private String geburtsdatum;
     
     public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
+    {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, null);
+    }
+
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon, String pGeburtsdatum)
     {
         email = pEmail;
         passwort = pPw;
@@ -27,6 +33,7 @@ public class Benutzer
         id = pId;
         freigeschaltet = pFreigeschaltet;
         gesperrtVon = pGesperrtVon;
+        geburtsdatum = pGeburtsdatum;
     }
 
     public String getEmail() {
@@ -61,4 +68,7 @@ public class Benutzer
         return gesperrtVon;
     }
     
+    public String getGeburtsdatum() {
+        return geburtsdatum;
+    }
 }
