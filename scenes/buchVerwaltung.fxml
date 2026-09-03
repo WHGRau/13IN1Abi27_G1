@@ -176,10 +176,11 @@
                         <TableView fx:id="verlaufTabelle" prefHeight="500.0" VBox.vgrow="ALWAYS">
                           <columns>
                             <TableColumn fx:id="verlaufNachnameSpalte" prefWidth="93.6" text="Name" />
-                            <TableColumn fx:id="verlaufVornameSpalte" prefWidth="100.3" text="Vorname" />
-                            <TableColumn fx:id="verlaufEmailSpalte" prefWidth="166.3" text="E-Mail" />
-                            <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="97.6" text="ausgegeben" />
-                            <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
+                            <TableColumn fx:id="verlaufVornameSpalte" prefWidth="127.0" text="Vorname" />
+                            <TableColumn fx:id="verlaufEmailSpalte" prefWidth="178.0" text="E-Mail" />
+                            <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="87.0" text="ausgegeben" />
+                            <TableColumn fx:id="verlaufRueckgabeSpalte" text="Rückgabe" />
+                              <TableColumn fx:id="lehrerSpalte" prefWidth="163.0" text="ausgegeben durch" />
                           </columns>
                         </TableView>
                      </children>

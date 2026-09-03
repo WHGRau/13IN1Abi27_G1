@@ -136,6 +136,9 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private ListView<Benutzer> schulerList;
 
+    @FXML
+    private TableColumn<tabelleZeile, String> verlaufLehrerSpalte;
+
     
 
     public static class tabelleZeile {
@@ -144,13 +147,15 @@ public class ControllerNutzerVerwaltung {
         private String geliehen;
         private String geplRueckgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe) {
+        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe, String lehrer) {
             this.isbn = isbn;
             this.titel = titel;
             this.geliehen = geliehen;
             this.geplRueckgabe = geplRueckgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
         public String getIsbn() {
@@ -171,6 +176,10 @@ public class ControllerNutzerVerwaltung {
 
         public String getRueckgabe() {
             return rueckgabe;
+        }
+
+        public String getLehrer() {
+            return lehrer;
         }
     }
 
@@ -195,6 +204,7 @@ public class ControllerNutzerVerwaltung {
         verlaufGeliehenSpalte.setCellValueFactory(new PropertyValueFactory<>("geliehen"));
         verlaufGeplRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("geplRueckgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        verlaufLehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         verlaufRueckgabeSpalte.setCellFactory(column -> new TableCell<tabelleZeile, String>() {
             @Override
@@ -590,8 +600,9 @@ public class ControllerNutzerVerwaltung {
                     String geliehen = data[i][3];
                     String geplRueckgabe = data[i][4];
                     String rueckgabe = data[i][5];
+                    String lehrer = data[i][6];
 
-                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe, model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }

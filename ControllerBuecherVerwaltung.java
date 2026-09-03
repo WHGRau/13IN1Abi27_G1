@@ -105,19 +105,24 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private TextField alterFeld;
 
+    @FXML
+    private TableColumn<tabelleZeile, String> lehrerSpalte;
+
     public static class tabelleZeile {
         private String nachname;
         private String vorname;
         private String email;
         private String ausgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe) {
+        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe, String lehrer) {
             this.nachname = nachname;
             this.vorname = vorname;
             this.email = email;
             this.ausgabe = ausgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
         public String getNachname() {
@@ -139,6 +144,10 @@ public class ControllerBuecherVerwaltung {
         public String getRueckgabe() {
             return rueckgabe;
         }
+
+        public String getLehrer() {
+            return lehrer;
+        }
     }
 
     public ControllerBuecherVerwaltung() {
@@ -157,6 +166,7 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        lehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();
@@ -586,8 +596,9 @@ public class ControllerBuecherVerwaltung {
                     String email = data[i][2];
                     String ausgabe = data[i][3];
                     String rueckgabe = data[i][4];
+                    String lehrer = data[i][5];
 
-                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe, model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }

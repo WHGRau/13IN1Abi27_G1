@@ -116,10 +116,10 @@ public class Bibliothek {
                 QueryResult result = dbConnector.getCurrentQueryResult();
 
                 if (result.getData()[0][0].equals("verfuegbar") || result.getData()[0][0].equals("reserviert")) {
-                    String sql = "INSERT INTO ausleihen (schueler_id, isbn, ausleihdatum, geplante_rueckgabe) "
+                    String sql = "INSERT INTO ausleihen (schueler_id, isbn, ausleihdatum, geplante_rueckgabe, lehrerId) "
                             + "VALUES (" + erfassterSchueler + ", '" + erfassteBuecher.get(i)
                             + "', CURRENT_DATE(), CURRENT_DATE() + INTERVAL "
-                            + ausleihZeitTage + " DAY)";
+                            + ausleihZeitTage + " DAY, " + angemeldet + ")";
 
                     dbConnector.executeStatement(sql);
                     dbConnector.executeStatement(
@@ -559,7 +559,7 @@ public class Bibliothek {
     public QueryResult getBuchVerlauf(String isbn) {
         if (isLehrer()) {
             dbConnector.executeStatement(
-                    "SELECT nachname, vorname, email, ausleihdatum, ruckgabe_datum FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id WHERE isbn = '"
+                    "SELECT nachname, vorname, email, ausleihdatum, ruckgabe_datum, lehrerId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id WHERE isbn = '"
                             + isbn + "'");
             return dbConnector.getCurrentQueryResult();
         }
@@ -596,7 +596,7 @@ public class Bibliothek {
             id = nutzerId;
         }
         dbConnector.executeStatement(
-                "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum, ausleihen.geplante_rueckgabe, ausleihen.ruckgabe_datum FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
+                "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum, ausleihen.geplante_rueckgabe, ausleihen.ruckgabe_datum, lehrerId FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
                         + id
                         + " ORDER BY ausleihen.ausleihdatum DESC");
         return dbConnector.getCurrentQueryResult();

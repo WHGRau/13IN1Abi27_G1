@@ -76,7 +76,7 @@
                         <TableView fx:id="nutzerTabelle" onMouseClicked="#selectBenutzer" VBox.vgrow="ALWAYS">
                           <columns>
                             <TableColumn fx:id="nameSpalte" prefWidth="145.0" text="Name" />
-                            <TableColumn fx:id="vornameSpalte" prefWidth="301.0" text="Vorname" />
+                            <TableColumn fx:id="vornameSpalte" prefWidth="304.0" text="Vorname" />
                           </columns>
                         </TableView>
                      </children>
@@ -197,20 +197,21 @@
                   </VBox>
 
                   <!-- Right Column: History & Student ID -->
-                  <VBox prefWidth="650.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                  <VBox prefHeight="973.0" prefWidth="778.0" spacing="20.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Label text="Ausleihverlauf">
                            <font>
                               <Font name="System Bold" size="24.0" />
                            </font>
                         </Label>
-                        <TableView fx:id="verlaufTabelle" prefHeight="500.0" VBox.vgrow="ALWAYS">
+                        <TableView fx:id="verlaufTabelle" prefHeight="918.0" prefWidth="764.0" VBox.vgrow="ALWAYS">
                           <columns>
-                            <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="114.0" text="ISBN" />
-                            <TableColumn fx:id="verlaufTitelSpalte" prefWidth="303.0" text="Titel" />
-                            <TableColumn fx:id="verlaufGeliehenSpalte" prefWidth="85.0" text="ausgeliehen" />
+                            <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="107.0" text="ISBN" />
+                            <TableColumn fx:id="verlaufTitelSpalte" prefWidth="253.0" text="Titel" />
+                            <TableColumn fx:id="verlaufGeliehenSpalte" prefWidth="84.0" text="ausgeliehen" />
                             <TableColumn fx:id="verlaufGeplRueckgabeSpalte" prefWidth="145.0" text="vereinbarteRückgabe" />
-                            <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="82.0" text="Rückgabe" />
+                            <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="79.0" text="Rückgabe" />
+                              <TableColumn fx:id="verlaufLehrerSpalte" prefWidth="125.0" text="ausgegeben durch" />
                           </columns>
                         </TableView>
                      </children>
