@@ -193,7 +193,7 @@ public class Bibliothek {
         }
     }
 
-    public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
+    public void buchHinzufuegen(String isbn, String titel, String autor, Integer jahr, String beschreibung, String alter) {
         if (isLehrer()) {
             if (titel != null)
                 titel = titel.replace("'", "''");
@@ -201,9 +201,12 @@ public class Bibliothek {
                 autor = autor.replace("'", "''");
             if (beschreibung != null)
                 beschreibung = beschreibung.replace("'", "''");
+            
+            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : "NULL";
+            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : "NULL";
 
-            String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status)" + " VALUES('"
-                    + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar')";
+            String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status, altersbeschraenkung)" + " VALUES('"
+                    + isbn + "', '" + titel + "', '" + autor + "'," + jahrValue + ",'" + beschreibung + "','verfuegbar', " + alterValue + ")";
             dbConnector.executeStatement(sql);
         }
     }
@@ -236,11 +239,11 @@ public class Bibliothek {
         pS = pS.replace("'", "''");
         if (isLehrer()) {
             dbConnector.executeStatement(
-                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status FROM buecher WHERE (titel LIKE '%"
+                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE (titel LIKE '%"
                             + pS + "%' OR isbn LIKE '%" + pS + "%' OR autor LIKE '%" + pS + "%')");
         } else {
             dbConnector.executeStatement(
-                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status FROM buecher WHERE (titel LIKE '%"
+                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE (titel LIKE '%"
                             + pS + "%' OR isbn LIKE '%" + pS + "%' OR autor LIKE '%" + pS
                             + "%') AND status NOT LIKE 'entfernt'");
         }
@@ -251,7 +254,7 @@ public class Bibliothek {
         if (result != null) {
             for (int i = 0; i < result.getRowCount(); i++) {
                 buecher.add(new Buch(result.getData()[i][0], result.getData()[i][1], result.getData()[i][2],
-                        result.getData()[i][3], result.getData()[i][4], result.getData()[i][5]));
+                        result.getData()[i][3], result.getData()[i][4], result.getData()[i][5], result.getData()[i][6]));
             }
         }
         return buecher;
@@ -528,7 +531,7 @@ public class Bibliothek {
         return "";
     }
 
-    public void buchBearbeiten(String isbn, String titel, String autor, int jahr, String beschreibung, String status) {
+    public void buchBearbeiten(String isbn, String titel, String autor, Integer jahr, String beschreibung, String status, String alter) {
         if (isLehrer()) {
             if (titel != null)
                 titel = titel.replace("'", "''");
@@ -537,9 +540,12 @@ public class Bibliothek {
             if (beschreibung != null)
                 beschreibung = beschreibung.replace("'", "''");
 
+            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : "NULL";
+            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : "NULL";
+
             dbConnector.executeStatement(
                     "UPDATE buecher SET titel = '" + titel + "', autor = '" + autor + "', erscheinungsjahr = "
-                            + jahr + ", beschreibung = '" + beschreibung + "', status = '" + status + "' WHERE isbn = '"
+                            + jahrValue + ", beschreibung = '" + beschreibung + "', status = '" + status + "', altersbeschraenkung = " + alterValue + " WHERE isbn = '"
                             + isbn + "'");
         }
     }
@@ -592,7 +598,7 @@ public class Bibliothek {
         dbConnector.executeStatement(
                 "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum, ausleihen.geplante_rueckgabe, ausleihen.ruckgabe_datum FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
                         + id
-                        + " AND ausleihen.ruckgabe_datum IS NOT NULL ORDER BY ausleihen.ausleihdatum DESC");
+                        + " ORDER BY ausleihen.ausleihdatum DESC");
         return dbConnector.getCurrentQueryResult();
     }
 

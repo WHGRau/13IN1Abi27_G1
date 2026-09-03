@@ -56,17 +56,17 @@
                      </font>
                   </TextField>
                   <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="269.0" prefWidth="397.0" promptText="Beschreibung" wrapText="true" />
-                  <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="240.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
+                  <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="217.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
                      <font>
                         <Font size="15.0" />
                      </font>
                   </TextField>
-                  <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="312.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
+                  <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="266.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
                      <font>
                         <Font size="15.0" />
                      </font>
                   </TextField>
-                  <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="382.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
+                  <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="318.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
                      <font>
                         <Font size="15.0" />
                      </font>
@@ -106,6 +106,11 @@
                     </columns>
                   </TableView>
                   <Text fx:id="errorText" fill="RED" layoutX="780.0" layoutY="733.0" strokeType="OUTSIDE" strokeWidth="0.0" />
+                  <TextField fx:id="alterFeld" editable="false" layoutX="777.0" layoutY="370.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="395.0" promptText="Altersbeschränkung (Jahre)">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </TextField>
                </children>
             </AnchorPane>
          </children>

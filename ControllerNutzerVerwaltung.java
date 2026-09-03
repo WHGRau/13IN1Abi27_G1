@@ -23,6 +23,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import java.util.Optional;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
@@ -52,6 +54,7 @@ public class ControllerNutzerVerwaltung {
     private Benutzer selectedNutzer;
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
+    private PauseTransition errorTextTimer;
 
     @FXML
     private TextField searchBar;
@@ -172,11 +175,16 @@ public class ControllerNutzerVerwaltung {
     }
 
     public void initialize() {
+        errorTextTimer = new PauseTransition(Duration.seconds(10));
+        errorTextTimer.setOnFinished(e -> errorText.setText(""));
         rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
         rolleAuswahl.setDisable(true);
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         nutzerTabelle.setPlaceholder(new Label("Keine Nutzer gefunden"));
+        nutzerTabelle.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            selectBenutzer();
+        });
         verlaufTabelle.setPlaceholder(new Label("noch kein Buch entliehen"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
@@ -192,26 +200,26 @@ public class ControllerNutzerVerwaltung {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
+                if (empty || item == null || item.equals("null") || item.isEmpty()) {
+                    setText("");
                     setStyle("");
                 } else {
                     setText(item);
                     tabelleZeile zeile = getTableRow().getItem();
-                    if (zeile != null && zeile.getGeplRueckgabe() != null) {
+                    if (zeile != null && zeile.getGeplRueckgabe() != null && !zeile.getGeplRueckgabe().equals("null") && !zeile.getGeplRueckgabe().isEmpty()) {
                         try {
                             LocalDate gepl = LocalDate.parse(zeile.getGeplRueckgabe());
                             LocalDate rueck = LocalDate.parse(item);
                             if (rueck.isAfter(gepl)) {
                                 setTextFill(Color.RED);
                             } else {
-                                setTextFill(null);
+                                setTextFill(Color.BLACK);
                             }
                         } catch (Exception e) {
-                            setTextFill(null);
+                            setTextFill(Color.BLACK);
                         }
                     } else {
-                        setTextFill(null);
+                        setTextFill(Color.BLACK);
                     }
                 }
             }
@@ -286,6 +294,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     public void selectBenutzer() {
+        errorText.setText("");
+        if (errorTextTimer != null) errorTextTimer.stop();
         if (!bearbeitenAktiv) {
 
             selectedNutzer = nutzerTabelle.getSelectionModel().getSelectedItem();
@@ -359,6 +369,13 @@ public class ControllerNutzerVerwaltung {
                 errorText.setText("Diese E-Mail ist bereits vergeben!");
                 return;
             }
+            if (geburtsdatumPicker.getValue() != null) {
+                if (geburtsdatumPicker.getValue().isAfter(LocalDate.now().minusYears(5))) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("ungültiges Geburtsdatum!");
+                    return;
+                }
+            }
 
             bearbeitenAktiv = false;
             bearbeitenButton.setText("bearbeiten");
@@ -391,8 +408,10 @@ public class ControllerNutzerVerwaltung {
                  model.initialesPasswortSenden(emailFeld.getText().trim()); 
                  errorText.setFill(Color.GREEN);
                  errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                 errorTextTimer.playFromStart();
             } else {
                  errorText.setText("");
+                 errorTextTimer.stop();
             }
 
         } else {
@@ -408,6 +427,13 @@ public class ControllerNutzerVerwaltung {
                     errorText.setText("Diese E-Mail ist bereits vergeben!");
                     return;
                 }
+                if (geburtsdatumPicker.getValue() != null) {
+                    if (geburtsdatumPicker.getValue().isAfter(LocalDate.now().minusYears(5))) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("Das Geburtsdatum muss mindestens 5 Jahre in der Vergangenheit liegen!");
+                        return;
+                    }
+                }
 
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
@@ -420,8 +446,10 @@ public class ControllerNutzerVerwaltung {
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
                     errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                    errorTextTimer.playFromStart();
                 } else {
                     errorText.setText("");
+                    errorTextTimer.stop();
                 }
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
@@ -480,6 +508,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     public void nutzerErstellen() {
+        errorText.setText("");
+        if (errorTextTimer != null) errorTextTimer.stop();
         if (!neuAktiv) {
 
             neuButton.setText("abbrechen");
