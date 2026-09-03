@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -8,7 +10,11 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -37,82 +43,149 @@
                 </Menu>
               </menus>
             </MenuBar>
-            <AnchorPane prefHeight="1026.0" prefWidth="1824.0">
+            <HBox spacing="40.0" VBox.vgrow="ALWAYS">
+               <padding>
+                  <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+               </padding>
                <children>
-                  <TextField fx:id="searchBar" layoutX="69.0" layoutY="171.0" onAction="#suchen" onKeyReleased="#suchen" prefHeight="25.0" prefWidth="445.0" promptText="suchen...">
-                     <font>
-                        <Font size="22.0" />
-                     </font>
-                  </TextField>
-                  <TableView fx:id="buecherTabelle" layoutX="69.0" layoutY="241.0" onMouseClicked="#selectBuch" prefHeight="783.0" prefWidth="447.0">
-                    <columns>
-                      <TableColumn fx:id="isbnSpalte" prefWidth="145.0" text="ISBN" />
-                      <TableColumn fx:id="titelSpalte" prefWidth="301.0" text="Titel" />
-                    </columns>
-                  </TableView>
-                  <TextField fx:id="isbnFeld" editable="false" layoutX="780.0" layoutY="166.0" onKeyPressed="#errorTextZuruecksetzen" onKeyReleased="#isbnFeldKeyReleased" prefHeight="31.0" prefWidth="387.0" promptText="ISBN">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextArea fx:id="beschreibungFeld" editable="false" layoutX="776.0" layoutY="441.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="269.0" prefWidth="397.0" promptText="Beschreibung" wrapText="true" />
-                  <TextField fx:id="titelFeld" editable="false" layoutX="779.0" layoutY="217.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="389.0" promptText="Titel">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextField fx:id="autorFeld" editable="false" layoutX="779.0" layoutY="266.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="390.0" promptText="Autor">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <TextField fx:id="jahrFeld" editable="false" layoutX="777.0" layoutY="318.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="395.0" promptText="Erscheinugsjahr">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
-                  <Button fx:id="entfernenButton" layoutX="782.0" layoutY="870.0" mnemonicParsing="false" onAction="#entfernen" text="sperren">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="bearbeitenButton" layoutX="778.0" layoutY="747.0" mnemonicParsing="false" onAction="#bearbeiten" text="bearbeiten">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </Button>
-                  <Text fx:id="statusText" layoutX="781.0" layoutY="844.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Text>
-                  <Button fx:id="zurueckButton" layoutX="69.0" layoutY="42.0" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Button>
-                  <Button fx:id="neuButton" layoutX="586.0" layoutY="624.0" mnemonicParsing="false" onAction="#buchErstellen" text="neu">
-                     <font>
-                        <Font size="20.0" />
-                     </font>
-                  </Button>
-                  <TableView fx:id="verlaufTabelle" layoutX="1347.0" layoutY="159.0" prefHeight="791.0" prefWidth="540.0">
-                    <columns>
-                      <TableColumn fx:id="verlaufNachnameSpalte" prefWidth="93.6666259765625" text="Name" />
-                      <TableColumn fx:id="verlaufVornameSpalte" prefWidth="100.3333740234375" text="Vorname" />
-                        <TableColumn fx:id="verlaufEmailSpalte" prefWidth="166.3333740234375" text="E-Mail" />
-                        <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="97.6666259765625" text="ausgegeben" />
-                        <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
-                    </columns>
-                  </TableView>
-                  <Text fx:id="errorText" fill="RED" layoutX="780.0" layoutY="733.0" strokeType="OUTSIDE" strokeWidth="0.0" />
-                  <TextField fx:id="alterFeld" editable="false" layoutX="777.0" layoutY="370.0" onKeyPressed="#errorTextZuruecksetzen" prefHeight="31.0" prefWidth="395.0" promptText="Altersbeschränkung (Jahre)">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                  </TextField>
+                  <!-- Left Column: Book List & Search -->
+                  <VBox prefWidth="450.0" spacing="15.0" HBox.hgrow="NEVER">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Button fx:id="zurueckButton" mnemonicParsing="false" onAction="#toStartseite" text="zurück">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Button>
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button fx:id="neuButton" mnemonicParsing="false" onAction="#buchErstellen" prefHeight="35.0" text="neues Buch">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </HBox>
+                        <TextField fx:id="searchBar" onAction="#suchen" onKeyReleased="#suchen" prefHeight="40.0" promptText="suchen...">
+                           <font>
+                              <Font size="22.0" />
+                           </font>
+                        </TextField>
+                        <TableView fx:id="buecherTabelle" onMouseClicked="#selectBuch" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="isbnSpalte" prefWidth="145.0" text="ISBN" />
+                            <TableColumn fx:id="titelSpalte" prefWidth="301.0" text="Titel" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+
+                  <!-- Center Column: Details & Actions -->
+                  <VBox prefWidth="500.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Buch Details">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <GridPane hgap="10.0" vgap="15.0">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="120.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="200.0" />
+                          </columnConstraints>
+                           <children>
+                              <Label text="ISBN:" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="isbnFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" onKeyReleased="#isbnFeldKeyReleased" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Titel:" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="titelFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Autor:" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="autorFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Erscheinungsjahr:" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="jahrFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+
+                              <Label text="Altersbeschränkung:" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="alterFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" prefHeight="35.0" promptText="(Jahre)" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
+                           </children>
+                           <rowConstraints>
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                              <RowConstraints />
+                           </rowConstraints>
+                        </GridPane>
+                        
+                        <Label text="Beschreibung:">
+                           <font><Font size="16.0" /></font>
+                        </Label>
+                        <TextArea fx:id="beschreibungFeld" editable="false" onKeyPressed="#errorTextZuruecksetzen" prefHeight="200.0" wrapText="true">
+                           <font><Font size="15.0" /></font>
+                        </TextArea>
+                        
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                           <children>
+                              <Button fx:id="bearbeitenButton" mnemonicParsing="false" onAction="#bearbeiten" prefHeight="35.0" text="bearbeiten">
+                                 <font><Font size="16.0" /></font>
+                              </Button>
+                              <Button fx:id="entfernenButton" mnemonicParsing="false" onAction="#entfernen" prefHeight="35.0" text="sperren">
+                                 <font><Font size="16.0" /></font>
+                              </Button>
+                              <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
+                                 <font><Font size="16.0" /></font>
+                              </Text>
+                           </children>
+                        </HBox>
+                        
+                        <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0">
+                           <font><Font size="16.0" /></font>
+                        </Text>
+                     </children>
+                  </VBox>
+
+                  <!-- Right Column: History -->
+                  <VBox prefWidth="650.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Ausleihverlauf">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Label>
+                        <TableView fx:id="verlaufTabelle" prefHeight="500.0" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="verlaufNachnameSpalte" prefWidth="93.6" text="Name" />
+                            <TableColumn fx:id="verlaufVornameSpalte" prefWidth="100.3" text="Vorname" />
+                            <TableColumn fx:id="verlaufEmailSpalte" prefWidth="166.3" text="E-Mail" />
+                            <TableColumn fx:id="verlaufAusgabeSpalte" prefWidth="97.6" text="ausgegeben" />
+                            <TableColumn fx:id="verlaufRueckgabeSpalte" prefWidth="84.0" text="Rückgabe" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
                </children>
-            </AnchorPane>
+            </HBox>
          </children>
       </VBox>
    </children>
