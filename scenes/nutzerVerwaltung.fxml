@@ -126,8 +126,16 @@
                                  <font><Font size="16.0" /></font>
                               </Label>
                               <DatePicker fx:id="geburtsdatumPicker" disable="true" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                              <Label text="Ausleihlimit:" GridPane.columnIndex="0" GridPane.rowIndex="5">
+                                 <font><Font size="16.0" /></font>
+                              </Label>
+                              <TextField fx:id="ausleihlimitFeld" editable="false" prefHeight="35.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                                 <font><Font size="15.0" /></font>
+                              </TextField>
                            </children>
                            <rowConstraints>
+                              <RowConstraints />
                               <RowConstraints />
                               <RowConstraints />
                               <RowConstraints />

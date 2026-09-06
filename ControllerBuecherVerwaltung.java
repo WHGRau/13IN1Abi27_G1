@@ -246,6 +246,7 @@ public class ControllerBuecherVerwaltung {
 
     public void setModel(Bibliothek model) {
         this.model = model;
+        suchen();
     }
 
     public void suchen() {
@@ -282,12 +283,12 @@ public class ControllerBuecherVerwaltung {
 
             selectedBuch = buecherTabelle.getSelectionModel().getSelectedItem();
             if (selectedBuch != null) {
-                isbnFeld.setText(selectedBuch.getIsbn());
-                titelFeld.setText(selectedBuch.getTitel());
-                autorFeld.setText(selectedBuch.getAutor());
-                jahrFeld.setText(selectedBuch.getErscheinungsjahr());
-                beschreibungFeld.setText(selectedBuch.getBeschreibung());
-                alterFeld.setText(selectedBuch.getAlter());
+                isbnFeld.setText(selectedBuch.getIsbn() != null ? selectedBuch.getIsbn() : "");
+                titelFeld.setText(selectedBuch.getTitel() != null ? selectedBuch.getTitel() : "");
+                autorFeld.setText(selectedBuch.getAutor() != null ? selectedBuch.getAutor() : "");
+                jahrFeld.setText(selectedBuch.getErscheinungsjahr() != null ? selectedBuch.getErscheinungsjahr() : "");
+                beschreibungFeld.setText(selectedBuch.getBeschreibung() != null ? selectedBuch.getBeschreibung() : "");
+                alterFeld.setText(selectedBuch.getAlter() != null ? selectedBuch.getAlter() : "");
                 String status = selectedBuch.getStatus();
                 if (status.equals("verfuegbar")) {
                     status = "verfügbar";

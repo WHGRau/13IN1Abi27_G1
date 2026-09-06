@@ -54,17 +54,19 @@
                                  <ColumnConstraints minWidth="250" />
                                  <ColumnConstraints hgrow="ALWAYS" />
                               </columnConstraints>
-                              <Label text="E-Mail Adresse:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="emailFeld" prefHeight="40" promptText="z.B. bibliothek@gmail.com" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
-                              
-                              <Label text="Passwort (App-PW):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
-                              <PasswordField fx:id="passwortFeld" prefHeight="40" promptText="Dein 16-stelliges App-Passwort" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></PasswordField>
-                              
-                              <Label text="SMTP-Server:" GridPane.columnIndex="0" GridPane.rowIndex="2"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="serverFeld" prefHeight="40" promptText="z.B. smtp.gmail.com" GridPane.columnIndex="1" GridPane.rowIndex="2"><font><Font size="16.0" /></font></TextField>
-                              
-                              <Label text="SMTP-Port:" GridPane.columnIndex="0" GridPane.rowIndex="3"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="portFeld" prefHeight="40" promptText="z.B. 587" GridPane.columnIndex="1" GridPane.rowIndex="3"><font><Font size="16.0" /></font></TextField>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="E-Mail Adresse:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="emailFeld" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Passwort (App-PW):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                 <PasswordField fx:id="passwortFeld" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="SMTP-Server:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                 <TextField fx:id="serverFeld" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="SMTP-Port:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                 <TextField fx:id="portFeld" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              </children>
                               <rowConstraints>
                                  <RowConstraints />
                                  <RowConstraints />
@@ -84,8 +86,30 @@
                                  <ColumnConstraints minWidth="250" />
                                  <ColumnConstraints hgrow="ALWAYS" />
                               </columnConstraints>
-                              <Label text="Standardausleihdauer (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="ausleihDauerFeld" prefHeight="40" promptText="Wie lange wird ein Buch standartmäßig verliehn? (Tage)" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Standardausleihdauer (Tage):" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="ausleihDauerFeld" prefHeight="40" promptText="Wie lange wird ein Buch standardmäßig verliehen? (Tage)" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                              </children>
+                              <rowConstraints>
+                                 <RowConstraints />
+                              </rowConstraints>
+                           </GridPane>
+                        </VBox>
+
+                        <!-- Nutzer Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Nutzer">
+                              <font><Font name="System Bold" size="26.0" /></font>
+                           </Text>
+                           <GridPane hgap="30" vgap="20">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Standard Ausleihlimit:" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="nutzerAusleihlimitFeld" prefHeight="40" promptText="Wie viele Bücher darf ein Nutzer standardmäßig ausleihen?" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                              </children>
                               <rowConstraints>
                                  <RowConstraints />
                               </rowConstraints>
@@ -98,20 +122,20 @@
                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Reservierungen">
                                   <font><Font name="System Bold" size="26.0" /></font>
                                </Text>
-                               <CheckBox fx:id="reservierungenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
-                                   <font><Font size="18.0" /></font>
-                               </CheckBox>
+                               <CheckBox fx:id="reservierungenAktivierenCheckBox" mnemonicParsing="false" style="-fx-font-size: 18px;" text="aktivieren" />
                            </HBox>
                            <GridPane hgap="30" vgap="20">
                               <columnConstraints>
                                  <ColumnConstraints minWidth="250" />
                                  <ColumnConstraints hgrow="ALWAYS" />
                               </columnConstraints>
-                              <Label text="Abholzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="reservierungAbholzeitFeld" prefHeight="40" promptText="Wie lange haben Schüler Zeit ein reserviertes Buch abzuholen?" GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
-                              
-                              <Label text="Sperrzeit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="reservierungSperrzeitFeld" prefHeight="40" promptText="Dauer bis das selbe Buch wieder reserviert werden darf" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Abholzeit (Tage):" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="reservierungAbholzeitFeld" prefHeight="40" promptText="Wie lange haben Schüler Zeit ein reserviertes Buch abzuholen?" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Sperrzeit (Tage):" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                 <TextField fx:id="reservierungSperrzeitFeld" prefHeight="40" promptText="Dauer bis das selbe Buch wieder reserviert werden darf" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              </children>
                               <rowConstraints>
                                  <RowConstraints />
                                  <RowConstraints />
@@ -125,20 +149,20 @@
                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Automatisches Sperren">
                                   <font><Font name="System Bold" size="26.0" /></font>
                                </Text>
-                               <CheckBox fx:id="sperrenAktivierenCheckBox" mnemonicParsing="false" text="aktivieren">
-                                   <font><Font size="18.0" /></font>
-                               </CheckBox>
+                               <CheckBox fx:id="sperrenAktivierenCheckBox" mnemonicParsing="false" style="-fx-font-size: 18px;" text="aktivieren" />
                            </HBox>
                            <GridPane hgap="30" vgap="20">
                               <columnConstraints>
                                  <ColumnConstraints minWidth="250" />
                                  <ColumnConstraints hgrow="ALWAYS" />
                               </columnConstraints>
-                              <Label text="Verspätung Limit (Tage):" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="sperrenVerspaetungFeld" prefHeight="40" promptText="Verspätungen werden addiert. Bei Überschreitung wird gesperrt." GridPane.columnIndex="1" GridPane.rowIndex="0"><font><Font size="16.0" /></font></TextField>
-                              
-                              <Label text="Zurücksetzen nach (Monate):" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="sperrenZuruecksetzenFeld" prefHeight="40" promptText="Verspätungen älter als dieser Wert, werden nicht mehr berücksichtigt." GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Verspätung Limit (Tage):" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="sperrenVerspaetungFeld" prefHeight="40" promptText="Verspätungen werden addiert. Bei Überschreitung wird gesperrt." style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Zurücksetzen nach (Monate):" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                 <TextField fx:id="sperrenZuruecksetzenFeld" prefHeight="40" promptText="Verspätungen älter als dieser Wert, werden nicht mehr berücksichtigt." style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              </children>
                               <rowConstraints>
                                  <RowConstraints />
                                  <RowConstraints />
@@ -159,11 +183,13 @@
                                  <ColumnConstraints minWidth="250" />
                                  <ColumnConstraints hgrow="ALWAYS" />
                               </columnConstraints>
-                              <Label text="Datenbank:" GridPane.columnIndex="0" GridPane.rowIndex="0"><font><Font size="18.0" /></font></Label>
-                              <ChoiceBox fx:id="buechersucheDatenbankChoiceBox" prefHeight="40" prefWidth="300.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                              
-                              <Label text="API Schlüssel:" GridPane.columnIndex="0" GridPane.rowIndex="1"><font><Font size="18.0" /></font></Label>
-                              <TextField fx:id="buechersucheApiKeyFeld" prefHeight="40" promptText="API Schlüssel eingeben" GridPane.columnIndex="1" GridPane.rowIndex="1"><font><Font size="16.0" /></font></TextField>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Datenbank:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <ChoiceBox fx:id="buechersucheDatenbankChoiceBox" prefHeight="40" prefWidth="300.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="API Schlüssel:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                 <TextField fx:id="buechersucheApiKeyFeld" prefHeight="40" promptText="API Schlüssel eingeben" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              </children>
                               <rowConstraints>
                                  <RowConstraints />
                                  <RowConstraints />

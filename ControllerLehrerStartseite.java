@@ -245,6 +245,7 @@ public class ControllerLehrerStartseite {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         rueckgaengigButton.setDisable(true);
+        abbrechenButton.setDisable(true);
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
         reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
@@ -391,6 +392,7 @@ public class ControllerLehrerStartseite {
         }
         
         int feedback = model.scannen(code);
+
         switch (feedback) {
             case 1:
                 if (model.getName() != null && model.getErfassteSchuelerName() != "") {
@@ -471,6 +473,16 @@ public class ControllerLehrerStartseite {
                 scannenButton.setDisable(true);
                 ausleihenButton.setDisable(true);
                 break;
+            case 15:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Maximale Anzahl gleichzeitiger Bücher überschritten");
+                scannenButton.setDisable(true);
+                ausleihenButton.setDisable(true);
+
+                break;
+        }
+        if(model.abbrechenMoeglich()) {
+            abbrechenButton.setDisable(false);
         }
         codeFeld.clear();
         updateGescanntListe();
@@ -507,6 +519,7 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
         scannenButton.setDisable(false);
+        abbrechenButton.setDisable(true);
     }
 
     public void zurueckgeben() {

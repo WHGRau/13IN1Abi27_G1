@@ -78,6 +78,9 @@ public class ControllerNutzerVerwaltung {
     private TextField vornameFeld;
 
     @FXML
+    private TextField ausleihlimitFeld;
+
+    @FXML
     private Text statusText;
 
     @FXML
@@ -199,6 +202,15 @@ public class ControllerNutzerVerwaltung {
         entfernenButton.setDisable(true);
         loeschenButton.setDisable(true);
 
+        if (ausleihlimitFeld != null) {
+            ausleihlimitFeld.setTextFormatter(new javafx.scene.control.TextFormatter<String>(change -> {
+                if (change.getControlNewText().matches("\\d*")) {
+                    return change;
+                }
+                return null;
+            }));
+        }
+
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufTitelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verlaufGeliehenSpalte.setCellValueFactory(new PropertyValueFactory<>("geliehen"));
@@ -274,6 +286,7 @@ public class ControllerNutzerVerwaltung {
 
     public void setModel(Bibliothek model) {
         this.model = model;
+        suchen();
     }
 
     public void suchen() {
@@ -310,9 +323,16 @@ public class ControllerNutzerVerwaltung {
 
             selectedNutzer = nutzerTabelle.getSelectionModel().getSelectedItem();
             if (selectedNutzer != null) {
-                emailFeld.setText(selectedNutzer.getEmail());
+                if(selectedNutzer.getEmail() != null){
+                    emailFeld.setText(selectedNutzer.getEmail());
+                }else{
+                    emailFeld.clear();
+                }
                 nameFeld.setText(selectedNutzer.getName());
                 vornameFeld.setText(selectedNutzer.getVorname());
+
+                ausleihlimitFeld.setText(String.valueOf(selectedNutzer.getMaxBuecherGleichzeitig()));
+
 
                 if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
                     rolleAuswahl.setValue("Lehrer");
@@ -347,6 +367,7 @@ public class ControllerNutzerVerwaltung {
                 loeschenButton.setDisable(false);
                 loadVerlaufTabelle();
             }
+            
         }
     }
 
@@ -386,12 +407,27 @@ public class ControllerNutzerVerwaltung {
                     return;
                 }
             }
+            int ausleihlimit = 0;
+            if (!ausleihlimitFeld.getText().trim().isEmpty() && Integer.parseInt(ausleihlimitFeld.getText().trim()) > 0) {
+                try {
+                    ausleihlimit = Integer.parseInt(ausleihlimitFeld.getText().trim());
+                } catch (NumberFormatException e) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("Ungültiges Ausleihlimit!");
+                    return;
+                }
+            }else{
+                errorText.setFill(Color.RED);
+                errorText.setText("Ungültiges Ausleihlimit!");
+                return;
+            }
 
             bearbeitenAktiv = false;
             bearbeitenButton.setText("bearbeiten");
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
+            ausleihlimitFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
             geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
@@ -410,7 +446,7 @@ public class ControllerNutzerVerwaltung {
             boolean isJetztEmail = !emailFeld.getText().trim().isEmpty();
 
             model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText().trim(), nameFeld.getText(),
-                    vornameFeld.getText(), gebDatum);
+                    vornameFeld.getText(), gebDatum, ausleihlimit);
 
             suchen();
             
@@ -445,13 +481,24 @@ public class ControllerNutzerVerwaltung {
                     }
                 }
 
+                int ausleihlimit = 0;
+                if (ausleihlimitFeld != null && !ausleihlimitFeld.getText().trim().isEmpty()) {
+                    try {
+                        ausleihlimit = Integer.parseInt(ausleihlimitFeld.getText().trim());
+                    } catch (NumberFormatException e) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("Ungültiges Ausleihlimit!");
+                        return;
+                    }
+                }
+
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
                 model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
-                        vornameFeld.getText(), gebDatum);
+                        vornameFeld.getText(), gebDatum, ausleihlimit);
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
@@ -466,6 +513,10 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setEditable(false);
                 nameFeld.setEditable(false);
                 vornameFeld.setEditable(false);
+                if (ausleihlimitFeld != null) {
+                    ausleihlimitFeld.setEditable(false);
+                    ausleihlimitFeld.clear();
+                }
                 rolleAuswahl.setDisable(true);
                 geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
@@ -483,6 +534,9 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setEditable(true);
                 nameFeld.setEditable(true);
                 vornameFeld.setEditable(true);
+                if (ausleihlimitFeld != null) {
+                    ausleihlimitFeld.setEditable(true);
+                }
                 rolleAuswahl.setDisable(false);
                 geburtsdatumPicker.setDisable(false);
                 zurueckButton.setDisable(true);
@@ -530,6 +584,13 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
+
+            ausleihlimitFeld.clear();
+            if(model.getStandartAusleihlimit() > 0){
+                ausleihlimitFeld.setText(String.valueOf(model.getStandartAusleihlimit()));
+            }
+            ausleihlimitFeld.setEditable(true);
+
             rolleAuswahl.setValue("Schüler");
             emailFeld.setEditable(true);
             nameFeld.setEditable(true);
@@ -548,6 +609,10 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
+            if (ausleihlimitFeld != null) {
+                ausleihlimitFeld.clear();
+                ausleihlimitFeld.setEditable(false);
+            }
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
@@ -577,6 +642,9 @@ public class ControllerNutzerVerwaltung {
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
+            if (ausleihlimitFeld != null) {
+                ausleihlimitFeld.clear();
+            }
             geburtsdatumPicker.setValue(null);
             statusText.setText("");
             verlaufTabelle.getItems().clear();
