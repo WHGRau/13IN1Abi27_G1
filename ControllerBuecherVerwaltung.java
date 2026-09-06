@@ -83,6 +83,9 @@ public class ControllerBuecherVerwaltung {
     private CheckBox schuler;
     
     @FXML
+    private TextField schulerid;
+    
+    @FXML
     private TableView<tabelleZeile> verlaufTabelle;
 
     @FXML
@@ -209,6 +212,9 @@ public class ControllerBuecherVerwaltung {
                             buchDatenAbrufen(barcodePuffer);
                             barcodePuffer = "";
                         }
+                    }
+                    else if (schuler.isSelected() && selectedBuch != null){
+                        schulerid.setText(barcodePuffer);
                     }
                 });
             }
@@ -372,16 +378,14 @@ public class ControllerBuecherVerwaltung {
         }
 
         String savedIsbn = selectedBuch.getIsbn();
-        
-        if(schuler.isSelected()){
-            
-        }
-        
+
         if (!selectedBuch.getStatus().equals("entfernt")) {
-            if(schuler.isSelected()){
-                
+            if(schuler.isSelected() && schulerid.getText() != null){
+                model.buchLoeschenS(savedIsbn, schulerid.getText());
             }
-            model.buchLoeschen(selectedBuch.getIsbn());
+            else{
+                model.buchLoeschen(selectedBuch.getIsbn());
+            }
         } else {
             model.buchFreigeben(selectedBuch.getIsbn());
         }
