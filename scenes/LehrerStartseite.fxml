@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
   <children>
     <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
       <children>
@@ -160,6 +160,7 @@
                   <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
                   <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="15.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
+                  <Button fx:id="statistiken" layoutX="680.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadStatistiken" text="Statistiken" />
              </children>
         </AnchorPane>
       </children>

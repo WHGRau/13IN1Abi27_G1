@@ -1092,4 +1092,16 @@ public class Bibliothek {
             e.printStackTrace();
         }
     }
+    
+    public QueryResult beliebtesteBucher(){
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY ausleihen.isbn ORDER BY anzahl DESC LIMIT 6");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
+    }
+    
+    public QueryResult unbeliebtesteBucher(){
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY ausleihen.isbn ORDER BY anzahl ASC LIMIT 6");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
+    }
 }

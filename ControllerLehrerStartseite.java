@@ -105,6 +105,9 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button scannenButton;
+    
+    @FXML
+    private Button statistiken;
 
     @FXML
     private TextField ausleihdauerFeld;
@@ -577,6 +580,24 @@ public class ControllerLehrerStartseite {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/nutzerVerwaltung.fxml"));
             Parent root = loader.load();
             ControllerNutzerVerwaltung controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void loadStatistiken(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Statistiken.fxml"));
+            Parent root = loader.load();
+            ControllerStatistiken controller = loader.getController();
             controller.setModel(model);
             Scene scene = new Scene(root);
             scene.setFill(Color.web("#E9E9D3"));
