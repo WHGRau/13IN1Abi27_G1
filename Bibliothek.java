@@ -6,6 +6,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import java.io.IOException;
+import java.awt.Desktop;
+import java.io.File;
+
 public class Bibliothek {
     private DatabaseConnector dbConnector;
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
@@ -1022,6 +1031,65 @@ public class Bibliothek {
                         + "' AND schueler_id = " + letzterSchueler + " ORDER BY ausleihdatum DESC LIMIT 1");
                 dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
             }
+        }
+    }
+    
+    public void bestandListeErstellen(){
+        dbConnector.executeStatement("SELECT titel, status FROM buecher");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        try (PDDocument dokument = new PDDocument()){
+            float yStart = 700;        
+            float yPosition = yStart;  
+            float zeilenAbstand = 15;  
+            float untererRand = 50; 
+            
+            PDPage aktseite = new PDPage();
+            dokument.addPage(aktseite);
+            
+            PDPageContentStream inhalt = new PDPageContentStream(dokument, aktseite);
+            inhalt.beginText();
+            inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+            inhalt.newLineAtOffset(50, yStart);
+            
+            for (int i = 0; i < result.getRowCount(); i++){
+                if (yPosition - zeilenAbstand < untererRand) {
+                   
+                    inhalt.endText();
+                    inhalt.close();
+            
+                    aktseite = new PDPage();
+                    dokument.addPage(aktseite);
+            
+                    inhalt = new PDPageContentStream(dokument, aktseite);
+                    inhalt.beginText();
+                    inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                    
+                    inhalt.newLineAtOffset(50, yStart);
+                    yPosition = yStart;
+                }
+                String status = result.getData()[i][1];
+                if (status.equals("entfernt")){
+                    inhalt.setNonStrokingColor(1, 0, 0);
+                }
+                else{
+                    inhalt.setNonStrokingColor(0, 0, 0);
+                }
+                
+                inhalt.showText(result.getData()[i][0]);
+                inhalt.newLineAtOffset(0, -zeilenAbstand); // Gehe nach unten
+                yPosition -= zeilenAbstand;
+            }
+            inhalt.endText();
+            inhalt.close();
+            
+            File pdfDatei = new File("Bestandsliste.pdf");
+            dokument.save(pdfDatei);        
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                desktop.open(pdfDatei);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
