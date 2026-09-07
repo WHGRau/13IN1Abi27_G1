@@ -48,6 +48,8 @@ public class ControllerEinstellungen {
     @FXML
     private TextField reservierungSperrzeitFeld;
     @FXML
+    private TextField reservierungMaxAnzahlFeld;
+    @FXML
     private TextField sperrenVerspaetungFeld;
     @FXML
     private CheckBox sperrenAktivierenCheckBox;
@@ -133,6 +135,12 @@ public class ControllerEinstellungen {
         else
             reservierungSperrzeitFeld.setText("7");
 
+        String resMaxAnzahl = model.getEinstellung("reservierung_max_anzahl");
+        if (resMaxAnzahl != null)
+            reservierungMaxAnzahlFeld.setText(resMaxAnzahl);
+        else
+            reservierungMaxAnzahlFeld.setText("5");
+
         String sperrenAktiv = model.getEinstellung("sperren_aktiv");
         if (sperrenAktiv != null)
             sperrenAktivierenCheckBox.setSelected(sperrenAktiv.equals("1"));
@@ -159,6 +167,7 @@ public class ControllerEinstellungen {
 
         reservierungAbholzeitFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
         reservierungSperrzeitFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
+        reservierungMaxAnzahlFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
 
         sperrenVerspaetungFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
         sperrenZuruecksetzenFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
@@ -193,6 +202,7 @@ public class ControllerEinstellungen {
         model.setEinstellung("reservierungen_aktiv", reservierungenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("reservierung_dauer_tage", reservierungAbholzeitFeld.getText().trim());
         model.setEinstellung("reservierung_sperre_tage", reservierungSperrzeitFeld.getText().trim());
+        model.setEinstellung("reservierung_max_anzahl", reservierungMaxAnzahlFeld.getText().trim());
 
         model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());

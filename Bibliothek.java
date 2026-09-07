@@ -722,6 +722,17 @@ public class Bibliothek {
         return 7; // Default
     }
 
+    public int getReservierungMaxAnzahl() {
+        String limitStr = getEinstellung("reservierung_max_anzahl");
+        try {
+            if (limitStr != null) {
+                return Integer.parseInt(limitStr);
+            }
+        } catch (NumberFormatException e) {
+        }
+        return 5; // Default 5
+    }
+
     public boolean reservierungMoeglich(String isbn) {
         String resAktiv = getEinstellung("reservierungen_aktiv");
         if (resAktiv != null && resAktiv.equals("0")) {
@@ -747,7 +758,8 @@ public class Bibliothek {
             QueryResult countResult = dbConnector.getCurrentQueryResult();
             if (countResult != null && countResult.getRowCount() > 0) {
                 int count = Integer.parseInt(countResult.getData()[0][0]);
-                if (count >= 5) {
+                int maxAnzahl = getReservierungMaxAnzahl();
+                if (count >= maxAnzahl) {
                     return false;
                 }
             }

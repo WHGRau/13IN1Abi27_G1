@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Sep 05, 2026 at 05:55 PM
+-- Host: 127.0.0.1
+-- Generation Time: Sep 07, 2026 at 04:43 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `Bibliothek`
+-- Database: `bibliothek`
 --
 
 -- --------------------------------------------------------
@@ -104,7 +104,6 @@ CREATE TABLE `buecher` (
 --
 
 INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`, `altersbeschraenkung`) VALUES
-('123', '43', '', NULL, '', 'verfuegbar', NULL),
 ('978-0261102217', 'The Hobbit', '', NULL, 'Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely travelling further than the pantry of his hobbit-hole in Bag End. But his contentment is disturbed when the wizard, Gandalf, and a company of thirteen dwarves arrive on his doorstep one day to whisk him away on an unexpected journey ‘there and back again’. They have a plot to raid the treasure hoard of Smaug the Magnificent, a large and very dangerous dragon…', 'verfuegbar', NULL),
 ('978-1464221378', 'The Teacher', 'Freida McFadden', '2024', 'Eve has a good life. She gets up each day, gets a kiss from her husband Nate, and heads off to teach math at the local high school. All is as it should be. Except…\r\n\r\nLast year, Caseham High was rocked by a scandal, with one student, Addie, at its center. And this year, Eve is dismayed to find the girl in her class.\r\n\r\nAddie can\'t be trusted. She lies. She hurts people. She destroys lives. At least, that\'s what everyone says.\r\n\r\nBut nobody knows the real Addie. Nobody knows the secrets that could destroy her. And Addie will do anything to keep it quiet.', 'verfuegbar', NULL),
 ('978-1642750331', 'I want to eat your pancreas', 'Yoru Sumino', '2018', 'A high school boy finds the diary of his classmate—only to discover that she’s dying. Yamauchi Sakura has been silently suffering from a pancreatic disease, and now exactly one person outside her family knows. He swears to her that he won’t tell anyone what he learned, and the shared secret brings them closer together in this deeply moving, first-person story that traces their developing relationship in Sakura’s final months of life.', 'verfuegbar', NULL),
@@ -141,6 +140,7 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 ('email_passwort', 'ngbz pith mvjj sggv'),
 ('reservierungen_aktiv', '1'),
 ('reservierung_dauer_tage', '14'),
+('reservierung_max_anzahl', '5'),
 ('reservierung_sperre_tage', '7'),
 ('smtp_port', '587'),
 ('smtp_server', 'smtp.gmail.com'),
