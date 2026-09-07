@@ -101,8 +101,8 @@
                               </Label>
                               <TableView fx:id="reserviertTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                  <columns>
-                                    <TableColumn fx:id="reserviertTitelSpalte" prefWidth="365.0" text="Titel" />
-                                    <TableColumn fx:id="reserviertBisSpalte" prefWidth="148.0" text="Status" />
+                                    <TableColumn fx:id="reserviertTitelSpalte" prefWidth="313.0" text="Titel" />
+                                    <TableColumn fx:id="reserviertBisSpalte" prefWidth="200.0" text="Status" />
                                  </columns>
                               </TableView>
                            </children>

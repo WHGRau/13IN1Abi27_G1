@@ -730,7 +730,7 @@ public class Bibliothek {
             }
         } catch (NumberFormatException e) {
         }
-        return 5; // Default 5
+        return 5;
     }
 
     public boolean reservierungMoeglich(String isbn) {

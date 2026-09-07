@@ -110,7 +110,7 @@ public class ControllerEinstellungen {
             portFeld.setText(port);
 
         String ausleihDauer = model.getEinstellung("ausleih_dauer_tage");
-        if (ausleihDauer != null)
+        if (ausleihDauer != null && !ausleihDauer.isEmpty())
             ausleihDauerFeld.setText(ausleihDauer);
         else
             ausleihDauerFeld.setText("28");
@@ -124,19 +124,19 @@ public class ControllerEinstellungen {
             reservierungenAktivierenCheckBox.setSelected(resAktiv.equals("1"));
 
         String resAbholzeit = model.getEinstellung("reservierung_dauer_tage");
-        if (resAbholzeit != null)
+        if (resAbholzeit != null && !resAbholzeit.isEmpty())
             reservierungAbholzeitFeld.setText(resAbholzeit);
         else
             reservierungAbholzeitFeld.setText("14");
 
         String resSperrzeit = model.getEinstellung("reservierung_sperre_tage");
-        if (resSperrzeit != null)
+        if (resSperrzeit != null && !resSperrzeit.isEmpty())
             reservierungSperrzeitFeld.setText(resSperrzeit);
         else
             reservierungSperrzeitFeld.setText("7");
 
         String resMaxAnzahl = model.getEinstellung("reservierung_max_anzahl");
-        if (resMaxAnzahl != null)
+        if (resMaxAnzahl != null && !resMaxAnzahl.isEmpty())
             reservierungMaxAnzahlFeld.setText(resMaxAnzahl);
         else
             reservierungMaxAnzahlFeld.setText("5");
