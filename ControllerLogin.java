@@ -26,7 +26,6 @@ public class ControllerLogin {
     private Bibliothek model;
 
     public void initialize() {
-        model = new Bibliothek();
         Platform.runLater(() -> loginButton.requestFocus());
 
         Platform.runLater(() -> {
@@ -72,6 +71,7 @@ public class ControllerLogin {
     private StackPane background;
 
     public void login(ActionEvent event) {
+        model = new Bibliothek();
         int feedback = model.login(emailFeld.getText(), passwortFeld.getText());
         if (feedback == 1) {
             try {
@@ -98,7 +98,7 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else if (feedback == 2){
+        } else if (feedback == 2) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
@@ -113,6 +113,7 @@ public class ControllerLogin {
                 e.printStackTrace();
             }
         } else {
+            fehlerText.setFill(Color.web("#d32626"));
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
@@ -130,17 +131,21 @@ public class ControllerLogin {
     }
 
     public void passwortVergessen(ActionEvent event) {
+        model = new Bibliothek();
         String email = emailFeld.getText().trim();
         if (istGueltigeEmail(email)) {
             model.passwortVergessen(email);
+            fehlerText.setFill(Color.BLACK);
             fehlerText.setText("Bitte überprüfen Sie Ihr E-Mail-Postfach");
         } else {
+            fehlerText.setFill(Color.web("#d32626"));
             fehlerText.setText("Bitte geben Sie eine gültige E-Mail-Adresse ein");
         }
     }
 
     private boolean istGueltigeEmail(String email) {
-        if (email == null) return false;
+        if (email == null)
+            return false;
         email = email.trim();
         int atIndex = email.indexOf('@');
         int lastDotIndex = email.lastIndexOf('.');

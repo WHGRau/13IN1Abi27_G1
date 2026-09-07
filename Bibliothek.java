@@ -901,12 +901,21 @@ public class Bibliothek {
         }
     }
 
+    public boolean emailVorhanden(String email) {
+        return emailVorhanden(email, -1);
+    }
+
     public boolean emailVorhanden(String email, int ignoreId) {
-        if (email == null)
+        if (email == null || email.trim().isEmpty())
             return false;
-        dbConnector.executeStatement("SELECT id FROM benutzer WHERE email = '" + email + "' AND id != " + ignoreId);
+        dbConnector.executeStatement(
+                "SELECT id FROM benutzer WHERE LOWER(email) = LOWER('" + email + "') AND id != " + ignoreId);
         QueryResult result = dbConnector.getCurrentQueryResult();
-        return result != null && result.getRowCount() > 0;
+        if (result != null && result.getRowCount() > 0) {
+            int besitzerId = Integer.parseInt(result.getData()[0][0]);
+            return besitzerId != ignoreId;
+        }
+        return false;
     }
 
     public boolean isbnVorhanden(String isbn) {
@@ -947,12 +956,14 @@ public class Bibliothek {
     public String getreserviertSchuelerName(String isbn) {
         dbConnector.executeStatement(
                 "SELECT benutzer.nachname, benutzer.vorname FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id WHERE reservierungen.isbn = '"
-                        + isbn + "' AND (reservierungen.status = 'wartend' OR reservierungen.status = 'bereit');");
+                        + isbn + "' AND reservierungen.status = 'bereit';");
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
-            return result.getData()[0][0] + " " + result.getData()[0][1];
+            String nachname = result.getData()[0][0] != null ? result.getData()[0][0] : "";
+            String vorname = result.getData()[0][1] != null ? result.getData()[0][1] : "";
+            return (vorname + " " + nachname).trim();
         }
-        return null;
+        return "";
     }
 
     public ArrayList<String> checkBuecherReserviert() {

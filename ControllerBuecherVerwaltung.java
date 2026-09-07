@@ -296,6 +296,12 @@ public class ControllerBuecherVerwaltung {
                 if (status.equals("verliehen")) {
                     status += " an " + model.getVerleihSchuelerName(selectedBuch.getIsbn());
                 }
+                if (status.equals("reserviert")) {
+                    String schueler = model.getreserviertSchuelerName(selectedBuch.getIsbn());
+                    if (schueler != null && !schueler.trim().isEmpty()) {
+                        status += " für " + schueler.trim();
+                    }
+                }
                 statusText.setText("aktueller Status: " + status);
                 bearbeitenButton.setDisable(false);
                 if (selectedBuch.getStatus().equals("entfernt")) {
@@ -339,6 +345,12 @@ public class ControllerBuecherVerwaltung {
                     errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
                     return;
                 }
+                String neueIsbn = isbnFeld.getText().trim();
+                if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                        || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                    errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                    return;
+                }
                 Integer jahr = null;
                 if (!jahrFeld.getText().trim().isEmpty()) {
                     jahr = Integer.parseInt(jahrFeld.getText().trim());
@@ -363,6 +375,11 @@ public class ControllerBuecherVerwaltung {
                         jahr = Integer.parseInt(jahrFeld.getText().trim());
                     }
                     String neueIsbn = isbnFeld.getText().trim();
+                    if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                            || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                        errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                        return;
+                    }
                     if (model.isbnVorhanden(neueIsbn)) {
                         errorText.setText("Diese ISBN existiert bereits!");
                         return;

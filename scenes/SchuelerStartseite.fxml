@@ -20,7 +20,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerSchuelerStartseite">
    <children>
       <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
@@ -91,8 +91,8 @@
                               </Label>
                               <TableView fx:id="geliehenTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn fx:id="geliehenTitelSpalte" prefWidth="300.0" text="Titel" />
-                                  <TableColumn fx:id="geliehenRueckgabeSpalte" prefWidth="150.0" text="Rückgabe" />
+                                  <TableColumn fx:id="geliehenTitelSpalte" prefWidth="404.0" text="Titel" />
+                                  <TableColumn fx:id="geliehenRueckgabeSpalte" prefWidth="109.0" text="Rückgabe" />
                                 </columns>
                               </TableView>
                               
@@ -101,8 +101,8 @@
                               </Label>
                               <TableView fx:id="reserviertTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                  <columns>
-                                    <TableColumn fx:id="reserviertTitelSpalte" prefWidth="300.0" text="Titel" />
-                                    <TableColumn fx:id="reserviertBisSpalte" prefWidth="150.0" text="Status" />
+                                    <TableColumn fx:id="reserviertTitelSpalte" prefWidth="365.0" text="Titel" />
+                                    <TableColumn fx:id="reserviertBisSpalte" prefWidth="148.0" text="Status" />
                                  </columns>
                               </TableView>
                            </children>
