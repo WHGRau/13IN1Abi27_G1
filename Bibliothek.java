@@ -5,6 +5,9 @@ import javax.swing.event.*;
 import java.sql.*;
 import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 import java.util.Random;
 
 public class Bibliothek {
@@ -12,17 +15,18 @@ public class Bibliothek {
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
-    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 1, 60000, 10);
+    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16,32,1,60000,10);
+    
+    public Bibliothek() {
+        dbVerbinden();
+        reservierungenAktualisieren();
+        lateDaysAktualisieren();
+    } 
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
     private Random random = new Random();
 
-    public Bibliothek() {
-        dbVerbinden();
-        reservierungenAktualisieren();
-        erinnerungenPruefenUndVersenden();
-    }
 
     public void erinnerungenPruefenUndVersenden() {
         // 2 Tage vorher Erinnerung
@@ -136,6 +140,8 @@ public class Bibliothek {
             erfassteBuecher.clear();
         }
     }
+    
+    
 
     public void buchRueckgabe() {
         if (isLehrer()) {
@@ -146,6 +152,11 @@ public class Bibliothek {
             QueryResult result = dbConnector.getCurrentQueryResult();
 
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
+                if(getTageZuSpaet(isbn)> 0){
+                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"'");
+                    int schuelerID = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                    int newLateDays = getTageZuSpaet(isbn);
+                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+newLateDays+" WHERE id = "+schuelerID+"");
                 letzteAktionAusleihen = false;
                 letzteBuecher.clear();
                 letzteBuecher.add(isbn);
@@ -158,7 +169,7 @@ public class Bibliothek {
                 dbConnector
                         .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
                                 + "' AND ruckgabe_datum IS NULL");
-
+               
                 dbConnector.executeStatement(
                         "SELECT status FROM reservierungen WHERE isbn = '" + isbn + "' AND status = 'wartend'");
                 QueryResult resResult = dbConnector.getCurrentQueryResult();
@@ -191,6 +202,7 @@ public class Bibliothek {
                             .executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
                 }
             }
+            
         }
     }
 
@@ -853,7 +865,7 @@ public class Bibliothek {
     }
 
     public void sperren(int pID) {
-        if (isLehrer()) {
+        
             dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = '" + pID + "'");
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
@@ -865,7 +877,7 @@ public class Bibliothek {
                 MailService mailService = new MailService(this);
                 mailService.sendeGesperrtMail(email, vorname);
             }
-        }
+       
     }
 
     public void entsperren(int pID) {
@@ -1139,6 +1151,56 @@ public class Bibliothek {
         }
         return score;
     }
+    
+    public void lateDaysAktualisieren(){
+            if(LocalDate.parse(getEinstellung("sperren_reset_datum")) == LocalDate.now() ){
+                dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
+            }
+            int sperrungTage = Integer.parseInt(getEinstellung("sperren_verspaetung_tage"));
+            dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            int sumDaysLate = 0;
+            int lastStudent = -1;
+            int lateDays;
+            if (result != null && result.getRowCount() > 0) {
+                for(int i = 0; i < result.getRowCount(); i++){
+                    int schuelerID = Integer.parseInt(result.getData()[i][0]);
+                    String isbn = result.getData()[i][1];
+                    
+                    
+                    if(schuelerID == lastStudent){
+                        sumDaysLate += getTageZuSpaet(isbn);
+                    }
+                    else{
+                        if(lastStudent != -1){
+                            dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
+                            lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                            if(lateDays + sumDaysLate > sperrungTage){
+                                 sperren(lastStudent);
+                            }
+                            }
+                        sumDaysLate = getTageZuSpaet(isbn);
+                    }
+                    
+                    lastStudent = schuelerID;
+                }
+                dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
+                lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
+                if(lateDays + sumDaysLate > 14){
+                     sperren(lastStudent);
+                }
+                
+                    }
+            }
+            
+        
+        
+    
+    
+    
+    
+    
+
 
     public boolean letzteAktionAusleihen() {
         return letzteAktionAusleihen;

@@ -63,6 +63,7 @@ CREATE TABLE `benutzer` (
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer') NOT NULL,
   `freigeschaltet` tinyint(1) NOT NULL,
+  `tage_spaet` int(3) NOT NULL,
   `gesperrt_von` int(11) DEFAULT NULL,
   `geburtsdatum` date DEFAULT NULL,
   `passwortAendern` tinyint(1) NOT NULL,
@@ -73,15 +74,15 @@ CREATE TABLE `benutzer` (
 -- Dumping data for table `benutzer`
 --
 
-INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`, `passwortAendern`, `maxBuecherGleichzeitig`) VALUES
-(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$HwzLi8aI99I3frJciD2yfg$nuO0ty/lbE7FHVk5ixgSlJqixBdd9yjnt8ZIW8bk34s', 'schueler', 0, NULL, NULL, 1, 3),
-(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL, NULL, 0, 3),
-(10000009, 'Tina', 'Meier', 'meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL, NULL, 0, 3),
-(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL, NULL, 0, 3),
-(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL, NULL, 0, 3),
-(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL, NULL, 0, 3),
-(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL, NULL, 0, 3),
-(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1, NULL, NULL, 0, 3);
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`, `passwortAendern`, `maxBuecherGleichzeitig`,`tage_spaet`) VALUES
+(10000007, 'Tom', 'Meier', 'tom@email.com', '$argon2id$v=19$m=60000,t=10,p=1$HwzLi8aI99I3frJciD2yfg$nuO0ty/lbE7FHVk5ixgSlJqixBdd9yjnt8ZIW8bk34s', 'schueler', 0, NULL, NULL, 1, 3, 0),
+(10000008, 'Marie', 'Schmidt', 'marie@email.com', '$argon2id$v=19$m=60000,t=10,p=1$K1HMAc4IiMliq71JEhaVug$17EBQyMvBMxenU+BcP6E91f9PXIae1v5kum8rCJuq5k', 'schueler', 1, NULL, NULL, 0, 3, 0),
+(10000009, 'Tina', 'Meier', 'meier@email.com', '$argon2id$v=19$m=60000,t=10,p=1$qvrW+yHDp+3MYzTP2z7CmQ$g+SuP+/s8t5QrFH1gdNYnboOs+7d+aYbd6NOMVo+aKM', 'lehrer', 1, NULL, NULL, 0, 3, 0),
+(10000010, 'Mike', 'Reck', 'Reck@email.de', '$argon2id$v=19$m=60000,t=10,p=1$Cu04+qPppBA5ZR7cszpqqQ$I/4WuS5NvZlLyW7d6KljN/iJxqOcaS+lvvYftt7gNBU', 'lehrer', 1, NULL, NULL, 0, 3, 0),
+(10000011, 'Elisabeth', 'Johnson', 'elisabeth@email.com', '$argon2id$v=19$m=60000,t=10,p=1$PI4FVuSJeQ94W4by8sdXCw$X6KKmJdmNwwjyJlhV8EVXuXBAQhi6pvnn8iT3WSCxFc', 'schueler', 1, NULL, NULL, 0, 3, 0),
+(10000012, 'Mattias', 'Neuer', 'mattias@email.com', '$argon2id$v=19$m=60000,t=10,p=1$X6enJ6Ks8uVfpA1gvvc0Nw$RUhVD2o8sGrp69GPqKRKqMFSA3xvTkjVYBB8SB0xlAI', 'schueler', 1, NULL, NULL, 0, 3, 0),
+(10000013, 'Annalena', 'Langenstein', 'annalena@email.com', '$argon2id$v=19$m=60000,t=10,p=1$JihbQVPnXK1VIaOlmFDF3w$xwhWtp3Uq4gwaHqpOdLtQL8hxD+326FefnfXorJn/0s', 'schueler', 1, NULL, NULL, 0, 3, 0),
+(10000014, 'Thomas', 'Peter', 'thomas@email', '$argon2id$v=19$m=60000,t=10,p=1$tV7IjSvfQ665MZrwDlOKTA$bX4+yCBKRvKuc85ZSNouaBEwooGv69w+1t/dpmRIOpg', 'schueler', 1, NULL, NULL, 0, 3, 0);
 
 -- --------------------------------------------------------
 
