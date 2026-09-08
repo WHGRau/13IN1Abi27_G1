@@ -994,6 +994,9 @@ public class Bibliothek {
     }
     
     public void lateDaysAktualisieren(){
+            if(LocalDate.parse(getEinstellung("sperren_reset_datum")) == LocalDate.now() ){
+                dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
+            }
             int sperrungTage = Integer.parseInt(getEinstellung("sperren_verspaetung_tage"));
             dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
             QueryResult result = dbConnector.getCurrentQueryResult();
