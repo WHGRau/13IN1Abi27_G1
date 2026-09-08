@@ -1100,7 +1100,7 @@ public class Bibliothek {
         }
     }
 
-    private void hinzuDA(String isbn){
+    public void hinzuDA(String isbn){
         dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = '"+isbn+"'");
                 QueryResult result = dbConnector.getCurrentQueryResult();
                 if (result != null && result.getRowCount() > 0) {
@@ -1126,11 +1126,11 @@ public class Bibliothek {
                 if (result != null && result.getRowCount() > 0) {
                     int da = Integer.parseInt(result.getData()[0][0]);
                     da = da + 1;
-                    dbConnector.executeStatement("UPDATE buecher SET anzahlRe = '"+da+"' WHERE isbn = '"+isbn+"'");
+                    dbConnector.executeStatement("UPDATE buecher SET anzahlRes = '"+da+"' WHERE isbn = '"+isbn+"'");
                 } 
     }
     
-    private void loeschDA(String isbn){
+    public void loeschDA(String isbn){
         dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = '"+isbn+"'");
                 QueryResult result = dbConnector.getCurrentQueryResult();
                 if (result != null && result.getRowCount() > 0) {
@@ -1161,7 +1161,7 @@ public class Bibliothek {
                     int da = Integer.parseInt(result.getData()[0][0]);
                     if(da!=0){
                         da = da - 1;
-                        dbConnector.executeStatement("UPDATE buecher SET anzahlRe = '"+da+"' WHERE isbn = '"+isbn+"'");
+                        dbConnector.executeStatement("UPDATE buecher SET anzahlRes = '"+da+"' WHERE isbn = '"+isbn+"'");
                     }
                 } 
     }
@@ -1208,6 +1208,14 @@ public class Bibliothek {
             return true;
         }
         return false;
+    }
+    
+    public String getExemplare(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa,anzahlLiehen,anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        int existieren = Integer.parseInt(result.getData()[0][0])+Integer.parseInt(result.getData()[0][1])+Integer.parseInt(result.getData()[0][2]);
+        String e = String.valueOf(existieren);
+        return e;
     }
     
 }

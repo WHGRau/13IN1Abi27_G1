@@ -113,6 +113,21 @@
                      </font>
                   </CheckBox>
                   <TextField fx:id="schulerid" layoutX="907.0" layoutY="928.0" />
+                  <Text layoutX="1044.0" layoutY="769.0" strokeType="OUTSIDE" strokeWidth="0.0" text="exemplare:" textAlignment="CENTER" wrappingWidth="92.0">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Text>
+                  <Button fx:id="add" layoutX="1153.0" layoutY="761.0" mnemonicParsing="false" onAction="#addExemplare" prefHeight="39.0" prefWidth="39.0" text="+">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <Text fx:id="exemplareText" layoutX="1044.0" layoutY="793.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="92.0">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Text>
                </children>
             </AnchorPane>
          </children>

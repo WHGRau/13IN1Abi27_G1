@@ -66,6 +66,14 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private Text statusText;
+    
+    @FXML
+    private Text exemplareText;
+    
+    
+
+    @FXML
+    private Button add;
 
     @FXML
     private Button bearbeitenButton;
@@ -155,6 +163,8 @@ public class ControllerBuecherVerwaltung {
         buecherTabelle.setPlaceholder(new Label("Keine Bücher gefunden"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
+        add.setDisable(true);
+        
 
         verlaufNachnameSpalte.setCellValueFactory(new PropertyValueFactory<>("nachname"));
         verlaufVornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
@@ -297,6 +307,10 @@ public class ControllerBuecherVerwaltung {
                         entfernenButton.setText("entfernen");
                     }
                 }
+                
+                exemplareText.setText(model.getExemplare(selectedBuch.getIsbn()));
+                add.setDisable(false);
+                
                 entfernenButton.setDisable(false);
                 loadVerlaufTabelle();
             }
@@ -371,6 +385,15 @@ public class ControllerBuecherVerwaltung {
             }
         }
     }
+    
+    public void addExemplare(){
+        String isbn = isbnFeld.getText();
+        if(!isbn.equals(null)){
+            model.hinzuDA(isbn);
+            exemplareText.setText(model.getExemplare(isbn));
+        }
+    }
+    
 
     public void entfernen() {
         if (selectedBuch == null) {
