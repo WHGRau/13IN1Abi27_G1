@@ -245,6 +245,7 @@ public class ControllerLehrerStartseite {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         rueckgaengigButton.setDisable(true);
+        abbrechenButton.setDisable(true);
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
         reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
@@ -391,6 +392,7 @@ public class ControllerLehrerStartseite {
         }
         
         int feedback = model.scannen(code);
+
         switch (feedback) {
             case 1:
                 if (model.getName() != null && model.getErfassteSchuelerName() != "") {
@@ -460,6 +462,27 @@ public class ControllerLehrerStartseite {
                 scannenButton.setDisable(true);
                 ausleihenButton.setDisable(true);
                 break;
+            case 13:
+                int ab = model.getBuchAltersbeschraenkung(code);
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Buch hat eine Altersbeschränkung von " + ab + " Jahren. Zum Prüfen Schüler scannen.");
+                break;
+            case 14:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Schüler zu jung oder kein Geburtsdatum hinterlegt");
+                scannenButton.setDisable(true);
+                ausleihenButton.setDisable(true);
+                break;
+            case 15:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Maximale Anzahl gleichzeitiger Bücher überschritten");
+                scannenButton.setDisable(true);
+                ausleihenButton.setDisable(true);
+
+                break;
+        }
+        if(model.abbrechenMoeglich()) {
+            abbrechenButton.setDisable(false);
         }
         codeFeld.clear();
         updateGescanntListe();
@@ -496,6 +519,7 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
         scannenButton.setDisable(false);
+        abbrechenButton.setDisable(true);
     }
 
     public void zurueckgeben() {
@@ -605,6 +629,22 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    public void passwortAendern(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
+            Parent root = loader.load();
+            passwortResetController controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void gescanntesBuchEntfernen() {
         int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
@@ -614,6 +654,18 @@ public class ControllerLehrerStartseite {
             if (model.getErfassteBuecherNamen().isEmpty()) {
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);
+                scannenButton.setDisable(false);
+                feedbackText.setFill(Color.BLACK);
+                feedbackText.setText("Buch scannen");
+            } else if (model.getKonfliktBuecherNamen().isEmpty()) {
+                scannenButton.setDisable(false);
+                feedbackText.setFill(Color.BLACK);
+                if (model.getErfassteSchuelerName() != null && !model.getErfassteSchuelerName().isEmpty()) {
+                    ausleihenButton.setDisable(false);
+                    feedbackText.setText("weiteres Buch scannen");
+                } else {
+                    feedbackText.setText("weiteres Buch oder Nutzerausweis scannen");
+                }
             }
         }
     }

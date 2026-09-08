@@ -72,19 +72,7 @@ public class ControllerSchuelerStartseite {
     private ListView<Buch> suchergebnisse;
 
     @FXML
-    private TextField isbnFeld;
-
-    @FXML
-    private TextField titelFeld;
-
-    @FXML
-    private TextField autorFeld;
-
-    @FXML
-    private TextField jahrFeld;
-
-    @FXML
-    private TextArea beschreibungFeld;
+    private TextArea buchInfoFeld;
 
     @FXML
     private Text statusText;
@@ -274,11 +262,28 @@ public class ControllerSchuelerStartseite {
     public void selectBuch() {
         selectedBuch = suchergebnisse.getSelectionModel().getSelectedItem();
         if (selectedBuch != null) {
-            isbnFeld.setText(selectedBuch.getIsbn());
-            titelFeld.setText(selectedBuch.getTitel());
-            autorFeld.setText(selectedBuch.getAutor());
-            jahrFeld.setText(selectedBuch.getErscheinungsjahr());
-            beschreibungFeld.setText(selectedBuch.getBeschreibung());
+            StringBuilder infoBuilder = new StringBuilder();
+            
+            if (selectedBuch.getTitel() != null && !selectedBuch.getTitel().isEmpty()) {
+                infoBuilder.append("Titel: ").append(selectedBuch.getTitel()).append("\n");
+            }
+            if (selectedBuch.getAutor() != null && !selectedBuch.getAutor().isEmpty()) {
+                infoBuilder.append("Autor: ").append(selectedBuch.getAutor()).append("\n");
+            }
+            if (selectedBuch.getIsbn() != null && !selectedBuch.getIsbn().isEmpty()) {
+                infoBuilder.append("ISBN: ").append(selectedBuch.getIsbn()).append("\n");
+            }
+            if (selectedBuch.getErscheinungsjahr() != null && !selectedBuch.getErscheinungsjahr().isEmpty()) {
+                infoBuilder.append("Erscheinungsjahr: ").append(selectedBuch.getErscheinungsjahr()).append("\n");
+            }
+            if (selectedBuch.getAlter() != null && !selectedBuch.getAlter().isEmpty()) {
+                infoBuilder.append("Altersbeschränkung: ").append(selectedBuch.getAlter()).append(" Jahre\n");
+            }
+            if (selectedBuch.getBeschreibung() != null && !selectedBuch.getBeschreibung().isEmpty()) {
+                infoBuilder.append("\nBeschreibung:\n").append(selectedBuch.getBeschreibung());
+            }
+            
+            buchInfoFeld.setText(infoBuilder.toString().trim());
             String status = selectedBuch.getStatus();
             if (status.equals("verfuegbar")) {
                 status = "verfügbar";
@@ -320,4 +325,21 @@ public class ControllerSchuelerStartseite {
             }
         }
     }
+
+    public void passwortAendern(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
+            Parent root = loader.load();
+            passwortResetController controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

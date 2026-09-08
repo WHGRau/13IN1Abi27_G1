@@ -17,8 +17,20 @@ public class Benutzer
     private boolean freigeschaltet;
     private int lateDays;
     private int gesperrtVon;
+    private String geburtsdatum;
+    private int maxBuecherGleichzeitig;
     
     public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
+    {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, null, 0);
+    }
+
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon, String pGeburtsdatum)
+    {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, pGeburtsdatum, 0);
+    }
+
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon, String pGeburtsdatum, int pMaxBuecherGleichzeitig)
     {
         email = pEmail;
         passwort = pPw;
@@ -29,6 +41,8 @@ public class Benutzer
         freigeschaltet = pFreigeschaltet;
         lateDays = 0;
         gesperrtVon = pGesperrtVon;
+        geburtsdatum = pGeburtsdatum;
+        maxBuecherGleichzeitig = pMaxBuecherGleichzeitig;
     }
 
     public String getEmail() {
@@ -70,4 +84,15 @@ public class Benutzer
         return gesperrtVon;
     }
     
+    public String getGeburtsdatum() {
+        return geburtsdatum;
+    }
+
+    public int getMaxBuecherGleichzeitig() {
+        return maxBuecherGleichzeitig;
+    }
+
+    public int getAusleihlimit() {
+        return maxBuecherGleichzeitig;
+    }
 }
