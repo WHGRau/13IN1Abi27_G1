@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
@@ -36,6 +38,8 @@ public class ControllerSchuelerStartseite {
 
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
+    
+    private int bild;
 
     @FXML
     private Text nutzernameText;
@@ -97,6 +101,9 @@ public class ControllerSchuelerStartseite {
 
     @FXML
     private Text gesperrtText;
+    
+    @FXML
+    private ImageView mahnung;
 
     public static class TabellenZeile {
         private String titel;
@@ -152,6 +159,22 @@ public class ControllerSchuelerStartseite {
         nutzernameText.setText(text);
         gesperrtText.setVisible(!model.isFreigeschaltet());
         updateTabellen();
+        
+        bild = model.tagefuerSchueler();
+        Image eule = null;
+        
+        if(bild == 1){
+            eule = new Image(getClass().getResource("/eulen/EuleAngry.png").toExternalForm());
+        }
+        else if (bild == 2){
+            eule = new Image(getClass().getResource("/eulen/keineEule.png").toExternalForm());
+        }
+        else{
+            eule = new Image(getClass().getResource("/eulen/normaleEule.png").toExternalForm());
+        }
+        
+        mahnung.setImage(eule);
+        mahnung.setPreserveRatio(true);
     }
 
     public void initialize() {
@@ -171,6 +194,7 @@ public class ControllerSchuelerStartseite {
         verlaufAusleihdatumSpalte.setCellValueFactory(new PropertyValueFactory<>("datum"));
         reservierenButton.setDisable(true);
         gesperrtText.setVisible(false);
+        
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();

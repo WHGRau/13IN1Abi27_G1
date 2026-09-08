@@ -92,6 +92,24 @@ public class Bibliothek {
             }
         }
     }
+    
+    public int tagefuerSchueler(){
+        
+        int i = 0;
+        dbConnector.executeStatement(
+                "SELECT ausleihen.id ,DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe = CURRENT_DATE() AND benutzer.id = '"+angemeldet+ "'");
+        QueryResult resultStichtag = dbConnector.getCurrentQueryResult();
+        if(resultStichtag != null && resultStichtag.getRowCount() > 0)
+        i = 1;
+        dbConnector.executeStatement(
+                "SELECT ausleihen.id, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe < CURRENT_DATE() AND benutzer.id = '"+angemeldet+ "'");
+        QueryResult result1Woche = dbConnector.getCurrentQueryResult();
+        if(result1Woche != null && result1Woche.getRowCount() >0)
+        i = 2;
+        return i;
+        
+        
+    }
 
     private void dbVerbinden() {
         dbConnector = new DatabaseConnector("localhost", 3306, "Bibliothek", "root", "");
