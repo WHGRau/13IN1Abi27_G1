@@ -55,6 +55,34 @@ public class ControllerStatistiken
     @FXML
     private BarChart<String, Number> bucherGraph;
 
+    @FXML
+    private TableView<tabelleZeile> buchTabelle;
+
+    @FXML
+    private TableColumn<tabelleZeile, String> buchTabelleAnzahl;
+
+    @FXML
+    private TableColumn<tabelleZeile, String> buchTabelleTitel;
+    
+    public static class tabelleZeile {
+        private String anzahl;
+        private String titel;
+
+        public tabelleZeile(String anzahl, String titel) {
+            this.anzahl = anzahl;
+            this.titel = titel;
+            
+        }
+
+        public String getAnzahl() {
+            return anzahl;
+        }
+
+        public String getTitel() {
+            return titel;
+        }
+
+    }
     
     public void setModel(Bibliothek model) {
         this.model = model;
@@ -62,7 +90,10 @@ public class ControllerStatistiken
     }
     
     public void initialize(){
-        statistikAuswahl.getItems().addAll("beliebteste Bucher", "unbeliebstete Bucher");
+        buchTabelleAnzahl.setCellValueFactory(new PropertyValueFactory<>("anzahl"));
+        buchTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
+        
+        statistikAuswahl.getItems().addAll("beliebteste Bucher", "unbeliebteste Bucher");
         
         statistikAuswahl.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
             updateGraphBuch(newValue);
@@ -109,40 +140,63 @@ public class ControllerStatistiken
     }
     
     public void updateGraphBuch(String statistik){
+        QueryResult result = null;
         bucherGraph.getData().clear();
         XYChart.Series<String, Number> hauptSerie = new XYChart.Series<>();
         String[] farben = {"#FF5733", "#FFC300", "#3498DB", "#9B59B6", "#1ABC9C"};
+        bucherGraph.setAnimated(false); 
+        bucherGraph.setLegendVisible(false);
+        
+        
+        
         if(statistik.equals("beliebteste Bucher")){
-            QueryResult result = model.beliebtesteBucher();
-            
-            for(int i = 0; i< result.getRowCount(); i++){
+            result = model.beliebtesteBucher();
+           
+        }else if (statistik.equals("unbeliebteste Bucher")){
+            result = model.unbeliebtesteBucher();
                 
-                XYChart.Data<String, Number> serie = new XYChart.Data<>(result.getData()[i][0], Integer.parseInt(result.getData()[i][1]));
-                hauptSerie.getData().add(serie);
-                
-                final int b = i;
-                serie.nodeProperty().addListener((observable, oldNode, newNode) -> {
-                    if (newNode != null) {
-                        newNode.setStyle("-fx-bar-fill: " + farben[b] + ";");
-                    }
-                });
-            }
-            bucherGraph.getData().add(hauptSerie);
-            CategoryAxis xAxis = (CategoryAxis) bucherGraph.getXAxis();
-            xAxis.setTickLabelRotation(45);
- 
-        }else if (statistik.equals("unbeliebstete Bucher")){
-            QueryResult result = model.unbeliebtesteBucher();
-            
-            for(int i = 0; i< result.getRowCount(); i++){
-                
-                XYChart.Series<String, Number> serie = new XYChart.Series<>();
-                serie.setName(result.getData()[i][0]); 
-                serie.getData().add(new XYChart.Data<>(result.getData()[i][0], Integer.parseInt(result.getData()[i][1])));
-                bucherGraph.getData().add(serie);
-            }
-            CategoryAxis xAxis = (CategoryAxis) bucherGraph.getXAxis();
-            
         }
+        
+        if (result != null){
+            int limit = Math.min(5, result.getRowCount());
+            
+                for(int i = 0; i<limit; i++){
+                    String anzahl = result.getData()[i][1];
+                    if(anzahl == null){
+                        anzahl = "0";
+                    }
+                    int anz = Integer.parseInt(anzahl);
+                    
+                    String originalTitel = result.getData()[i][0];
+
+                    String gekuerzterTitel = originalTitel;
+                    if (gekuerzterTitel != null && gekuerzterTitel.length() > 20) {
+                        gekuerzterTitel = gekuerzterTitel.substring(0, 20) + "...";
+                    }
+                    
+                    XYChart.Data<String, Number> serie = new XYChart.Data<>(gekuerzterTitel, anz);
+                    hauptSerie.getData().add(serie);
+                    
+                    final int b = i;
+                    serie.nodeProperty().addListener((observable, oldNode, newNode) -> {
+                        if (newNode != null) {
+                            newNode.setStyle("-fx-bar-fill: " + farben[b] + ";");
+                        }
+                    });
+                }
+                bucherGraph.getData().add(hauptSerie);
+                              
+                CategoryAxis xAxis = (CategoryAxis) bucherGraph.getXAxis();
+                 xAxis.setTickLabelRotation(45);
+                buchTabelle.getItems().clear();
+                for (int i = 0; i < result.getRowCount(); i++){
+                    String titel = result.getData()[i][0];
+                    String anzahl = result.getData()[i][1];
+                    
+                    
+                    tabelleZeile zeile = new tabelleZeile(anzahl,titel);
+                    buchTabelle.getItems().add(zeile);
+                }
+            }
     }
 }

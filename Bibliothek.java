@@ -1035,7 +1035,7 @@ public class Bibliothek {
     }
     
     public void bestandListeErstellen(){
-        dbConnector.executeStatement("SELECT titel, status FROM buecher");
+        dbConnector.executeStatement("SELECT titel, status FROM buecher ORDER BY titel");
         QueryResult result = dbConnector.getCurrentQueryResult();
         try (PDDocument dokument = new PDDocument()){
             float yStart = 700;        
@@ -1094,13 +1094,13 @@ public class Bibliothek {
     }
     
     public QueryResult beliebtesteBucher(){
-        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY ausleihen.isbn ORDER BY anzahl DESC LIMIT 6");
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY buecher.isbn ORDER BY anzahl DESC");
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result;
     }
     
     public QueryResult unbeliebtesteBucher(){
-        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY ausleihen.isbn ORDER BY anzahl ASC LIMIT 6");
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY buecher.isbn ORDER BY ausleihen.isbn IS NOT NULL, anzahl ASC");
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result;
     }
