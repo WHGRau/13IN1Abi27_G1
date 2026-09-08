@@ -102,19 +102,27 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Text errorText;
 
+    @FXML
+    private TextField alterFeld;
+
+    @FXML
+    private TableColumn<tabelleZeile, String> lehrerSpalte;
+
     public static class tabelleZeile {
         private String nachname;
         private String vorname;
         private String email;
         private String ausgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe) {
+        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe, String lehrer) {
             this.nachname = nachname;
             this.vorname = vorname;
             this.email = email;
             this.ausgabe = ausgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
         public String getNachname() {
@@ -136,6 +144,10 @@ public class ControllerBuecherVerwaltung {
         public String getRueckgabe() {
             return rueckgabe;
         }
+
+        public String getLehrer() {
+            return lehrer;
+        }
     }
 
     public ControllerBuecherVerwaltung() {
@@ -154,6 +166,7 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        lehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();
@@ -190,20 +203,30 @@ public class ControllerBuecherVerwaltung {
 
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                     if (neuAktiv && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                        if (barcodePuffer.length() >= 10) {
-                            isbnFeld.setText(barcodePuffer);
+                        long jetzt = System.currentTimeMillis();
+                        if (jetzt - letzteTastenZeit < 200 || barcodePuffer.length() >= 10) {
+                            if (barcodePuffer.length() >= 10) {
+                                isbnFeld.setText(barcodePuffer);
 
-                            if (titelFeld.getText().equals(barcodePuffer))
-                                titelFeld.clear();
-                            if (autorFeld.getText().equals(barcodePuffer))
-                                autorFeld.clear();
-                            if (jahrFeld.getText().equals(barcodePuffer))
-                                jahrFeld.clear();
-                            if (beschreibungFeld.getText().equals(barcodePuffer))
-                                beschreibungFeld.clear();
+                                if (titelFeld.getText().equals(barcodePuffer))
+                                    titelFeld.clear();
+                                if (autorFeld.getText().equals(barcodePuffer))
+                                    autorFeld.clear();
+                                if (jahrFeld.getText().equals(barcodePuffer))
+                                    jahrFeld.clear();
+                                if (beschreibungFeld.getText().equals(barcodePuffer))
+                                    beschreibungFeld.clear();
+                                if (alterFeld.getText().equals(barcodePuffer))
+                                    alterFeld.clear();
 
-                            buchDatenAbrufen(barcodePuffer);
-                            barcodePuffer = "";
+                                buchDatenAbrufen(barcodePuffer);
+                                barcodePuffer = "";
+                            }
+                            letzteTastenZeit = jetzt;
+                            event.consume();
+                        } else if (!isbnFeld.getText().isEmpty()) {
+                            bearbeitenButton.fire();
+                            event.consume();
                         }
                     }
                 });
@@ -223,6 +246,7 @@ public class ControllerBuecherVerwaltung {
 
     public void setModel(Bibliothek model) {
         this.model = model;
+        suchen();
     }
 
     public void suchen() {
@@ -259,17 +283,24 @@ public class ControllerBuecherVerwaltung {
 
             selectedBuch = buecherTabelle.getSelectionModel().getSelectedItem();
             if (selectedBuch != null) {
-                isbnFeld.setText(selectedBuch.getIsbn());
-                titelFeld.setText(selectedBuch.getTitel());
-                autorFeld.setText(selectedBuch.getAutor());
-                jahrFeld.setText(selectedBuch.getErscheinungsjahr());
-                beschreibungFeld.setText(selectedBuch.getBeschreibung());
+                isbnFeld.setText(selectedBuch.getIsbn() != null ? selectedBuch.getIsbn() : "");
+                titelFeld.setText(selectedBuch.getTitel() != null ? selectedBuch.getTitel() : "");
+                autorFeld.setText(selectedBuch.getAutor() != null ? selectedBuch.getAutor() : "");
+                jahrFeld.setText(selectedBuch.getErscheinungsjahr() != null ? selectedBuch.getErscheinungsjahr() : "");
+                beschreibungFeld.setText(selectedBuch.getBeschreibung() != null ? selectedBuch.getBeschreibung() : "");
+                alterFeld.setText(selectedBuch.getAlter() != null ? selectedBuch.getAlter() : "");
                 String status = selectedBuch.getStatus();
                 if (status.equals("verfuegbar")) {
                     status = "verfügbar";
                 }
                 if (status.equals("verliehen")) {
                     status += " an " + model.getVerleihSchuelerName(selectedBuch.getIsbn());
+                }
+                if (status.equals("reserviert")) {
+                    String schueler = model.getreserviertSchuelerName(selectedBuch.getIsbn());
+                    if (schueler != null && !schueler.trim().isEmpty()) {
+                        status += " für " + schueler.trim();
+                    }
                 }
                 statusText.setText("aktueller Status: " + status);
                 bearbeitenButton.setDisable(false);
@@ -306,47 +337,67 @@ public class ControllerBuecherVerwaltung {
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
             beschreibungFeld.setEditable(false);
+            alterFeld.setEditable(false);
 
             entfernenButton.setDisable(false);
             try {
-                int jahr = Integer.parseInt(jahrFeld.getText().trim());
+                if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
+                    errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
+                    return;
+                }
+                String neueIsbn = isbnFeld.getText().trim();
+                if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                        || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                    errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                    return;
+                }
+                Integer jahr = null;
+                if (!jahrFeld.getText().trim().isEmpty()) {
+                    jahr = Integer.parseInt(jahrFeld.getText().trim());
+                }
                 model.buchBearbeiten(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
                         jahr, beschreibungFeld.getText(),
-                        selectedBuch.getStatus());
+                        selectedBuch.getStatus(), alterFeld.getText());
                 suchen();
             } catch (NumberFormatException e) {
-                errorText.setText("Fehler: Ungültiges Jahr");
+                errorText.setText("Fehler: Jahr muss eine Zahl sein");
                 e.printStackTrace();
             }
         } else {
             if (neuAktiv) {
                 try {
-                    int jahr = Integer.parseInt(jahrFeld.getText().trim());
+                    if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
+                        errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
+                        return;
+                    }
+                    Integer jahr = null;
+                    if (!jahrFeld.getText().trim().isEmpty()) {
+                        jahr = Integer.parseInt(jahrFeld.getText().trim());
+                    }
                     String neueIsbn = isbnFeld.getText().trim();
+                    if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                            || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                        errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                        return;
+                    }
                     if (model.isbnVorhanden(neueIsbn)) {
                         errorText.setText("Diese ISBN existiert bereits!");
                         return;
                     }
                     model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
-                            jahr, beschreibungFeld.getText());
+                            jahr, beschreibungFeld.getText(), alterFeld.getText());
                     suchen();
-                    neuAktiv = false;
-                    bearbeitenButton.setText("bearbeiten");
-                    titelFeld.setEditable(false);
-                    autorFeld.setEditable(false);
-                    jahrFeld.setEditable(false);
-                    beschreibungFeld.setEditable(false);
-                    zurueckButton.setDisable(false);
-                    neuButton.setText("neu");
-                    entfernenButton.setDisable(false);
-                    searchBar.setEditable(true);
+                    
+
                     titelFeld.clear();
                     autorFeld.clear();
                     jahrFeld.clear();
                     beschreibungFeld.clear();
+                    alterFeld.clear();
                     isbnFeld.clear();
+                    Platform.runLater(() -> isbnFeld.requestFocus());
                 } catch (NumberFormatException e) {
-                    errorText.setText("Fehler: Ungültiges Jahr");
+                    errorText.setText("Fehler: Jahr muss eine Zahl sein");
                     e.printStackTrace();
                 }
             } else {
@@ -356,6 +407,7 @@ public class ControllerBuecherVerwaltung {
                 autorFeld.setEditable(true);
                 jahrFeld.setEditable(true);
                 beschreibungFeld.setEditable(true);
+                alterFeld.setEditable(true);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
@@ -400,13 +452,16 @@ public class ControllerBuecherVerwaltung {
             autorFeld.clear();
             jahrFeld.clear();
             beschreibungFeld.clear();
+            alterFeld.clear();
             isbnFeld.setEditable(true);
             titelFeld.setEditable(true);
             autorFeld.setEditable(true);
             jahrFeld.setEditable(true);
             beschreibungFeld.setEditable(true);
+            alterFeld.setEditable(true);
             zurueckButton.setDisable(true);
             searchBar.setEditable(false);
+            buecherTabelle.setDisable(true);
             neuAktiv = true;
             Platform.runLater(() -> isbnFeld.requestFocus());
         } else {
@@ -419,12 +474,15 @@ public class ControllerBuecherVerwaltung {
             autorFeld.clear();
             jahrFeld.clear();
             beschreibungFeld.clear();
+            alterFeld.clear();
             isbnFeld.setEditable(false);
             titelFeld.setEditable(false);
             autorFeld.setEditable(false);
             jahrFeld.setEditable(false);
             beschreibungFeld.setEditable(false);
+            alterFeld.setEditable(false);
             zurueckButton.setDisable(false);
+            buecherTabelle.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
         }
@@ -556,8 +614,9 @@ public class ControllerBuecherVerwaltung {
                     String email = data[i][2];
                     String ausgabe = data[i][3];
                     String rueckgabe = data[i][4];
+                    String lehrer = data[i][5];
 
-                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe, model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }
