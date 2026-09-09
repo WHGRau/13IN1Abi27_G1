@@ -113,7 +113,7 @@
                       <Font size="20.0" />
                    </font>
                 </TextField>
-                <Text fx:id="feedbackText" layoutX="26.0" layoutY="245.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buch scannen" wrappingWidth="217.2300033569336">
+                <Text fx:id="feedbackText" layoutX="26.0" layoutY="232.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buch scannen" wrappingWidth="463.2300033569336">
                    <font>
                       <Font size="23.0" />
                    </font>
@@ -138,8 +138,8 @@
                       <Font size="17.0" />
                    </font>
                 </Button>
-                <TextField fx:id="ausleihdauerFeld" layoutX="326.0" layoutY="229.0" prefHeight="26.0" prefWidth="70.0" />
-                <Text layoutX="248.0" layoutY="249.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dauer" wrappingWidth="69.99999999999994">
+                <TextField fx:id="ausleihdauerFeld" layoutX="384.0" layoutY="303.0" prefHeight="26.0" prefWidth="70.0" promptText="Tage" />
+                <Text layoutX="322.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dauer" wrappingWidth="69.99999999999994">
                    <font>
                       <Font size="20.0" />
                    </font>
@@ -161,6 +161,8 @@
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
                   <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="15.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
                   <Button fx:id="statistiken" layoutX="680.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadStatistiken" text="Statistiken" />
+                  <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="7.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
+                  <Button fx:id="passwortAendernButton" layoutX="1780.0" layoutY="40.0" mnemonicParsing="false" onAction="#passwortAendern" text="Passwort ändern" />
              </children>
         </AnchorPane>
       </children>
