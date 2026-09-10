@@ -606,7 +606,7 @@ public class Bibliothek {
     public QueryResult getMeineGeliehenenBuecher() {
         if (angemeldet != null) {
             dbConnector.executeStatement(
-                    "SELECT buecher.titel, ausleihen.geplante_rueckgabe FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
+                    "SELECT buecher.titel, ausleihen.geplante_rueckgabe, buecher.isbn FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = "
                             + angemeldet
                             + " AND ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe");
             return dbConnector.getCurrentQueryResult();
@@ -617,7 +617,7 @@ public class Bibliothek {
     public QueryResult getMeineReserviertenBuecher() {
         if (angemeldet != null) {
             dbConnector.executeStatement(
-                    "SELECT buecher.titel, reservierungen.reservierung_ende, reservierungen.status FROM reservierungen INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.schueler_id = "
+                    "SELECT buecher.titel, reservierungen.reservierung_ende, reservierungen.status, buecher.isbn FROM reservierungen INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.schueler_id = "
                             + angemeldet
                             + " AND (reservierungen.status = 'wartend' OR reservierungen.status = 'bereit') ORDER BY reservierung_beginn");
             return dbConnector.getCurrentQueryResult();
@@ -1284,5 +1284,15 @@ public class Bibliothek {
             }
         }
         return 0;
+    }
+
+    public Buch getBuch(String isbn) {
+        dbConnector.executeStatement("SELECT * FROM buecher WHERE isbn = '" + isbn + "'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            return new Buch(result.getData()[0][0], result.getData()[0][1], result.getData()[0][2],
+                    result.getData()[0][3], result.getData()[0][4], result.getData()[0][5], result.getData()[0][6]);
+        }
+        return null;
     }
 }

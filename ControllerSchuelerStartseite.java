@@ -1,5 +1,6 @@
 import javafx.scene.control.TextField;
 import java.io.IOException;
+import javafx.scene.input.MouseEvent;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
@@ -205,7 +206,7 @@ public class ControllerSchuelerStartseite {
         QueryResult geliehen = model.getMeineGeliehenenBuecher();
         if (geliehen != null) {
             for (String[] row : geliehen.getData()) {
-                geliehenTabelle.getItems().add(new TabellenZeile(row[0], "", "", row[1], true));
+                geliehenTabelle.getItems().add(new TabellenZeile(row[0], "", row[2], row[1], true));
             }
         }
 
@@ -215,10 +216,10 @@ public class ControllerSchuelerStartseite {
             for (String[] row : reserviert.getData()) {
                 if ("bereit".equals(row[2])) {
                     reserviertTabelle.getItems()
-                            .add(new TabellenZeile(row[0], "", "", "bereit zum abholen bis " + row[1], false));
+                            .add(new TabellenZeile(row[0], "", row[3], "bereit zum abholen bis " + row[1], false));
                 } else {
                     reserviertTabelle.getItems().add(
-                            new TabellenZeile(row[0], "", "", row[1] != null ? row[1] : "Warte auf Rückgabe", false));
+                            new TabellenZeile(row[0], "", row[3], row[1] != null ? row[1] : "Warte auf Rückgabe", false));
                 }
             }
         }
@@ -252,6 +253,7 @@ public class ControllerSchuelerStartseite {
             for (Buch b : suchergebnisse.getItems()) {
                 if (b.getIsbn().equals(altIsbn)) {
                     suchergebnisse.getSelectionModel().select(b);
+                    selectedBuch = b;
                     selectBuch();
                     break;
                 }
@@ -259,11 +261,33 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    public void selectBuchAusListe(MouseEvent event) {
+        Buch listSelected = suchergebnisse.getSelectionModel().getSelectedItem();
+        if (listSelected != null) {
+            selectedBuch = listSelected;
+            selectBuch();
+        }
+    }
+
+    public void selectBuchAusTabelle(MouseEvent event) {
+        if (event.getSource() instanceof TableView) {
+            TableView<?> table = (TableView<?>) event.getSource();
+            Object selectedItem = table.getSelectionModel().getSelectedItem();
+            if (selectedItem instanceof TabellenZeile) {
+                TabellenZeile zeile = (TabellenZeile) selectedItem;
+                String isbn = zeile.getIsbn();
+                if (isbn != null && !isbn.isEmpty()) {
+                    selectedBuch = model.getBuch(isbn);
+                    selectBuch();
+                }
+            }
+        }
+    }
+
     public void selectBuch() {
-        selectedBuch = suchergebnisse.getSelectionModel().getSelectedItem();
         if (selectedBuch != null) {
             StringBuilder infoBuilder = new StringBuilder();
-            
+
             if (selectedBuch.getTitel() != null && !selectedBuch.getTitel().isEmpty()) {
                 infoBuilder.append("Titel: ").append(selectedBuch.getTitel()).append("\n");
             }
@@ -282,7 +306,7 @@ public class ControllerSchuelerStartseite {
             if (selectedBuch.getBeschreibung() != null && !selectedBuch.getBeschreibung().isEmpty()) {
                 infoBuilder.append("\nBeschreibung:\n").append(selectedBuch.getBeschreibung());
             }
-            
+
             buchInfoFeld.setText(infoBuilder.toString().trim());
             String status = selectedBuch.getStatus();
             if (status.equals("verfuegbar")) {
