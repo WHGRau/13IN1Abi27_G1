@@ -391,6 +391,7 @@ public class ControllerBuecherVerwaltung {
         if(!isbn.equals(null)){
             model.hinzuDA(isbn);
             exemplareText.setText(model.getExemplare(isbn));
+            model.updateBuchStatus(isbn);
         }
     }
     
