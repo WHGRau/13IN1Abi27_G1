@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<StackPane fx:id="background" alignment="TOP_LEFT" prefHeight="250.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerPopUp">
+   <children>
+      <MenuBar prefHeight="250.0" prefWidth="400.0" style="-fx-background-color: #E9E9D3;">
+         <menus>
+            <Menu mnemonicParsing="false" text="File">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="New" />
+                  <MenuItem mnemonicParsing="false" text="Open…" />
+                  <Menu mnemonicParsing="false" text="Open Recent" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Close" />
+                  <MenuItem mnemonicParsing="false" text="Save" />
+                  <MenuItem mnemonicParsing="false" text="Save As…" />
+                  <MenuItem mnemonicParsing="false" text="Revert" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Preferences…" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Quit" />
+               </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Edit">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Undo" />
+                  <MenuItem mnemonicParsing="false" text="Redo" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Cut" />
+                  <MenuItem mnemonicParsing="false" text="Copy" />
+                  <MenuItem mnemonicParsing="false" text="Paste" />
+                  <MenuItem mnemonicParsing="false" text="Delete" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Select All" />
+                  <MenuItem mnemonicParsing="false" text="Unselect All" />
+               </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+               </items>
+            </Menu>
+         </menus>
+      </MenuBar>
+      <VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="250.0" prefWidth="400.0" style="-fx-background-color: #E9E9D3;">
+         <children>
+            <AnchorPane focusTraversable="true" prefHeight="250.0" prefWidth="400.0" style="-fx-background-color: #E9E9D3;" VBox.vgrow="ALWAYS">
+               <children>
+                  <Text fx:id="titelText" layoutX="-1.0" layoutY="33.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="392.205078125">
+                     <font>
+                        <Font size="17.0" />
+                     </font>
+                  </Text>
+                  <TextField fx:id="schulerFeld" layoutX="149.0" layoutY="129.0" />
+                  <Text layoutX="35.0" layoutY="148.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schüler-ID">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Text>
+                  <Button fx:id="entfernenButton" layoutX="145.0" layoutY="183.0" mnemonicParsing="false" onAction="#entfernen" text="entfernen">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+                  <CheckBox fx:id="schuler" layoutX="42.0" layoutY="49.0" mnemonicParsing="false" prefHeight="67.0" prefWidth="307.0" text="von einem Schüler ausgeliehenes Exemplar löschen?" wrapText="true">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </CheckBox>
+                  <Text fx:id="fehlerText" fill="RED" layoutX="121.0" layoutY="172.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="149.0" />
+               </children>
+            </AnchorPane>
+         </children>
+         <StackPane.margin>
+            <Insets bottom="5.0" />
+         </StackPane.margin>
+      </VBox>
+   </children>
+</StackPane>

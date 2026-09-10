@@ -27,6 +27,7 @@ import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
 import javafx.scene.control.CheckBox;
+import java.io.IOException;
 
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
@@ -293,20 +294,10 @@ public class ControllerBuecherVerwaltung {
                 }
                 statusText.setText("aktueller Status: " + status);
                 bearbeitenButton.setDisable(false);
-                if (selectedBuch.getStatus().equals("entfernt")) {
-                    entfernenButton.setText("freigeben");
-                } else {
-                    entfernenButton.setText("entfernen");
-                }
-                if (selectedBuch.getStatus().equals("entfernt")) {
-                    entfernenButton.setText("freischalten");
-                } else {
-                    if (selectedBuch.getStatus().equals("verliehen")) {
-                        entfernenButton.setText("entfernen (Buch gilt automatisch als zurückgegeben)");
-                    } else {
-                        entfernenButton.setText("entfernen");
-                    }
-                }
+                
+                
+                entfernenButton.setText("entfernen");
+                
                 
                 exemplareText.setText(model.getExemplare(selectedBuch.getIsbn()));
                 add.setDisable(false);
@@ -386,7 +377,7 @@ public class ControllerBuecherVerwaltung {
         }
     }
     
-    public void addExemplare(){
+    public void addExemplare(ActionEvent event){
         String isbn = isbnFeld.getText();
         if(!isbn.equals(null)){
             model.hinzuDA(isbn);
@@ -396,34 +387,29 @@ public class ControllerBuecherVerwaltung {
     }
     
 
-    public void entfernen() {
+    public void entfernen(ActionEvent event) {
         if (selectedBuch == null) {
             return;
         }
 
-        String savedIsbn = selectedBuch.getIsbn();
 
         if (!selectedBuch.getStatus().equals("entfernt")) {
-            if(schuler.isSelected() && schulerid.getText() != null){
-                model.buchLoeschenS(savedIsbn, schulerid.getText());
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/popUpLosch.fxml"));
+                Parent root = loader.load();
+                ControllerPopUp popupController = loader.getController();
+                popupController.setBuch(selectedBuch, model);
+                Stage stage = new Stage();
+                stage.setTitle("Entfernen");
+                stage.setScene(new Scene(root));
+                stage.show();
             }
-            else{
-                model.buchLoeschen(selectedBuch.getIsbn());
+            catch (IOException e) {
+            e.printStackTrace();
             }
-        } else {
-            model.buchFreigeben(selectedBuch.getIsbn());
-        }
+            
+        } 
 
-        suchen();
-
-        for (Buch b : buecherTabelle.getItems()) {
-            if (b.getIsbn().equals(savedIsbn)) {
-                buecherTabelle.getSelectionModel().select(b);
-                break;
-            }
-        }
-
-        selectBuch();
     }
 
     public void buchErstellen() {
