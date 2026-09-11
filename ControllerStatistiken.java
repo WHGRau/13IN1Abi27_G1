@@ -64,6 +64,9 @@ public class ControllerStatistiken
     @FXML
     private TableColumn<tabelleZeile, String> buchTabelleTitel;
     
+    @FXML
+    private Text kategorie;
+    
     public static class tabelleZeile {
         private String anzahl;
         private String titel;
@@ -93,7 +96,7 @@ public class ControllerStatistiken
         buchTabelleAnzahl.setCellValueFactory(new PropertyValueFactory<>("anzahl"));
         buchTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
         
-        statistikAuswahl.getItems().addAll("beliebteste Bucher", "unbeliebteste Bucher");
+        statistikAuswahl.getItems().addAll("beliebteste Bücher", "unbeliebteste Bücher");
         
         statistikAuswahl.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
             updateGraphBuch(newValue);
@@ -149,12 +152,13 @@ public class ControllerStatistiken
         
         
         
-        if(statistik.equals("beliebteste Bucher")){
+        if(statistik.equals("beliebteste Bücher")){
             result = model.beliebtesteBucher();
+            kategorie.setText("beliebteste Bücher");
            
-        }else if (statistik.equals("unbeliebteste Bucher")){
+        }else if (statistik.equals("unbeliebteste Bücher")){
             result = model.unbeliebtesteBucher();
-                
+            kategorie.setText("unbeliebteste Bücher");    
         }
         
         if (result != null){
