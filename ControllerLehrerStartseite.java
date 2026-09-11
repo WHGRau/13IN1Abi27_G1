@@ -38,11 +38,11 @@ public class ControllerLehrerStartseite {
     private Bibliothek model;
     private PauseTransition feedbackTimer;
     private ArrayList<String> konfliktNamen = new ArrayList<>();
-    
+
     private final double maxText = 802;
     private final double normaleSchriftgros = 55;
-    
-    private final StringBuilder isbnbuild= new StringBuilder();
+
+    private final StringBuilder isbnbuild = new StringBuilder();
     private String isbn;
     private long letzteTastenZeit;
 
@@ -111,13 +111,21 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Text nutzernameText;
-    
+
     @FXML
     private StackPane background;
 
     @FXML
     private Button rueckgaengigButton;
 
+    @FXML
+    private Button loadBuecherVerwaltung;
+
+    @FXML
+    private Button loadNutzerVerwaltung;
+
+    @FXML
+    private Button einstellungenButton;
 
     public static class tabelleZeile {
         private String isbn;
@@ -206,26 +214,31 @@ public class ControllerLehrerStartseite {
 
     public void setModel(Bibliothek model) {
         this.model = model;
-        
+
         ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
-        
+
         loadVerliehenTabelle();
         loadReserviertTabelle();
-        
+
         String text = "Hallo, " + model.getName() + "!";
-        //dynamisch die Schriftgrose an Text Lange anpassen
+        // dynamisch die Schriftgrose an Text Lange anpassen
         Text tempText = new Text(text);
         tempText.setFont(Font.font("Candara", normaleSchriftgros));
         double textBreite = tempText.getLayoutBounds().getWidth();
-        if (textBreite <= maxText){
-            nutzernameText.setFont(Font.font("Candara",normaleSchriftgros));
+        if (textBreite <= maxText) {
+            nutzernameText.setFont(Font.font("Candara", normaleSchriftgros));
+        } else {
+            double neueSchrift = normaleSchriftgros * maxText / textBreite;
+            nutzernameText.setFont(Font.font("Candara", neueSchrift));
         }
-        else{
-            double neueSchrift = normaleSchriftgros * maxText/textBreite;
-            nutzernameText.setFont(Font.font("Candara",neueSchrift));
-        }
-        
+
         nutzernameText.setText(text);
+
+        if (!model.isLehrer()) {
+            loadBuecherVerwaltung.setVisible(false);
+            loadNutzerVerwaltung.setVisible(false);
+            einstellungenButton.setVisible(false);
+        }
     }
 
     public void initialize() {
@@ -241,7 +254,6 @@ public class ControllerLehrerStartseite {
         reserviertTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
         reserviertTabelleVorname.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         reserviertTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
         rueckgaengigButton.setDisable(true);
@@ -267,50 +279,48 @@ public class ControllerLehrerStartseite {
                 }
             }
         });
-        
-        Platform.runLater(() ->{
+
+        Platform.runLater(() -> {
             Scene scene = background.getScene();
-            if(scene != null){
+            if (scene != null) {
                 final double targetWidth = 1920.0;
                 final double targetHeight = 1080.0;
-        
+
                 Scale scale = new Scale(1, 1, 0, 0);
                 scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
                 scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-                
-                
+
                 background.getTransforms().clear();
                 background.getTransforms().add(scale);
-                
+
                 background.setPrefWidth(targetWidth);
                 background.setPrefHeight(targetHeight);
                 background.setMaxWidth(targetWidth);
                 background.setMaxHeight(targetHeight);
-                
+
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
-                
+
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
                     long jetzt = System.currentTimeMillis();
                     if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
-                            ausleihdauerFeld.setEditable(false);
-                            String e = ausleihdauerFeld.getText();
-                            if (e != null){
-                                e = e.substring(0, e.length()-1);
-                                ausleihdauerFeld.setText(e);
-                            }
-                            
-                        } 
-                        else{
-                            ausleihdauerFeld.setEditable(true);
+                        ausleihdauerFeld.setEditable(false);
+                        String e = ausleihdauerFeld.getText();
+                        if (e != null) {
+                            e = e.substring(0, e.length() - 1);
+                            ausleihdauerFeld.setText(e);
                         }
+
+                    } else {
+                        ausleihdauerFeld.setEditable(true);
+                    }
                     letzteTastenZeit = jetzt;
-                    
+
                 });
             }
         });
-        
-        background.sceneProperty().addListener((observable, oldScene, newScene) ->{
-            if(newScene != null){
+
+        background.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
                 registerGlobalScanner(newScene);
             }
         });
@@ -337,24 +347,23 @@ public class ControllerLehrerStartseite {
             }
         }
     }
-    
-    public void registerGlobalScanner(javafx.scene.Scene scene){
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, event ->{
+
+    public void registerGlobalScanner(javafx.scene.Scene scene) {
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             String character = event.getText();
-             if(event.getCode()== javafx.scene.input.KeyCode.ENTER){
-                 String gescanntISBN = isbnbuild.toString().trim();
-                 
-                 if(!gescanntISBN.isEmpty()){
-                     //fertige ISBN ist in ge...
-                     isbn = gescanntISBN;
-                     isbnbuild.setLength(0);
-                     scannen();
-                 }
-                 event.consume();
-             }
-             else{
-                 isbnbuild.append(character);
-             }
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                String gescanntISBN = isbnbuild.toString().trim();
+
+                if (!gescanntISBN.isEmpty()) {
+                    // fertige ISBN ist in ge...
+                    isbn = gescanntISBN;
+                    isbnbuild.setLength(0);
+                    scannen();
+                }
+                event.consume();
+            } else {
+                isbnbuild.append(character);
+            }
         });
     }
 
@@ -371,7 +380,8 @@ public class ControllerLehrerStartseite {
                     String vorname = data[i][3];
                     String email = data[i][4];
 
-                    tabelleZeileReservierung zeile = new tabelleZeileReservierung(isbn, titel, nachname, vorname, email);
+                    tabelleZeileReservierung zeile = new tabelleZeileReservierung(isbn, titel, nachname, vorname,
+                            email);
                     reserviertTabelle.getItems().add(zeile);
                 }
             }
@@ -383,14 +393,13 @@ public class ControllerLehrerStartseite {
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
         String code;
-        if(isbn != null){
+        if (isbn != null) {
             code = isbn;
             isbn = null;
-        }
-        else{
+        } else {
             code = codeFeld.getText();
         }
-        
+
         int feedback = model.scannen(code);
 
         switch (feedback) {
@@ -465,7 +474,8 @@ public class ControllerLehrerStartseite {
             case 13:
                 int ab = model.getBuchAltersbeschraenkung(code);
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Buch hat eine Altersbeschränkung von " + ab + " Jahren. Zum Prüfen Schüler scannen.");
+                feedbackText
+                        .setText("Buch hat eine Altersbeschränkung von " + ab + " Jahren. Zum Prüfen Schüler scannen.");
                 break;
             case 14:
                 feedbackText.setFill(Color.RED);
@@ -481,7 +491,7 @@ public class ControllerLehrerStartseite {
 
                 break;
         }
-        if(model.abbrechenMoeglich()) {
+        if (model.abbrechenMoeglich()) {
             abbrechenButton.setDisable(false);
         }
         codeFeld.clear();
@@ -577,38 +587,42 @@ public class ControllerLehrerStartseite {
     }
 
     public void loadBuecherVerwaltung(ActionEvent event) {
-        try {
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        if (model.isLehrer()) {
+            try {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/buchVerwaltung.fxml"));
-            Parent root = loader.load();
-            ControllerBuecherVerwaltung controller = loader.getController();
-            controller.setModel(model);
-            Scene scene = new Scene(root);
-            scene.setFill(Color.web("#E9E9D3"));
-            stage.setScene(scene);
-            stage.show();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/buchVerwaltung.fxml"));
+                Parent root = loader.load();
+                ControllerBuecherVerwaltung controller = loader.getController();
+                controller.setModel(model);
+                Scene scene = new Scene(root);
+                scene.setFill(Color.web("#E9E9D3"));
+                stage.setScene(scene);
+                stage.show();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public void loadNutzerVerwaltung(ActionEvent event) {
-        try {
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        if (model.isLehrer()) {
+            try {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/nutzerVerwaltung.fxml"));
-            Parent root = loader.load();
-            ControllerNutzerVerwaltung controller = loader.getController();
-            controller.setModel(model);
-            Scene scene = new Scene(root);
-            scene.setFill(Color.web("#E9E9D3"));
-            stage.setScene(scene);
-            stage.show();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/nutzerVerwaltung.fxml"));
+                Parent root = loader.load();
+                ControllerNutzerVerwaltung controller = loader.getController();
+                controller.setModel(model);
+                Scene scene = new Scene(root);
+                scene.setFill(Color.web("#E9E9D3"));
+                stage.setScene(scene);
+                stage.show();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -617,10 +631,10 @@ public class ControllerLehrerStartseite {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
             Parent root = loader.load();
-            
+
             ControllerEinstellungen controller = loader.getController();
             controller.setModel(model);
-            
+
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.show();
@@ -650,7 +664,7 @@ public class ControllerLehrerStartseite {
         if (selectedIndex >= 0) {
             model.gescanntesBuchEntfernen(selectedIndex);
             updateGescanntListe();
-            
+
             if (model.getErfassteBuecherNamen().isEmpty()) {
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);
@@ -670,20 +684,20 @@ public class ControllerLehrerStartseite {
         }
     }
 
-    public void letzteAktionAnzeigen(){
+    public void letzteAktionAnzeigen() {
         ArrayList<String> liste = new ArrayList<>();
         liste.add("Letzte Aktion: ");
         liste.addAll(model.getLetzteBuecher());
         if (model.letzteAktionAusleihen()) {
             liste.add("verliehen an: " + model.getLetzterSchuelerName());
-        }else{
+        } else {
             liste.add("zurückgenommen von: " + model.getLetzterSchuelerName());
         }
         gescanntListe.getItems().clear();
         gescanntListe.getItems().addAll(liste);
     }
 
-    public void letzteAktionZureucknehmen(){
+    public void letzteAktionZureucknehmen() {
         model.letzteAktionZuruecknehmen();
         loadVerliehenTabelle();
         loadReserviertTabelle();
@@ -695,6 +709,5 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
     }
-
 
 }

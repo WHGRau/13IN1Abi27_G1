@@ -551,6 +551,13 @@ public class Bibliothek {
                 && "lehrer".equals(result.getData()[0][0]);
     }
 
+    public boolean isHelfer() {
+        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = " + angemeldet);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result != null && result.getRowCount() > 0
+                && "helfer".equals(result.getData()[0][0]);
+    }
+
     public String getVerleihSchuelerName(String isbn) {
         dbConnector.executeStatement(
                 "SELECT schueler_id FROM ausleihen WHERE isbn = '" + isbn + "' AND ruckgabe_datum IS NULL");

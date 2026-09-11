@@ -76,7 +76,7 @@ public class ControllerLogin {
         if (feedback == 1) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                if (model.isLehrer()) {
+                if (model.isLehrer() || model.isHelfer()) {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/LehrerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerLehrerStartseite controller = loader.getController();
@@ -85,7 +85,7 @@ public class ControllerLogin {
                     scene.setFill(Color.web("#E9E9D3"));
                     stage.setScene(scene);
                     stage.show();
-                } else {
+                } else{
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerSchuelerStartseite controller = loader.getController();
@@ -98,7 +98,9 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (feedback == 2) {
+        }else if(feedback==2)
+
+        {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
@@ -112,7 +114,8 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
+        }else
+        {
             fehlerText.setFill(Color.web("#d32626"));
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
