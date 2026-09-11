@@ -32,6 +32,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.shape.Rectangle;
 
 public class ControllerLehrerStartseite {
 
@@ -120,6 +124,17 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button rueckgaengigButton;
+    
+    @FXML
+    private VBox menuPane;
+    
+    @FXML
+    private Button aufMenu;
+    
+    @FXML 
+    private Button zuMenu;
+    
+    
 
 
     public static class tabelleZeile {
@@ -232,6 +247,14 @@ public class ControllerLehrerStartseite {
     }
 
     public void initialize() {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(menuPane.widthProperty());
+        clip.heightProperty().bind(menuPane.heightProperty());
+    
+        menuPane.setClip(clip);
+        
+        menuPane.setVisible(false);
+        
         verliehenTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verliehenTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verliehenTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
@@ -715,6 +738,24 @@ public class ControllerLehrerStartseite {
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
+    }
+    
+    public void openmenu(ActionEvent event){
+        menuPane.setVisible(true);
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        transition.setToX(0);
+        menuPane.setMouseTransparent(false);
+        transition.setOnFinished(null);
+        transition.play();
+    }
+    
+    public void closemenu(ActionEvent event){
+        menuPane.setVisible(false);
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        transition.setToX(-200);
+        menuPane.setMouseTransparent(true);
+        transition.setOnFinished(e -> menuPane.setVisible(false));
+        transition.play();
     }
 
 

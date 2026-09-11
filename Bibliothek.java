@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.awt.Desktop;
 import java.io.File;
 
+
 public class Bibliothek {
     private DatabaseConnector dbConnector;
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
@@ -1211,8 +1212,16 @@ public class Bibliothek {
         }
     }
     
+    public String getExemplare(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa,anzahlLiehen,anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        int existieren = Integer.parseInt(result.getData()[0][0])+Integer.parseInt(result.getData()[0][1])+Integer.parseInt(result.getData()[0][2]);
+        String e = String.valueOf(existieren);
+        return e;
+    }
+    
     public void bestandListeErstellen(){
-        dbConnector.executeStatement("SELECT titel, status FROM buecher ORDER BY titel");
+        dbConnector.executeStatement("SELECT titel, status, isbn FROM buecher ORDER BY titel");
         QueryResult result = dbConnector.getCurrentQueryResult();
         try (PDDocument dokument = new PDDocument()){
             float yStart = 700;        
@@ -1229,6 +1238,7 @@ public class Bibliothek {
             inhalt.newLineAtOffset(50, yStart);
             
             for (int i = 0; i < result.getRowCount(); i++){
+                String e = getExemplare(result.getData()[i][2]);
                 if (yPosition - zeilenAbstand < untererRand) {
                    
                     inhalt.endText();
@@ -1252,7 +1262,7 @@ public class Bibliothek {
                     inhalt.setNonStrokingColor(0, 0, 0);
                 }
                 
-                inhalt.showText(result.getData()[i][0]);
+                inhalt.showText(result.getData()[i][0] +"---"+ e);
                 inhalt.newLineAtOffset(0, -zeilenAbstand); // Gehe nach unten
                 yPosition -= zeilenAbstand;
             }
@@ -1280,6 +1290,7 @@ public class Bibliothek {
         dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY buecher.isbn ORDER BY ausleihen.isbn IS NOT NULL, anzahl ASC");
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result;
+    }
 
     public int getBuchAltersbeschraenkung(String isbn) {
         dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = '" + isbn + "'");
