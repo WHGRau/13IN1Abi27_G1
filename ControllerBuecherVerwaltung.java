@@ -68,8 +68,7 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Text statusText;
     
-    @FXML
-    private Text exemplareText;
+    
     
     
 
@@ -111,12 +110,24 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
+    
+    @FXML
+    private TableView<tabelleZeileEx> exemplareTabelle;
+    
+    @FXML
+    private TableColumn<tabelleZeileEx, String> nameSpalte;
+
+    @FXML
+    private TableColumn<tabelleZeileEx, String> artSpalte;
 
     @FXML
     private StackPane background;
 
     @FXML
     private Text errorText;
+    
+    @FXML
+    private Text fehlerStatus;
 
     public static class tabelleZeile {
         private String nachname;
@@ -153,6 +164,31 @@ public class ControllerBuecherVerwaltung {
             return rueckgabe;
         }
     }
+    
+    public static class tabelleZeileEx {
+        private String status;
+        private String name;
+        private String id;
+
+        public tabelleZeileEx(String status, String name, String id) {
+            this.status = status;
+            this.name = name;
+            this.id = id;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getName() {
+            return name;
+        }
+        
+        public String getId(){
+            return id;
+        }
+
+    }
 
     public ControllerBuecherVerwaltung() {
 
@@ -172,6 +208,9 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        
+        artSpalte.setCellValueFactory(new PropertyValueFactory<>("status"));
+        nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();
@@ -289,9 +328,7 @@ public class ControllerBuecherVerwaltung {
                 if (status.equals("verfuegbar")) {
                     status = "verfügbar";
                 }
-                if (status.equals("verliehen")) {
-                    status += " an " + model.getVerleihSchuelerName(selectedBuch.getIsbn());
-                }
+                
                 statusText.setText("aktueller Status: " + status);
                 bearbeitenButton.setDisable(false);
                 
@@ -299,11 +336,13 @@ public class ControllerBuecherVerwaltung {
                 entfernenButton.setText("entfernen");
                 
                 
-                exemplareText.setText(model.getExemplare(selectedBuch.getIsbn()));
+                
                 add.setDisable(false);
                 
                 entfernenButton.setDisable(false);
                 loadVerlaufTabelle();
+                
+                updateExemplareTabelle();
             }
         }
     }
@@ -389,10 +428,11 @@ public class ControllerBuecherVerwaltung {
         String isbn = isbnFeld.getText();
         if(!isbn.equals(null)){
             model.hinzuDA(isbn);
-            exemplareText.setText(model.getExemplare(isbn));
+            
             model.updateBuchStatus(isbn);
             statusText.setText("aktueller Status: " + selectedBuch.getStatus());
         }
+        updateExemplareTabelle();
     }
     
 
@@ -403,24 +443,51 @@ public class ControllerBuecherVerwaltung {
 
 
         if (!selectedBuch.getStatus().equals("entfernt")) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/popUpLosch.fxml"));
-                Parent root = loader.load();
-                ControllerPopUp popupController = loader.getController();
-                popupController.setBuch(selectedBuch, model);
-                Stage stage = new Stage();
-                stage.setTitle("Entfernen");
-                stage.setScene(new Scene(root));
-                stage.showAndWait();
-                exemplareText.setText(model.getExemplare(isbnFeld.getText()));
-                statusText.setText("aktueller Status: " + selectedBuch.getStatus());
+            if(exemplareTabelle.getSelectionModel().getSelectedIndex() < 0){
+                fehlerStatus.setText("Bitte die Zeile, aus welcher ein Buch entfernt werden soll, auswählen.");
             }
-            catch (IOException e) {
-                e.printStackTrace();
+            else{
+                tabelleZeileEx selectzeile = exemplareTabelle.getSelectionModel().getSelectedItem();
+                String id = selectzeile.getId();
+                if (id.equals("0")){
+                    if(!selectzeile.getName().equals("0")){
+                        model.buchLoeschen(selectedBuch.getIsbn());
+                    }
+                    
+                    
+                }
+                else{
+                    model.buchLoeschenS(selectedBuch.getIsbn(), id);
+                }
             }
             
         } 
+        updateExemplareTabelle();
 
+    }
+    
+    public void updateExemplareTabelle(){
+        exemplareTabelle.getItems().clear();
+        String anzahl = model.getDaRes(selectedBuch.getIsbn());
+        if(anzahl != null){
+            
+            tabelleZeileEx zeile = new tabelleZeileEx("verfügbar", anzahl, "0");
+            exemplareTabelle.getItems().add(zeile);
+        }
+        QueryResult result = model.getLiehen(selectedBuch.getIsbn());
+        if (result != null) {
+            
+            for (int i = 0; i < result.getRowCount(); i++) {
+                
+                String nachname = result.getData()[i][0];
+                String vorname = result.getData()[i][1];
+                String id = result.getData()[i][2];
+                
+                tabelleZeileEx zeile = new tabelleZeileEx("verliehen an", nachname + " " + vorname, id);
+                exemplareTabelle.getItems().add(zeile);
+
+            }
+        }
     }
 
     public void buchErstellen() {

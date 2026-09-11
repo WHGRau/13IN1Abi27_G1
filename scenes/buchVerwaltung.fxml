@@ -145,7 +145,7 @@
                            <font><Font size="15.0" /></font>
                         </TextArea>
                         
-                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                        <HBox alignment="CENTER_LEFT" spacing="40.0">
                            <children>
                               <Button fx:id="bearbeitenButton" mnemonicParsing="false" onAction="#bearbeiten" prefHeight="35.0" text="bearbeiten">
                                  <font><Font size="16.0" /></font>
@@ -158,11 +158,6 @@
                                     <Font size="18.0" />
                                  </font>
                               </Text>
-                              <Text fx:id="exemplareText" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="60.0">
-                                 <font>
-                                    <Font size="18.0" />
-                                 </font>
-                              </Text>
                               <Button fx:id="add" mnemonicParsing="false" onAction="#addExemplare" text="hinzufügen">
                                  <font>
                                     <Font size="16.0" />
@@ -170,14 +165,43 @@
                               </Button>
                            </children>
                         </HBox>
-                        
-                        <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
-                           <font><Font size="16.0" /></font>
-                        </Text>
-                        
-                        <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0">
-                           <font><Font size="16.0" /></font>
-                        </Text>
+                        <GridPane>
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="219.0" minWidth="10.0" prefWidth="211.0" />
+                              <ColumnConstraints hgrow="ALWAYS" maxWidth="281.0" minWidth="10.0" prefWidth="199.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="254.0" minWidth="10.0" prefWidth="170.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints maxHeight="47.0" minHeight="10.0" prefHeight="47.0" vgrow="SOMETIMES" />
+                            <RowConstraints maxHeight="54.0" minHeight="10.0" prefHeight="37.0" vgrow="SOMETIMES" />
+                            <RowConstraints maxHeight="65.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              
+                              <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" text="aktueller Status:">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Text>
+                              
+                              <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="19.0" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font size="16.0" />
+                                 </font>
+                              </Text>
+                              <TableView fx:id="exemplareTabelle" prefHeight="132.0" prefWidth="158.0" GridPane.columnIndex="1" GridPane.rowSpan="3">
+                                <columns>
+                                  <TableColumn fx:id="artSpalte" minWidth="0.0" prefWidth="85.0" text="Status" />
+                                    <TableColumn fx:id="nameSpalte" prefWidth="250.0" />
+                                </columns>
+                              </TableView>
+                              <Text fx:id="fehlerStatus" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="170.0" GridPane.columnIndex="2">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Text>
+                           </children>
+                        </GridPane>
                         <GridPane>
                           <columnConstraints>
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="234.0" minWidth="10.0" prefWidth="202.0" />
@@ -186,9 +210,10 @@
                           </columnConstraints>
                           <rowConstraints>
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Button fx:id="bestand" mnemonicParsing="false" prefHeight="39.0" prefWidth="144.0" text="Bestandsliste" GridPane.columnIndex="1">
+                              <Button fx:id="bestand" mnemonicParsing="false" prefHeight="39.0" prefWidth="144.0" text="Bestandsliste" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                  <font>
                                     <Font size="18.0" />
                                  </font>

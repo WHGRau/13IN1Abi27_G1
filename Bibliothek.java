@@ -1075,21 +1075,24 @@ public class Bibliothek {
         if (isbnVorhanden(isbn)){
             dbConnector.executeStatement("SELECT anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = '" + isbn +"'");
             QueryResult result = dbConnector.getCurrentQueryResult();
-            int da = Integer.parseInt(result.getData()[0][0]);
-            int li = Integer.parseInt(result.getData()[0][1]);
-            int re = Integer.parseInt(result.getData()[0][2]);
-            if (da != 0){
-                dbConnector.executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
+            if(result!= null &&result.getRowCount() > 0){
+                int da = Integer.parseInt(result.getData()[0][0]);
+                int li = Integer.parseInt(result.getData()[0][1]);
+                int re = Integer.parseInt(result.getData()[0][2]);
+                if (da != 0){
+                    dbConnector.executeStatement("UPDATE buecher SET status = 'verfuegbar' WHERE isbn = '" + isbn + "'");
+                }
+                else if (li != 0){
+                    dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
+                }
+                else if (re != 0){
+                    dbConnector.executeStatement("UPDATE buecher SET status = 'reserviert' WHERE isbn = '" + isbn + "'");
+                }
+                else {
+                    dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = '" + isbn + "'");
+                }
             }
-            else if (li != 0){
-                dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
-            }
-            else if (re != 0){
-                dbConnector.executeStatement("UPDATE buecher SET status = 'reserviert' WHERE isbn = '" + isbn + "'");
-            }
-            else {
-                dbConnector.executeStatement("UPDATE buecher SET status = 'entfernt' WHERE isbn = '" + isbn + "'");
-            }
+            
         }
     }
 
@@ -1209,6 +1212,20 @@ public class Bibliothek {
         int existieren = Integer.parseInt(result.getData()[0][0])+Integer.parseInt(result.getData()[0][1])+Integer.parseInt(result.getData()[0][2]);
         String e = String.valueOf(existieren);
         return e;
+    }
+    
+    public String getDaRes(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa,anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        int existieren = Integer.parseInt(result.getData()[0][0])+Integer.parseInt(result.getData()[0][1]);
+        String e = String.valueOf(existieren);
+        return e;
+    }
+    
+    public QueryResult getLiehen(String isbn){
+        dbConnector.executeStatement("SELECT vorname, nachname, benutzer.id FROM benutzer, ausleihen WHERE ausleihen.isbn='"+isbn+"' AND ausleihen.schueler_id = benutzer.id");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
     }
     
 }
