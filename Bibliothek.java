@@ -849,6 +849,89 @@ public class Bibliothek {
 
     }
 
+    public ArrayList<Benutzer> nutzerAusCsvImportieren(java.io.File csvDatei) {
+        ArrayList<Benutzer> importierteNutzer = new ArrayList<>();
+        if (!isLehrer())
+            return importierteNutzer;
+
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(csvDatei))) {
+            String zeile;
+            boolean ersteZeile = true;
+
+            while ((zeile = br.readLine()) != null) {
+                zeile = zeile.replace("\uFEFF", "");
+                if (zeile.trim().isEmpty())
+                    continue;
+
+                String[] spalten = zeile.split("[,;]");
+
+                if (spalten.length >= 3) {
+                    String nachname = spalten[0].trim();
+                    String vorname = spalten[1].trim();
+                    String geburtsdatum = spalten[2].trim();
+                    String email = "";
+                    if (spalten.length >= 4) {
+                        email = spalten[3].trim();
+                    }
+
+                    int maxBuecher = getStandartAusleihlimit();
+
+                    if (!email.isEmpty() && emailVorhanden(email)) {
+                        continue;
+                    }
+
+                    String gebDatumCheckSql = (geburtsdatum.isEmpty()) ? "geburtsdatum IS NULL" : "geburtsdatum = '" + geburtsdatum + "'";
+                    String checkSql = "SELECT id FROM benutzer WHERE LOWER(TRIM(vorname)) = '" + vorname.toLowerCase().trim()
+                            + "' AND (LOWER(TRIM(nachname)) = '" + nachname.toLowerCase().trim()
+                            + "' OR LOWER(TRIM(nachname)) = '" + ("\uFEFF" + nachname).toLowerCase().trim() + "')"
+                            + " AND " + gebDatumCheckSql;
+                    dbConnector.executeStatement(checkSql);
+                    QueryResult existResult = dbConnector.getCurrentQueryResult();
+                    if (existResult != null && existResult.getRowCount() > 0) {
+                        continue;
+                    }
+
+                    neuerBenutzer("schueler", email, nachname, vorname, geburtsdatum, maxBuecher);
+
+                    String sql;
+                    if (!email.isEmpty()) {
+                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE email = '" + email.toLowerCase() + "'";
+                    } else {
+                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE vorname = '" + vorname + "' AND nachname = '" + nachname + "' AND " + gebDatumCheckSql + " ORDER BY id DESC LIMIT 1";
+                    }
+                    dbConnector.executeStatement(sql);
+                    QueryResult result = dbConnector.getCurrentQueryResult();
+                    if (result != null && result.getRowCount() > 0) {
+                        boolean freigeschaltet = result.getData()[0][6] != null && result.getData()[0][6].equals("1");
+                        int gesperrtVon = (result.getData()[0][7] != null && !result.getData()[0][7].equalsIgnoreCase("null")
+                                && !result.getData()[0][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[0][7]) : 0;
+                        String geb = (result.getData()[0].length > 8 && result.getData()[0][8] != null
+                                && !result.getData()[0][8].equalsIgnoreCase("null")) ? result.getData()[0][8] : null;
+                        int maxB = 0;
+                        if (result.getData()[0].length > 9 && result.getData()[0][9] != null && !result.getData()[0][9].equalsIgnoreCase("null")
+                                && !result.getData()[0][9].trim().isEmpty()) {
+                            try {
+                                maxB = Integer.parseInt(result.getData()[0][9]);
+                            } catch (NumberFormatException e) {
+                                maxB = 0;
+                            }
+                        }
+
+                        Benutzer b = new Benutzer(result.getData()[0][5], result.getData()[0][4],
+                                result.getData()[0][3], result.getData()[0][1], result.getData()[0][2],
+                                Integer.parseInt(result.getData()[0][0]), freigeschaltet, gesperrtVon, geb,
+                                maxB);
+                        importierteNutzer.add(b);
+                    }
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+        return importierteNutzer;
+    }
+
     public void benutzerLoeschen(int pID) {
         if (isLehrer()) {
             dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = '" + pID + "'");

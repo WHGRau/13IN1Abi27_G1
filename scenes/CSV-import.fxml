@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #E9E9D3;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerCsvImport">
+   <children>
+      <Text layoutX="36.0" layoutY="45.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Nutzer aus CSV importieren">
+         <font>
+            <Font size="22.0" />
+         </font>
+      </Text>
+      <Button fx:id="zurueckButton" layoutX="500.0" layoutY="23.0" mnemonicParsing="false" onAction="#zurueck" prefHeight="35.0" prefWidth="75.0" text="zurück">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+      <Button fx:id="csvWaehlenButton" layoutX="36.0" layoutY="75.0" mnemonicParsing="false" onAction="#csvWaehlen" prefHeight="35.0" text="CSV-Datei auswählen">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+      <Text fx:id="dateiNameText" layoutX="210.0" layoutY="97.0" strokeType="OUTSIDE" strokeWidth="0.0" text="keine Datei ausgewählt" wrappingWidth="360.0">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <CheckBox fx:id="ausweiseGenerierenCheckBox" layoutX="36.0" layoutY="140.0" mnemonicParsing="false" onAction="#ausweiseOptionGeaendert" text="automatisch Ausweise generieren">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </CheckBox>
+      <Button fx:id="pfadWaehlenButton" disable="true" layoutX="36.0" layoutY="185.0" mnemonicParsing="false" onAction="#pfadWaehlen" prefHeight="35.0" text="Speicherpfad für Ausweise wählen">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+      <Text fx:id="pfadText" layoutX="290.0" layoutY="207.0" strokeType="OUTSIDE" strokeWidth="0.0" text="kein Ordner ausgewählt" wrappingWidth="280.0">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Text>
+      <Text fx:id="errorText" layoutX="36.0" layoutY="255.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="530.0">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Text>
+      <Button fx:id="importierenButton" layoutX="36.0" layoutY="295.0" mnemonicParsing="false" onAction="#importieren" prefHeight="40.0" prefWidth="140.0" text="importieren">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Button>
+   </children>
+</AnchorPane>

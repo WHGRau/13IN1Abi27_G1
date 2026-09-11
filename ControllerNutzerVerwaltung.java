@@ -48,6 +48,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import javafx.scene.control.SplitMenuButton;
 
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
@@ -93,7 +94,7 @@ public class ControllerNutzerVerwaltung {
     private Button zurueckButton;
 
     @FXML
-    private Button neuButton;
+    private SplitMenuButton neuButton;
 
     @FXML
     private Button entfernenButton;
@@ -694,6 +695,20 @@ public class ControllerNutzerVerwaltung {
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
+        }
+    }
+
+    public void csvImportieren(ActionEvent event) {
+        try {
+            Stage stage = (Stage) neuButton.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/CSV-import.fxml"));
+            Parent root = loader.load();
+            ControllerCsvImport controller = loader.getController();
+            controller.setModel(model);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
