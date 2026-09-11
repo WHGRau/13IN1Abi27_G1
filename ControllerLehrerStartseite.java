@@ -49,6 +49,7 @@ public class ControllerLehrerStartseite {
     private final StringBuilder isbnbuild= new StringBuilder();
     private String isbn;
     private long letzteTastenZeit;
+    private String isbnNeu;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -134,7 +135,8 @@ public class ControllerLehrerStartseite {
     @FXML 
     private Button zuMenu;
     
-    
+    @FXML
+    private Button neuesBuch;
 
 
     public static class tabelleZeile {
@@ -247,6 +249,8 @@ public class ControllerLehrerStartseite {
     }
 
     public void initialize() {
+        neuesBuch.setVisible(false);
+        
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(menuPane.widthProperty());
         clip.heightProperty().bind(menuPane.heightProperty());
@@ -315,14 +319,16 @@ public class ControllerLehrerStartseite {
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
                 
+                String dauer = ausleihdauerFeld.getText();
+                
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
                     long jetzt = System.currentTimeMillis();
                     if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
                             ausleihdauerFeld.setEditable(false);
                             String e = ausleihdauerFeld.getText();
                             if (e != null){
-                                e = e.substring(0, e.length()-1);
-                                ausleihdauerFeld.setText(e);
+                                
+                                ausleihdauerFeld.setText(dauer);
                             }
                             
                         } 
@@ -405,6 +411,7 @@ public class ControllerLehrerStartseite {
     }
 
     public void scannen() {
+        neuesBuch.setVisible(false);
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
@@ -416,7 +423,7 @@ public class ControllerLehrerStartseite {
         else{
             code = codeFeld.getText();
         }
-        
+        isbnNeu = code;
         int feedback = model.scannen(code);
 
         switch (feedback) {
@@ -467,7 +474,8 @@ public class ControllerLehrerStartseite {
                 break;
             case 8:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Code nicht erkannt!");
+                feedbackText.setText("Code nicht erkannt! \nWollen Sie ein neues Buch anlegen?");
+                neuesBuch.setVisible(true);
                 break;
             case 9:
                 feedbackText.setFill(Color.RED);
@@ -715,6 +723,7 @@ public class ControllerLehrerStartseite {
     }
 
     public void letzteAktionAnzeigen(){
+        neuesBuch.setVisible(false);
         ArrayList<String> liste = new ArrayList<>();
         liste.add("Letzte Aktion: ");
         liste.addAll(model.getLetzteBuecher());
@@ -758,5 +767,21 @@ public class ControllerLehrerStartseite {
         transition.play();
     }
 
-
+    public void openPopUp(ActionEvent event){
+        try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/PopUpNeu.fxml"));
+                Parent root = loader.load();
+                ControllerPopUpNeu popupController = loader.getController();
+                popupController.setISBN(isbnNeu, model);
+                Stage stage = new Stage();
+                stage.setTitle("Neues Buch");
+                stage.setScene(new Scene(root));
+                stage.showAndWait();
+                feedbackText.setText("");
+                neuesBuch.setVisible(false);
+            }
+        catch (IOException e) {
+            e.printStackTrace();
+            }
+    }
 }

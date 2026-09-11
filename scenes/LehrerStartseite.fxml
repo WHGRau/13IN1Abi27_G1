@@ -161,7 +161,7 @@
                         <Font size="32.0" />
                      </font>
                   </Button>
-                  <VBox fx:id="menuPane" alignment="TOP_CENTER" layoutX="-200.0" prefHeight="1055.0" prefWidth="184.0" spacing="35.0" style="-fx-background-color: #D2D2BE;">
+                  <VBox fx:id="menuPane" alignment="TOP_CENTER" prefHeight="1055.0" prefWidth="184.0" spacing="35.0" style="-fx-background-color: #D2D2BE;">
                      <children>
                         <Button fx:id="zuMenu" mnemonicParsing="false" onAction="#closemenu" prefHeight="76.0" prefWidth="76.0" style="-fx-background-color: #D2D2BE;" text="X" textAlignment="CENTER">
                            <font>
@@ -176,6 +176,11 @@
                         <Button fx:id="passwortAendernButton" mnemonicParsing="false" onAction="#passwortAendern" prefHeight="87.0" prefWidth="87.0" text="Passwort ändern" textAlignment="CENTER" wrapText="true" />
                      </children>
                   </VBox>
+                  <Button fx:id="neuesBuch" layoutX="524.0" layoutY="210.0" mnemonicParsing="false" onAction="#openPopUp" prefHeight="56.0" prefWidth="56.0" text="neu" textAlignment="CENTER">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
              </children>
         </AnchorPane>
       </children>
