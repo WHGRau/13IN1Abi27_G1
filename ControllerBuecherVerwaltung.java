@@ -307,6 +307,7 @@ public class ControllerBuecherVerwaltung {
             }
         }
     }
+    
 
     public void bearbeiten(ActionEvent event) {
         if (selectedBuch == null && !neuAktiv) {
@@ -338,7 +339,14 @@ public class ControllerBuecherVerwaltung {
                     int jahr = Integer.parseInt(jahrFeld.getText().trim());
                     String neueIsbn = isbnFeld.getText().trim();
                     if (model.isbnVorhanden(neueIsbn)) {
-                        errorText.setText("Diese ISBN existiert bereits!");
+                        neuButton.fire();
+                        searchBar.setText(neueIsbn);
+                        suchen();
+                        buecherTabelle.getSelectionModel().select(0);
+                        selectBuch();
+                        bearbeitenButton.fire();
+                        errorText.setText("Diese ISBN existiert bereits! Wollen Sie stattdessen ein neues Exemplar erstellen?");
+                        entfernenButton.setDisable(false);
                         return;
                     }
                     model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
@@ -383,6 +391,7 @@ public class ControllerBuecherVerwaltung {
             model.hinzuDA(isbn);
             exemplareText.setText(model.getExemplare(isbn));
             model.updateBuchStatus(isbn);
+            statusText.setText("aktueller Status: " + selectedBuch.getStatus());
         }
     }
     
@@ -402,10 +411,12 @@ public class ControllerBuecherVerwaltung {
                 Stage stage = new Stage();
                 stage.setTitle("Entfernen");
                 stage.setScene(new Scene(root));
-                stage.show();
+                stage.showAndWait();
+                exemplareText.setText(model.getExemplare(isbnFeld.getText()));
+                statusText.setText("aktueller Status: " + selectedBuch.getStatus());
             }
             catch (IOException e) {
-            e.printStackTrace();
+                e.printStackTrace();
             }
             
         } 

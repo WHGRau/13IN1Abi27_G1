@@ -93,7 +93,7 @@ public class Bibliothek {
                 + wert + "') ON DUPLICATE KEY UPDATE wert = '" + wert + "'");
     }
 
-    //dani
+    
     public void buchLeihen(int ausleihZeitTage) {
         if (isLehrer()) {
             letzteAktionAusleihen = true;
@@ -129,7 +129,6 @@ public class Bibliothek {
         }
     }
 
-    //dani
     public void buchRueckgabe() {
         if (isLehrer()) {
             if (erfassteBuecher.isEmpty())
@@ -181,7 +180,7 @@ public class Bibliothek {
         }
     }
 
-    //dani
+    
     public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
         if (isLehrer()) {
             if (titel != null)
@@ -192,12 +191,7 @@ public class Bibliothek {
                 beschreibung = beschreibung.replace("'", "''");
             dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = '"+isbn+"'");
             QueryResult result = dbConnector.getCurrentQueryResult();
-            if(result != null && result.getRowCount() > 0){
-                int da = Integer.parseInt(result.getData()[0][0]);
-                da = da + 1;
-                dbConnector.executeStatement("UPDATE buecher SET anzahlDa = '"+da+"' WHERE isbn = '"+isbn+"'");
-            }
-            else{
+            if(result == null || result.getRowCount() == 0){
                 String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status, anzahlDa)" + " VALUES('"
                     + isbn + "', '" + titel + "', '" + autor + "'," + jahr + ",'" + beschreibung + "','verfuegbar', 1)";
                 dbConnector.executeStatement(sql);
@@ -205,7 +199,7 @@ public class Bibliothek {
         }
     }
 
-    //dani
+    
     public void buchLoeschen(String isbn) {
         if (isLehrer()) {
             dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = '" + isbn + "'");
@@ -308,7 +302,7 @@ public class Bibliothek {
         return null;
     }
 
-    //dani
+    
     public int scannen(String code) {
 
         // 1: Buch kann ausgeliehen werden
@@ -533,7 +527,7 @@ public class Bibliothek {
         }
         return "";
     }
-    //dani
+  
     public void buchBearbeiten(String isbn, String titel, String autor, int jahr, String beschreibung) {
         if (isLehrer()) {
             if (titel != null)
@@ -550,7 +544,6 @@ public class Bibliothek {
         }
     }
 
-    //dani
     public void buchFreigeben(String isbn) {
         if (isLehrer()) {
             hinzuDA(isbn);
@@ -678,7 +671,7 @@ public class Bibliothek {
         return 7; // Default
     }
 
-    //dani
+
     public boolean reservierungMoeglich(String isbn) {
         String resAktiv = getEinstellung("reservierungen_aktiv");
         if (resAktiv != null && resAktiv.equals("0")) {
@@ -722,7 +715,7 @@ public class Bibliothek {
         return false;
     }
 
-    //dani
+   
     public void reservierungStornieren(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT id, status FROM reservierungen WHERE isbn = '" + isbn
@@ -865,7 +858,7 @@ public class Bibliothek {
         }
     }
 
-    //dani
+  
     public void reservierungenAktualisieren() {
 
         dbConnector.executeStatement(
@@ -1046,7 +1039,7 @@ public class Bibliothek {
         return "";
     }
 
-    //dani
+  
     public void letzteAktionZuruecknehmen() {
         if (letzteAktionAusleihen) {
             for (String isbn : letzteBuecher) {
