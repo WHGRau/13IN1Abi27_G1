@@ -97,7 +97,7 @@
                       <Font size="55.0" />
                    </font>
                 </Text>
-                <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="103.0" prefHeight="700.0" prefWidth="726.0">
+                <TableView fx:id="verliehenTabelle" layoutX="1051.0" layoutY="103.0" prefHeight="700.0" prefWidth="855.0">
                   <columns>
                     <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
                     <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
@@ -105,6 +105,7 @@
                       <TableColumn fx:id="verliehenTabelleVorname" prefWidth="67.0" text="Vorname" />
                       <TableColumn fx:id="verliehenTabelleEmail" prefWidth="155.0" text="E-Mail" />
                       <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
+                        <TableColumn fx:id="verliehenTabelleMahnungen" prefWidth="129.0" text="manuelle Mahnungen" />
                   </columns>
                 </TableView>
                 <Button fx:id="logout" layoutX="26.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="76.0" text="ausloggen" />
@@ -161,6 +162,7 @@
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
                   <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="7.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
                   <Button fx:id="passwortAendernButton" layoutX="1780.0" layoutY="40.0" mnemonicParsing="false" onAction="#passwortAendern" text="Passwort ändern" />
+                  <Button fx:id="mahnungButton" layoutX="1776.0" layoutY="809.0" mnemonicParsing="false" onAction="#mahnungHinzufuegen" text="Mahnung hinzufügen" />
              </children>
         </AnchorPane>
       </children>

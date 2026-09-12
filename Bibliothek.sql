@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 10. Sep 2026 um 16:27
+-- Erstellungszeit: 12. Sep 2026 um 12:39
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -37,17 +37,18 @@ CREATE TABLE `ausleihen` (
   `erinnerung_2tage_gesendet` tinyint(1) NOT NULL DEFAULT 0,
   `erinnerung_heute_gesendet` tinyint(1) NOT NULL DEFAULT 0,
   `erinnerung_1woche_gesendet` tinyint(1) NOT NULL DEFAULT 0,
-  `lehrerId` int(11) NOT NULL
+  `lehrerId` int(11) NOT NULL,
+  `manuelle_mahnungen` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `ausleihen`
 --
 
-INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`, `lehrerId`) VALUES
-(10000008, '978-3125739291', '2026-08-20', '2026-09-20', '2026-09-03', 19, 0, 0, 0, 10000009),
-(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20, 0, 0, 0, 0),
-(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21, 0, 0, 0, 0);
+INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`, `lehrerId`, `manuelle_mahnungen`) VALUES
+(10000008, '978-3125739291', '2026-08-20', '2026-09-20', '2026-09-03', 19, 0, 0, 0, 10000009, 0),
+(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20, 0, 0, 0, 0, 0),
+(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21, 0, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 

@@ -68,6 +68,9 @@ public class ControllerLehrerStartseite {
     private TableColumn<tabelleZeile, Label> verliehenTabelleGeplanteRueckgabe;
 
     @FXML
+    private TableColumn<tabelleZeile, Integer> verliehenTabelleMahnungen;
+
+    @FXML
     private TableView<tabelleZeileReservierung> reserviertTabelle;
 
     @FXML
@@ -127,6 +130,9 @@ public class ControllerLehrerStartseite {
     @FXML
     private Button einstellungenButton;
 
+    @FXML
+    private Button mahnungButton;
+
     public static class tabelleZeile {
         private String isbn;
         private String titel;
@@ -134,14 +140,18 @@ public class ControllerLehrerStartseite {
         private String vorname;
         private String email;
         private Label geplanteRueckgabe;
+        private int anzahlMahnungen;
+        private int id;
 
         public tabelleZeile(String isbn, String titel, String nachname, String vorname, String email,
-                String geplante_Rueckgabe) {
+                String geplante_Rueckgabe, int anzahlMahnungen, int id) {
             this.isbn = isbn;
             this.titel = titel;
             this.nachname = nachname;
             this.vorname = vorname;
             this.email = email;
+            this.anzahlMahnungen = anzahlMahnungen;
+            this.id = id;
 
             this.geplanteRueckgabe = new Label(geplante_Rueckgabe);
 
@@ -173,6 +183,14 @@ public class ControllerLehrerStartseite {
 
         public Label getGeplanteRueckgabe() {
             return geplanteRueckgabe;
+        }
+
+        public int getAnzahlMahnungen() {
+            return anzahlMahnungen;
+        }
+
+        public int getId() {
+            return id;
         }
     }
 
@@ -248,6 +266,7 @@ public class ControllerLehrerStartseite {
         verliehenTabelleVorname.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         verliehenTabelleEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         verliehenTabelleGeplanteRueckgabe.setCellValueFactory(new PropertyValueFactory<>("geplanteRueckgabe"));
+        verliehenTabelleMahnungen.setCellValueFactory(new PropertyValueFactory<>("anzahlMahnungen"));
 
         reserviertTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         reserviertTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
@@ -258,6 +277,7 @@ public class ControllerLehrerStartseite {
         zuruecknehmenButton.setDisable(true);
         rueckgaengigButton.setDisable(true);
         abbrechenButton.setDisable(true);
+        mahnungButton.disableProperty().bind(verliehenTabelle.getSelectionModel().selectedItemProperty().isNull());
 
         verliehenTabelle.setPlaceholder(new Label("Keine verliehenen Bücher"));
         reserviertTabelle.setPlaceholder(new Label("Keine reservierten Bücher"));
@@ -332,15 +352,18 @@ public class ControllerLehrerStartseite {
             verliehenTabelle.getItems().clear();
             String[][] data = result.getData();
             for (int i = 0; i < result.getRowCount(); i++) {
-                if (data[i].length >= 6) {
+                if (data[i].length >= 8) {
                     String isbn = data[i][0];
                     String titel = data[i][1];
                     String nachname = data[i][2];
                     String vorname = data[i][3];
                     String email = data[i][4];
                     String geplanteRueckgabe = data[i][5];
+                    int anzahlMahnungen = Integer.parseInt(data[i][6]);
+                    int id = Integer.parseInt(data[i][7]);
 
-                    tabelleZeile zeile = new tabelleZeile(isbn, titel, nachname, vorname, email, geplanteRueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(isbn, titel, nachname, vorname, email, geplanteRueckgabe,
+                            anzahlMahnungen, id);
                     verliehenTabelle.getItems().add(zeile);
 
                 }
@@ -708,6 +731,14 @@ public class ControllerLehrerStartseite {
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
+    }
+
+    public void mahnungHinzufuegen() {
+        tabelleZeile selectedItem = verliehenTabelle.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            model.mahnungHinzufuegen(selectedItem.getId());
+            loadVerliehenTabelle();
+        }
     }
 
 }

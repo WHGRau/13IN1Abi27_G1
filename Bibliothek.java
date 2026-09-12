@@ -268,7 +268,7 @@ public class Bibliothek {
     public QueryResult getVerlieheneBuecher() {
         if (isLehrer()) {
             dbConnector.executeStatement(
-                    "SELECT buecher.isbn, buecher.titel, benutzer.nachname, benutzer.vorname, benutzer.email, ausleihen.geplante_rueckgabe FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe;");
+                    "SELECT buecher.isbn, buecher.titel, benutzer.nachname, benutzer.vorname, benutzer.email, ausleihen.geplante_rueckgabe, manuelle_mahnungen, ausleihen.id FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe;");
             return dbConnector.getCurrentQueryResult();
         }
         return null;
@@ -880,8 +880,10 @@ public class Bibliothek {
                         continue;
                     }
 
-                    String gebDatumCheckSql = (geburtsdatum.isEmpty()) ? "geburtsdatum IS NULL" : "geburtsdatum = '" + geburtsdatum + "'";
-                    String checkSql = "SELECT id FROM benutzer WHERE LOWER(TRIM(vorname)) = '" + vorname.toLowerCase().trim()
+                    String gebDatumCheckSql = (geburtsdatum.isEmpty()) ? "geburtsdatum IS NULL"
+                            : "geburtsdatum = '" + geburtsdatum + "'";
+                    String checkSql = "SELECT id FROM benutzer WHERE LOWER(TRIM(vorname)) = '"
+                            + vorname.toLowerCase().trim()
                             + "' AND (LOWER(TRIM(nachname)) = '" + nachname.toLowerCase().trim()
                             + "' OR LOWER(TRIM(nachname)) = '" + ("\uFEFF" + nachname).toLowerCase().trim() + "')"
                             + " AND " + gebDatumCheckSql;
@@ -895,20 +897,26 @@ public class Bibliothek {
 
                     String sql;
                     if (!email.isEmpty()) {
-                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE email = '" + email.toLowerCase() + "'";
+                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE email = '"
+                                + email.toLowerCase() + "'";
                     } else {
-                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE vorname = '" + vorname + "' AND nachname = '" + nachname + "' AND " + gebDatumCheckSql + " ORDER BY id DESC LIMIT 1";
+                        sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE vorname = '"
+                                + vorname + "' AND nachname = '" + nachname + "' AND " + gebDatumCheckSql
+                                + " ORDER BY id DESC LIMIT 1";
                     }
                     dbConnector.executeStatement(sql);
                     QueryResult result = dbConnector.getCurrentQueryResult();
                     if (result != null && result.getRowCount() > 0) {
                         boolean freigeschaltet = result.getData()[0][6] != null && result.getData()[0][6].equals("1");
-                        int gesperrtVon = (result.getData()[0][7] != null && !result.getData()[0][7].equalsIgnoreCase("null")
-                                && !result.getData()[0][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[0][7]) : 0;
+                        int gesperrtVon = (result.getData()[0][7] != null
+                                && !result.getData()[0][7].equalsIgnoreCase("null")
+                                && !result.getData()[0][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[0][7])
+                                        : 0;
                         String geb = (result.getData()[0].length > 8 && result.getData()[0][8] != null
                                 && !result.getData()[0][8].equalsIgnoreCase("null")) ? result.getData()[0][8] : null;
                         int maxB = 0;
-                        if (result.getData()[0].length > 9 && result.getData()[0][9] != null && !result.getData()[0][9].equalsIgnoreCase("null")
+                        if (result.getData()[0].length > 9 && result.getData()[0][9] != null
+                                && !result.getData()[0][9].equalsIgnoreCase("null")
                                 && !result.getData()[0][9].trim().isEmpty()) {
                             try {
                                 maxB = Integer.parseInt(result.getData()[0][9]);
@@ -1384,5 +1392,13 @@ public class Bibliothek {
                     result.getData()[0][3], result.getData()[0][4], result.getData()[0][5], result.getData()[0][6]);
         }
         return null;
+    }
+
+    public void mahnungHinzufuegen(int ausleiheId) {
+        if (isLehrer()) {
+            dbConnector
+                    .executeStatement("UPDATE ausleihen SET manuelle_mahnungen = manuelle_mahnungen + 1 WHERE id = "
+                            + ausleiheId + " AND ruckgabe_datum IS NULL");
+        }
     }
 }
