@@ -87,8 +87,7 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Button entfernenButton;
 
-    @FXML
-    private CheckBox schuler;
+    
     
     @FXML
     private TextField schulerid;
@@ -263,9 +262,7 @@ public class ControllerBuecherVerwaltung {
                             barcodePuffer = "";
                         }
                     }
-                    else if (schuler.isSelected() && selectedBuch != null){
-                        schulerid.setText(barcodePuffer);
-                    }
+                   
                 });
             }
         });
