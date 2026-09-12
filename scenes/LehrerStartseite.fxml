@@ -153,8 +153,14 @@
                       <TableColumn fx:id="reserviertTabelleEmail" prefWidth="75.0" text="E-Mail" />
                   </columns>
                 </TableView>
-                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen" />
-                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
+                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen">
+                     <font>
+                        <Font name="Bookman Old Style Bold" size="18.0" />
+                     </font></Text>
+                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen">
+                     <font>
+                        <Font name="Bookman Old Style Bold" size="18.0" />
+                     </font></Text>
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
                   <Button fx:id="aufMenu" layoutX="54.0" layoutY="2.0" mnemonicParsing="false" onAction="#openmenu" prefHeight="76.0" prefWidth="76.0" style="-fx-background-color: #E9E9D3;" text="☰" textAlignment="CENTER">
                      <font>

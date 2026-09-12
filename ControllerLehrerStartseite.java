@@ -246,6 +246,7 @@ public class ControllerLehrerStartseite {
         }
         
         nutzernameText.setText(text);
+        
     }
 
     public void initialize() {
@@ -750,11 +751,15 @@ public class ControllerLehrerStartseite {
     }
     
     public void openmenu(ActionEvent event){
+        if (menuPane.getTranslateX() == 0) { 
+            menuPane.setTranslateX(-200); 
+        }
         menuPane.setVisible(true);
         TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
         transition.setToX(0);
         menuPane.setMouseTransparent(false);
         transition.setOnFinished(null);
+        aufMenu.setVisible(false);
         transition.play();
     }
     
@@ -764,6 +769,7 @@ public class ControllerLehrerStartseite {
         transition.setToX(-200);
         menuPane.setMouseTransparent(true);
         transition.setOnFinished(e -> menuPane.setVisible(false));
+        aufMenu.setVisible(true);
         transition.play();
     }
 

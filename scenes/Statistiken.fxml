@@ -73,7 +73,7 @@
                       <CategoryAxis label="Buch" side="BOTTOM" />
                     </xAxis>
                     <yAxis>
-                      <NumberAxis label="anzahl" side="LEFT" />
+                      <NumberAxis label="Anzahl" side="LEFT" />
                     </yAxis>
                   </BarChart>
                   <TableView fx:id="buchTabelle" layoutX="1268.0" layoutY="176.0" prefHeight="728.0" prefWidth="362.0">

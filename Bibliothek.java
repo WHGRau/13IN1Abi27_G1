@@ -15,6 +15,8 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import java.io.IOException;
 import java.awt.Desktop;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 public class Bibliothek {
@@ -1223,6 +1225,10 @@ public class Bibliothek {
     public void bestandListeErstellen(){
         dbConnector.executeStatement("SELECT titel, status, isbn FROM buecher ORDER BY titel");
         QueryResult result = dbConnector.getCurrentQueryResult();
+        
+        LocalDate heute = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String datumText = "Datum: " + heute.format(formatter);
         try (PDDocument dokument = new PDDocument()){
             float yStart = 700;        
             float yPosition = yStart;  
@@ -1235,7 +1241,10 @@ public class Bibliothek {
             PDPageContentStream inhalt = new PDPageContentStream(dokument, aktseite);
             inhalt.beginText();
             inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
-            inhalt.newLineAtOffset(50, yStart);
+            inhalt.newLineAtOffset(450, 750); 
+            inhalt.showText(datumText);
+            inhalt.endText();
+            
             
             for (int i = 0; i < result.getRowCount(); i++){
                 String e = getExemplare(result.getData()[i][2]);
@@ -1261,8 +1270,14 @@ public class Bibliothek {
                 else{
                     inhalt.setNonStrokingColor(0, 0, 0);
                 }
+                String originalTitel = result.getData()[i][0];
                 
-                inhalt.showText(result.getData()[i][0] +"---"+ e);
+                String gekuerzterTitel = originalTitel;
+                if (gekuerzterTitel != null && gekuerzterTitel.length() > 35) {
+                    gekuerzterTitel = gekuerzterTitel.substring(0, 20) + "...";
+                }
+                
+                inhalt.showText(result.getData()[i][0] +"--- Exemplare: "+ e);
                 inhalt.newLineAtOffset(0, -zeilenAbstand); // Gehe nach unten
                 yPosition -= zeilenAbstand;
             }
