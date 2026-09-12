@@ -242,7 +242,7 @@ public class Bibliothek {
      
                 dbConnector.executeStatement(
                             "UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
-                                    + "' AND ruckgabe_datum IS NULL AND schueler_id = '" + schuelerId+"'");
+                                    + "' AND ruckgabe_datum IS NULL AND schueler_id = " + schuelerId+"");
                 
                 if(maxRes(isbn)){
                     neusteResAbsagen(isbn);
@@ -1245,7 +1245,7 @@ public class Bibliothek {
     }
     
     public QueryResult getLiehen(String isbn){
-        dbConnector.executeStatement("SELECT vorname, nachname, benutzer.id FROM benutzer, ausleihen WHERE ausleihen.isbn='"+isbn+"' AND ausleihen.schueler_id = benutzer.id");
+        dbConnector.executeStatement("SELECT vorname, nachname, benutzer.id FROM benutzer, ausleihen WHERE ausleihen.isbn='"+isbn+"' AND ausleihen.schueler_id = benutzer.id AND ruckgabe_datum IS NULL");
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result;
     }
