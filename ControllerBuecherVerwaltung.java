@@ -35,6 +35,7 @@ public class ControllerBuecherVerwaltung {
 
     private String barcodePuffer = "";
     private long letzteTastenZeit = 0;
+    private long letzteBuchDatenAbruf = 0;
 
     @FXML
     private TextField searchBar;
@@ -225,7 +226,9 @@ public class ControllerBuecherVerwaltung {
                             letzteTastenZeit = jetzt;
                             event.consume();
                         } else if (!isbnFeld.getText().isEmpty()) {
-                            bearbeitenButton.fire();
+                            if (System.currentTimeMillis() - letzteBuchDatenAbruf > 500) {
+                                bearbeitenButton.fire();
+                            }
                             event.consume();
                         }
                     }
@@ -562,6 +565,8 @@ public class ControllerBuecherVerwaltung {
 
         } catch (Exception e) {
             errorText.setText("Fehler beim Abrufen der Buchdaten");
+        } finally {
+            letzteBuchDatenAbruf = System.currentTimeMillis();
         }
     }
 

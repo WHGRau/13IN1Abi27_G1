@@ -48,6 +48,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import javafx.scene.control.SplitMenuButton;
 
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
@@ -93,7 +94,7 @@ public class ControllerNutzerVerwaltung {
     private Button zurueckButton;
 
     @FXML
-    private Button neuButton;
+    private SplitMenuButton neuButton;
 
     @FXML
     private Button entfernenButton;
@@ -188,7 +189,7 @@ public class ControllerNutzerVerwaltung {
     public void initialize() {
         errorTextTimer = new PauseTransition(Duration.seconds(10));
         errorTextTimer.setOnFinished(e -> errorText.setText(""));
-        rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
+        rolleAuswahl.getItems().addAll("Schüler", "Lehrer", "Helfer");
         rolleAuswahl.setDisable(true);
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
@@ -334,6 +335,8 @@ public class ControllerNutzerVerwaltung {
 
                 if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
                     rolleAuswahl.setValue("Lehrer");
+                } else if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("helfer")) {
+                    rolleAuswahl.setValue("Helfer");
                 } else {
                     rolleAuswahl.setValue("Schüler");
                 }
@@ -372,10 +375,21 @@ public class ControllerNutzerVerwaltung {
 
     public void checkEmailWarnung() {
         if (neuAktiv || bearbeitenAktiv) {
-            boolean isSchueler = "Schüler".equals(rolleAuswahl.getValue());
-            if (isSchueler && emailFeld.getText().trim().isEmpty()) {
-                errorText.setFill(Color.ORANGE);
-                errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+            String rolle = rolleAuswahl.getValue();
+            if ("Schüler".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+                } else {
+                    errorText.setText("");
+                }
+            } else if ("Lehrer".equals(rolle) || "Helfer".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText(rolle + " benötigen eine Email-Adresse");
+                } else {
+                    errorText.setText("");
+                }
             } else {
                 errorText.setText("");
             }
@@ -387,12 +401,13 @@ public class ControllerNutzerVerwaltung {
             return;
         }
         if (bearbeitenAktiv) {
-            boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+            boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
             if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                    || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                    || (isStaff && emailFeld.getText().trim().isEmpty())) {
                 errorText.setFill(Color.RED);
                 errorText.setText(
-                        isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
+                        isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
+                                : "Bitte füllen Sie Name und Vorname aus!");
                 return;
             }
             String eingegebeneEmail = emailFeld.getText().trim();
@@ -461,6 +476,8 @@ public class ControllerNutzerVerwaltung {
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
+            } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                rolle = "helfer";
             }
             String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
 
@@ -484,7 +501,7 @@ public class ControllerNutzerVerwaltung {
             if (isNeueEmail && isJetztEmail) {
                 model.initialesPasswortSenden(emailFeld.getText().trim());
                 errorText.setFill(Color.GREEN);
-                errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                errorText.setText("Anmeldedaten per E-Mail verschickt");
                 errorTextTimer.playFromStart();
             } else {
                 errorText.setText("");
@@ -493,11 +510,11 @@ public class ControllerNutzerVerwaltung {
 
         } else {
             if (neuAktiv) {
-                boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+                boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
                 if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                        || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                        || (isStaff && emailFeld.getText().trim().isEmpty())) {
                     errorText.setFill(Color.RED);
-                    errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse"
+                    errorText.setText(isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
                             : "Bitte füllen Sie Name und Vorname aus!");
                     return;
                 }
@@ -548,6 +565,8 @@ public class ControllerNutzerVerwaltung {
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
+                } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                    rolle = "helfer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
                 model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
@@ -555,7 +574,7 @@ public class ControllerNutzerVerwaltung {
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
-                    errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                    errorText.setText("Anmeldedaten per E-Mail verschickt");
                     errorTextTimer.playFromStart();
                 } else {
                     errorText.setText("");
@@ -676,6 +695,20 @@ public class ControllerNutzerVerwaltung {
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
+        }
+    }
+
+    public void csvImportieren(ActionEvent event) {
+        try {
+            Stage stage = (Stage) neuButton.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/CSV-import.fxml"));
+            Parent root = loader.load();
+            ControllerCsvImport controller = loader.getController();
+            controller.setModel(model);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

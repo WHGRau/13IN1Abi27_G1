@@ -89,7 +89,7 @@
                               <Label text="Geliehene Bücher">
                                  <font><Font name="System Bold" size="24.0" /></font>
                               </Label>
-                              <TableView fx:id="geliehenTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="geliehenTabelle" onMouseClicked="#selectBuchAusTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
                                   <TableColumn fx:id="geliehenTitelSpalte" prefWidth="404.0" text="Titel" />
                                   <TableColumn fx:id="geliehenRueckgabeSpalte" prefWidth="109.0" text="Rückgabe" />
@@ -99,7 +99,7 @@
                               <Label text="Reservierte Bücher">
                                  <font><Font name="System Bold" size="24.0" /></font>
                               </Label>
-                              <TableView fx:id="reserviertTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="reserviertTabelle" onMouseClicked="#selectBuchAusTabelle" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                  <columns>
                                     <TableColumn fx:id="reserviertTitelSpalte" prefWidth="313.0" text="Titel" />
                                     <TableColumn fx:id="reserviertBisSpalte" prefWidth="200.0" text="Status" />
@@ -114,7 +114,7 @@
                               <Label text="Mein Ausleihverlauf">
                                  <font><Font name="System Bold" size="24.0" /></font>
                               </Label>
-                              <TableView fx:id="verlaufTabelle" prefHeight="600.0" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="verlaufTabelle" onMouseClicked="#selectBuchAusTabelle" prefHeight="600.0" VBox.vgrow="ALWAYS">
                                 <columns>
                                   <TableColumn fx:id="verlaufTitelSpalte" prefWidth="250.0" text="Titel" />
                                   <TableColumn fx:id="verlaufAutorSpalte" prefWidth="150.0" text="Autor" />
@@ -134,7 +134,7 @@
                               <TextField fx:id="searchBar" onKeyReleased="#suchen" prefHeight="40.0" promptText="suchen...">
                                  <font><Font size="18.0" /></font>
                               </TextField>
-                              <ListView fx:id="suchergebnisse" onMouseClicked="#selectBuch" prefHeight="300.0" />
+                              <ListView fx:id="suchergebnisse" onMouseClicked="#selectBuchAusListe" prefHeight="300.0" />
                               
                               <Label text="Buch Informationen">
                                  <font><Font name="System Bold" size="20.0" /></font>
