@@ -256,6 +256,7 @@ public class ControllerLehrerStartseite {
             loadBuecherVerwaltung.setVisible(false);
             loadNutzerVerwaltung.setVisible(false);
             einstellungenButton.setVisible(false);
+            mahnungButton.setVisible(false);
         }
     }
 
@@ -669,10 +670,12 @@ public class ControllerLehrerStartseite {
     public void passwortAendern(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene currentScene = ((Node) event.getSource()).getScene();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
             Parent root = loader.load();
             passwortResetController controller = loader.getController();
             controller.setModel(model);
+            controller.setPreviousScene(currentScene);
             Scene scene = new Scene(root);
             scene.setFill(Color.web("#E9E9D3"));
             stage.setScene(scene);
@@ -734,10 +737,12 @@ public class ControllerLehrerStartseite {
     }
 
     public void mahnungHinzufuegen() {
-        tabelleZeile selectedItem = verliehenTabelle.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            model.mahnungHinzufuegen(selectedItem.getId());
-            loadVerliehenTabelle();
+        if (model.isLehrer()) {
+            tabelleZeile selectedItem = verliehenTabelle.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                model.mahnungHinzufuegen(selectedItem.getId());
+                loadVerliehenTabelle();
+            }
         }
     }
 

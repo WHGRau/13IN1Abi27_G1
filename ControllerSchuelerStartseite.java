@@ -353,10 +353,12 @@ public class ControllerSchuelerStartseite {
     public void passwortAendern(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene currentScene = ((Node) event.getSource()).getScene();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
             Parent root = loader.load();
             passwortResetController controller = loader.getController();
             controller.setModel(model);
+            controller.setPreviousScene(currentScene);
             Scene scene = new Scene(root);
             scene.setFill(Color.web("#E9E9D3"));
             stage.setScene(scene);

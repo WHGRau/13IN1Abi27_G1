@@ -52,6 +52,7 @@
                </font>
             </Text>
             <Button fx:id="fertigButton" layoutX="88.0" layoutY="261.0" mnemonicParsing="false" onAction="#speichern" text="fertig" />
+            <Button fx:id="zurueckButton" layoutX="160.0" layoutY="261.0" mnemonicParsing="false" onAction="#zurueck" text="zurück" />
             <Text fx:id="errorText" fill="RED" layoutX="88.0" layoutY="250.0" strokeType="OUTSIDE" strokeWidth="0.0" />
          </children>
     </AnchorPane>
