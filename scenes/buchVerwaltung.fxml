@@ -163,6 +163,23 @@
                         <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0">
                            <font><Font size="16.0" /></font>
                         </Text>
+                        <GridPane>
+                          <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="234.0" minWidth="10.0" prefWidth="202.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="249.0" minWidth="10.0" prefWidth="249.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <Button fx:id="bestand" mnemonicParsing="false" onAction="#bestandsListe" prefHeight="39.0" prefWidth="144.0" text="Bestandsliste" GridPane.columnIndex="1">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </GridPane>
                      </children>
                   </VBox>
 

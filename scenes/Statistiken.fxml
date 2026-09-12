@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerStatistiken">
+   <children>
+      <MenuBar prefHeight="0.0" prefWidth="421.0" style="-fx-background-color: #E9E9D3;">
+         <menus>
+            <Menu mnemonicParsing="false" text="File">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="New" />
+                  <MenuItem mnemonicParsing="false" text="Open…" />
+                  <Menu mnemonicParsing="false" text="Open Recent" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Close" />
+                  <MenuItem mnemonicParsing="false" text="Save" />
+                  <MenuItem mnemonicParsing="false" text="Save As…" />
+                  <MenuItem mnemonicParsing="false" text="Revert" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Preferences…" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Quit" />
+               </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Edit">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Undo" />
+                  <MenuItem mnemonicParsing="false" text="Redo" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Cut" />
+                  <MenuItem mnemonicParsing="false" text="Copy" />
+                  <MenuItem mnemonicParsing="false" text="Paste" />
+                  <MenuItem mnemonicParsing="false" text="Delete" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Select All" />
+                  <MenuItem mnemonicParsing="false" text="Unselect All" />
+               </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+               </items>
+            </Menu>
+         </menus>
+      </MenuBar>
+      <VBox focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
+         <children>
+            <AnchorPane focusTraversable="true" style="-fx-background-color: #E9E9D3;" VBox.vgrow="ALWAYS">
+               <children>
+                  <ChoiceBox fx:id="statistikAuswahl" layoutX="119.0" layoutY="151.0" prefWidth="150.0" />
+                  <Button fx:id="zuruck" layoutX="31.0" layoutY="25.0" mnemonicParsing="false" onAction="#toStartseite" prefHeight="75.0" prefWidth="75.0" text="zurück">
+                     <font>
+                        <Font size="15.0" />
+                     </font></Button>
+                  <BarChart fx:id="bucherGraph" layoutX="170.0" layoutY="266.0" prefHeight="548.0" prefWidth="748.0">
+                    <xAxis>
+                      <CategoryAxis label="Buch" side="BOTTOM" />
+                    </xAxis>
+                    <yAxis>
+                      <NumberAxis label="Anzahl" side="LEFT" />
+                    </yAxis>
+                  </BarChart>
+                  <TableView fx:id="buchTabelle" layoutX="1268.0" layoutY="176.0" prefHeight="728.0" prefWidth="362.0">
+                    <columns>
+                      <TableColumn fx:id="buchTabelleTitel" prefWidth="280.0" text="Buch" />
+                      <TableColumn fx:id="buchTabelleAnzahl" prefWidth="81.0" text="Anzahl" />
+                    </columns>
+                  </TableView>
+                  <Text layoutX="125.0" layoutY="132.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Kategorie auswählen">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="kategorie" layoutX="635.0" layoutY="76.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="650.8759765625">
+                     <font>
+                        <Font size="33.0" />
+                     </font>
+                  </Text>
+               </children>
+            </AnchorPane>
+         </children>
+         <StackPane.margin>
+            <Insets bottom="5.0" />
+         </StackPane.margin>
+      </VBox>
+   </children>
+</StackPane>

@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
   <children>
     <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
       <children>
@@ -107,7 +107,6 @@
                       <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
                   </columns>
                 </TableView>
-                <Button fx:id="logout" layoutX="26.0" layoutY="40.0" mnemonicParsing="false" onAction="#logout" prefHeight="73.0" prefWidth="76.0" text="ausloggen" />
                 <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
                    <font>
                       <Font size="20.0" />
@@ -145,8 +144,6 @@
                    </font>
                 </Text>
                 <ListView fx:id="gescanntListe" layoutX="30.0" layoutY="390.0" onMouseClicked="#gescanntesBuchEntfernen" prefHeight="257.0" prefWidth="284.0" />
-                <Button layoutX="960.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadNutzerVerwaltung" text="Nutzer Verwalten" />
-                <Button layoutX="817.0" layoutY="809.0" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" text="Bücher verwalten" />
                 <TableView fx:id="reserviertTabelle" layoutX="617.0" layoutY="345.0" prefHeight="266.0" prefWidth="377.0">
                   <columns>
                     <TableColumn fx:id="reserviertTabelleIsbn" prefWidth="75.0" text="ISBN" />
@@ -156,11 +153,40 @@
                       <TableColumn fx:id="reserviertTabelleEmail" prefWidth="75.0" text="E-Mail" />
                   </columns>
                 </TableView>
-                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen" />
-                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:" />
+                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen">
+                     <font>
+                        <Font name="Bookman Old Style Bold" size="18.0" />
+                     </font></Text>
+                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen">
+                     <font>
+                        <Font name="Bookman Old Style Bold" size="18.0" />
+                     </font></Text>
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
-                  <Button fx:id="einstellungenButton" layoutX="1801.0" layoutY="7.0" mnemonicParsing="false" onAction="#toEinstellungen" text="Einstellungen" />
-                  <Button fx:id="passwortAendernButton" layoutX="1780.0" layoutY="40.0" mnemonicParsing="false" onAction="#passwortAendern" text="Passwort ändern" />
+                  <Button fx:id="aufMenu" layoutX="54.0" layoutY="2.0" mnemonicParsing="false" onAction="#openmenu" prefHeight="76.0" prefWidth="76.0" style="-fx-background-color: #E9E9D3;" text="☰" textAlignment="CENTER">
+                     <font>
+                        <Font size="32.0" />
+                     </font>
+                  </Button>
+                  <VBox fx:id="menuPane" alignment="TOP_CENTER" prefHeight="1055.0" prefWidth="184.0" spacing="35.0" style="-fx-background-color: #D2D2BE;">
+                     <children>
+                        <Button fx:id="zuMenu" mnemonicParsing="false" onAction="#closemenu" prefHeight="76.0" prefWidth="76.0" style="-fx-background-color: #D2D2BE;" text="X" textAlignment="CENTER">
+                           <font>
+                              <Font name="System Bold" size="36.0" />
+                           </font>
+                        </Button>
+                      <Button fx:id="logout" mnemonicParsing="false" onAction="#logout" prefHeight="87.0" prefWidth="87.0" text="ausloggen" textAlignment="CENTER" />
+                        <Button fx:id="statistiken" mnemonicParsing="false" onAction="#loadStatistiken" prefHeight="87.0" prefWidth="87.0" text="Statistiken" textAlignment="CENTER" />
+                      <Button mnemonicParsing="false" onAction="#loadBuecherVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Bücher verwalten" textAlignment="CENTER" wrapText="true" />
+                      <Button mnemonicParsing="false" onAction="#loadNutzerVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Nutzer Verwalten" textAlignment="CENTER" wrapText="true" />
+                        <Button fx:id="einstellungenButton" mnemonicParsing="false" onAction="#toEinstellungen" prefHeight="87.0" prefWidth="87.0" text="Einstellungen" textAlignment="CENTER" wrapText="true" />
+                        <Button fx:id="passwortAendernButton" mnemonicParsing="false" onAction="#passwortAendern" prefHeight="87.0" prefWidth="87.0" text="Passwort ändern" textAlignment="CENTER" wrapText="true" />
+                     </children>
+                  </VBox>
+                  <Button fx:id="neuesBuch" layoutX="524.0" layoutY="210.0" mnemonicParsing="false" onAction="#openPopUp" prefHeight="56.0" prefWidth="56.0" text="neu" textAlignment="CENTER">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
              </children>
         </AnchorPane>
       </children>

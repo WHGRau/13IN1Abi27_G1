@@ -7,6 +7,18 @@ import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import java.util.Random;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import java.io.IOException;
+import java.awt.Desktop;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+
 public class Bibliothek {
     private DatabaseConnector dbConnector;
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
@@ -84,6 +96,24 @@ public class Bibliothek {
                         "UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = " + ausleihId);
             }
         }
+    }
+    
+    public int tagefuerSchueler(){
+        
+        int i = 0;
+        dbConnector.executeStatement(
+                "SELECT ausleihen.id ,DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe = CURRENT_DATE() AND benutzer.id = '"+angemeldet+ "'");
+        QueryResult resultStichtag = dbConnector.getCurrentQueryResult();
+        if(resultStichtag != null && resultStichtag.getRowCount() > 0)
+        i = 1;
+        dbConnector.executeStatement(
+                "SELECT ausleihen.id, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe < CURRENT_DATE() AND benutzer.id = '"+angemeldet+ "'");
+        QueryResult result1Woche = dbConnector.getCurrentQueryResult();
+        if(result1Woche != null && result1Woche.getRowCount() >0)
+        i = 2;
+        return i;
+        
+        
     }
 
     private void dbVerbinden() {
@@ -1182,6 +1212,99 @@ public class Bibliothek {
                 dbConnector.executeStatement("UPDATE buecher SET status = 'verliehen' WHERE isbn = '" + isbn + "'");
             }
         }
+    }
+    
+    public String getExemplare(String isbn){
+        dbConnector.executeStatement("SELECT anzahlDa,anzahlLiehen,anzahlRes FROM buecher WHERE isbn = '"+isbn+"'");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        int existieren = Integer.parseInt(result.getData()[0][0])+Integer.parseInt(result.getData()[0][1])+Integer.parseInt(result.getData()[0][2]);
+        String e = String.valueOf(existieren);
+        return e;
+    }
+    
+    public void bestandListeErstellen(){
+        dbConnector.executeStatement("SELECT titel, status, isbn FROM buecher ORDER BY titel");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        
+        LocalDate heute = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String datumText = "Datum: " + heute.format(formatter);
+        try (PDDocument dokument = new PDDocument()){
+            float yStart = 700;        
+            float yPosition = yStart;  
+            float zeilenAbstand = 15;  
+            float untererRand = 50; 
+            
+            PDPage aktseite = new PDPage();
+            dokument.addPage(aktseite);
+            
+            PDPageContentStream inhalt = new PDPageContentStream(dokument, aktseite);
+            inhalt.beginText();
+            inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+            inhalt.newLineAtOffset(450, 750); 
+            inhalt.showText(datumText);
+            inhalt.endText();
+            
+            
+            for (int i = 0; i < result.getRowCount(); i++){
+                String e = getExemplare(result.getData()[i][2]);
+                if (yPosition - zeilenAbstand < untererRand) {
+                   
+                    inhalt.endText();
+                    inhalt.close();
+            
+                    aktseite = new PDPage();
+                    dokument.addPage(aktseite);
+            
+                    inhalt = new PDPageContentStream(dokument, aktseite);
+                    inhalt.beginText();
+                    inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                    
+                    inhalt.newLineAtOffset(50, yStart);
+                    yPosition = yStart;
+                }
+                String status = result.getData()[i][1];
+                if (status.equals("entfernt")){
+                    inhalt.setNonStrokingColor(1, 0, 0);
+                }
+                else{
+                    inhalt.setNonStrokingColor(0, 0, 0);
+                }
+                String originalTitel = result.getData()[i][0];
+                
+                String gekuerzterTitel = originalTitel;
+                if (gekuerzterTitel != null && gekuerzterTitel.length() > 35) {
+                    gekuerzterTitel = gekuerzterTitel.substring(0, 20) + "...";
+                }
+                
+                inhalt.showText(result.getData()[i][0] +"--- Exemplare: "+ e);
+                inhalt.newLineAtOffset(0, -zeilenAbstand); // Gehe nach unten
+                yPosition -= zeilenAbstand;
+            }
+            inhalt.endText();
+            inhalt.close();
+            
+            File pdfDatei = new File("Bestandsliste.pdf");
+            dokument.save(pdfDatei);        
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                desktop.open(pdfDatei);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public QueryResult beliebtesteBucher(){
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY buecher.isbn ORDER BY anzahl DESC");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
+    }
+    
+    public QueryResult unbeliebtesteBucher(){
+        dbConnector.executeStatement("SELECT buecher.titel, COUNT(ausleihen.isbn) AS anzahl FROM buecher LEFT JOIN ausleihen ON buecher.isbn = ausleihen.isbn GROUP BY buecher.isbn ORDER BY ausleihen.isbn IS NOT NULL, anzahl ASC");
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result;
     }
 
     public int getBuchAltersbeschraenkung(String isbn) {
