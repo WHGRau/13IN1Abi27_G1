@@ -12,6 +12,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import java.io.IOException;
 import java.awt.Desktop;
 import java.io.File;
@@ -1235,15 +1236,21 @@ public class Bibliothek {
             float zeilenAbstand = 15;  
             float untererRand = 50; 
             
+            PDType0Font arialFont = PDType0Font.load(dokument, new File("C:/Windows/Fonts/arial.ttf"));
+            
             PDPage aktseite = new PDPage();
             dokument.addPage(aktseite);
             
             PDPageContentStream inhalt = new PDPageContentStream(dokument, aktseite);
             inhalt.beginText();
-            inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+            inhalt.setFont(arialFont, 12);
             inhalt.newLineAtOffset(450, 750); 
             inhalt.showText(datumText);
             inhalt.endText();
+            
+            inhalt.beginText();
+            inhalt.setFont(arialFont, 12);
+            inhalt.newLineAtOffset(50, yStart);
             
             
             for (int i = 0; i < result.getRowCount(); i++){
@@ -1258,7 +1265,7 @@ public class Bibliothek {
             
                     inhalt = new PDPageContentStream(dokument, aktseite);
                     inhalt.beginText();
-                    inhalt.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                    inhalt.setFont(arialFont, 12);
                     
                     inhalt.newLineAtOffset(50, yStart);
                     yPosition = yStart;
@@ -1277,7 +1284,7 @@ public class Bibliothek {
                     gekuerzterTitel = gekuerzterTitel.substring(0, 20) + "...";
                 }
                 
-                inhalt.showText(result.getData()[i][0] +"--- Exemplare: "+ e);
+                inhalt.showText(gekuerzterTitel +"--- Exemplare: "+ e);
                 inhalt.newLineAtOffset(0, -zeilenAbstand); // Gehe nach unten
                 yPosition -= zeilenAbstand;
             }
