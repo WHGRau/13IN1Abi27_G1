@@ -22,9 +22,17 @@ import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
 
+/**
+ * Controller-Klasse für den Login-Bildschirm.
+ * Handhabt die Benutzeranmeldung, Skalierung des Hintergrunds und das Zurücksetzen von Passwörtern.
+ */
 public class ControllerLogin {
     private Bibliothek model;
 
+    /**
+     * Initialisiert den Login-Controller. Setzt den Fokus auf den Login-Button
+     * und passt die Skalierung des Hintergrundbilds dynamisch an die Fenstergröße an.
+     */
     public void initialize() {
         Platform.runLater(() -> loginButton.requestFocus());
 
@@ -70,13 +78,19 @@ public class ControllerLogin {
     @FXML
     private StackPane background;
 
+    /**
+     * Wird aufgerufen, wenn der Benutzer auf den Login-Button klickt.
+     * Überprüft die Zugangsdaten und leitet bei Erfolg zur entsprechenden Startseite weiter.
+     * 
+     * @param event Das ausgelöste ActionEvent.
+     */
     public void login(ActionEvent event) {
         model = new Bibliothek();
         int feedback = model.login(emailFeld.getText(), passwortFeld.getText());
         if (feedback == 1) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                if (model.isLehrer()) {
+                if (model.isLehrer() || model.isHelfer()) {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/LehrerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerLehrerStartseite controller = loader.getController();
@@ -85,7 +99,7 @@ public class ControllerLogin {
                     scene.setFill(Color.web("#E9E9D3"));
                     stage.setScene(scene);
                     stage.show();
-                } else {
+                } else{
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerSchuelerStartseite controller = loader.getController();
@@ -98,13 +112,17 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (feedback == 2) {
+        }else if(feedback==2)
+
+        {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                Scene currentScene = ((Node) event.getSource()).getScene();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
                 Parent root = loader.load();
                 passwortResetController controller = loader.getController();
                 controller.setModel(model);
+                controller.setPreviousScene(currentScene);
                 Scene scene = new Scene(root);
                 scene.setFill(Color.web("#E9E9D3"));
                 stage.setScene(scene);
@@ -112,24 +130,43 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
+        }else
+        {
             fehlerText.setFill(Color.web("#d32626"));
             fehlerText.setText("Anmeldung fehlgeschlagen");
         }
     }
 
+    /**
+     * Reagiert auf Tastatureingaben im E-Mail-Feld.
+     * Wechselt bei Drücken der Enter-Taste in das Passwort-Feld.
+     * 
+     * @param event Das KeyEvent-Objekt.
+     */
     public void enter(KeyEvent event) {
         if (event.getCode().equals(KeyCode.ENTER)) {
             passwortFeld.requestFocus();
         }
     }
 
+    /**
+     * Reagiert auf Tastatureingaben im Passwort-Feld.
+     * Löst bei Drücken der Enter-Taste den Login-Vorgang aus.
+     * 
+     * @param event Das KeyEvent-Objekt.
+     */
     public void anmeldenEnter(KeyEvent event) {
         if (event.getCode().equals(KeyCode.ENTER)) {
             loginButton.fire();
         }
     }
 
+    /**
+     * Verarbeitet Klicks auf den "Passwort vergessen"-Button.
+     * Prüft die E-Mail-Adresse und sendet ggf. eine Zurücksetzen-E-Mail.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void passwortVergessen(ActionEvent event) {
         model = new Bibliothek();
         String email = emailFeld.getText().trim();
@@ -143,6 +180,12 @@ public class ControllerLogin {
         }
     }
 
+    /**
+     * Prüft, ob eine gegebene Zeichenkette eine syntaktisch gültige E-Mail-Adresse ist.
+     * 
+     * @param email Die zu überprüfende E-Mail-Adresse.
+     * @return true, falls gültig, andernfalls false.
+     */
     private boolean istGueltigeEmail(String email) {
         if (email == null)
             return false;

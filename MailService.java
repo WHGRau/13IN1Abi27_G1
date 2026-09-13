@@ -7,14 +7,26 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+/**
+ * Verarbeitet den E-Mail-Versand der Bibliothek.
+ * Sendet Benachrichtigungen über Reservierungen, Mahnungen, Kontosperrungen und mehr.
+ */
 public class MailService {
 
     private Bibliothek model;
 
+    /**
+     * Erstellt einen neuen MailService und verknüpft ihn mit dem Bibliotheks-Model.
+     * @param model Die Hauptinstanz der Bibliothek.
+     */
     public MailService(Bibliothek model) {
         this.model = model;
     }
 
+    /**
+     * Prüft, ob die E-Mail-Zugangsdaten in den Einstellungen hinterlegt wurden.
+     * @return true, falls konfiguriert, andernfalls false.
+     */
     public boolean isConfigured() {
         String email = model.getEinstellung("email_adresse");
         String passwort = model.getEinstellung("email_passwort");
@@ -27,6 +39,13 @@ public class MailService {
                 smtpPort != null && !smtpPort.isEmpty();
     }
 
+    /**
+     * Sendet eine generische E-Mail asynchron an die angegebene Adresse.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des Empfängers.
+     * @param betreff Der Betreff der E-Mail.
+     * @param nachricht Der Inhalt der E-Mail.
+     */
     public void sendeEmail(String empfaengerEmail, String betreff, String nachricht) {
         if (!isConfigured()) {
             return;
@@ -72,6 +91,12 @@ public class MailService {
         }
     }
 
+    /**
+     * Sendet eine E-Mail an einen Nutzer, dass sein Konto gesperrt wurde.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des gesperrten Nutzers.
+     * @param nutzerName Der Name des Nutzers für die Anrede.
+     */
     public void sendeGesperrtMail(String empfaengerEmail, String nutzerName) {
         String betreff = "Dein Bibliotheks-Konto wurde gesperrt";
         String nachricht = "Hallo " + nutzerName + ",\n\n" +
@@ -81,6 +106,13 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
+    /**
+     * Benachrichtigt einen Nutzer darüber, dass ein reserviertes Buch abholbereit ist.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des Nutzers.
+     * @param nutzerName Der Name des Nutzers für die Anrede.
+     * @param buchTitel Der Titel des bereitliegenden Buches.
+     */
     public void sendeReservierungBereitMail(String empfaengerEmail, String nutzerName, String buchTitel) {
         String betreff = "Deine Reservierung ist abholbereit!";
         String nachricht = "Hallo " + nutzerName + ",\n\n" +
@@ -91,6 +123,15 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
+    /**
+     * Sendet eine Erinnerung oder Mahnung zur Buchrückgabe.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des Nutzers.
+     * @param nutzerName Der Name des Nutzers.
+     * @param buchTitel Der Titel des ausgeliehenen Buches.
+     * @param typ Der Typ der Mahnung (z. B. "2_Tage_vorher", "Stichtag", "1_Woche_danach").
+     * @param rueckgabeDatum Das fällige Rückgabedatum als String.
+     */
     public void sendeMahnungMail(String empfaengerEmail, String nutzerName, String buchTitel, String typ,
             String rueckgabeDatum) {
         String betreff = "";
@@ -115,6 +156,13 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
+    /**
+     * Sendet eine Willkommens-E-Mail mit den Anmeldedaten nach der Registrierung.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des neuen Nutzers.
+     * @param nutzerName Der Name des Nutzers.
+     * @param passwort Das vergebene Initialpasswort.
+     */
     public void sendeAnmeldeMail(String empfaengerEmail, String nutzerName, String passwort) {
         String betreff = "Willkommen in der Schülerbibliothek!";
         String nachricht = "Hallo " + nutzerName
@@ -124,6 +172,13 @@ public class MailService {
         sendeEmail(empfaengerEmail, betreff, nachricht);
     }
 
+    /**
+     * Sendet eine E-Mail mit einem neuen Passwort, wenn dieses zurückgesetzt wurde.
+     * 
+     * @param empfaengerEmail Die E-Mail-Adresse des Nutzers.
+     * @param nutzerName Der Name des Nutzers.
+     * @param passwort Das neu vergebene Passwort.
+     */
     public void sendePasswortResetMail(String empfaengerEmail, String nutzerName, String passwort) {
         String betreff = "Passwort zurücksetzen";
         String nachricht = "Hallo " + nutzerName
