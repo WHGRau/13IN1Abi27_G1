@@ -350,10 +350,9 @@ public class ControllerLehrerStartseite {
                 }
                 else{
                     if(model.richtigerSchuelerRuckListe()){
-                       int tage = model.getTageZuSpaet(code);
+                       
                         String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
-                        if (tage > 0)
-                            msg += " – " + tage + " Tage zu spät!";
+                        
                         feedbackText.setText(msg);
                         zuruecknehmenButton.setDisable(false);
                         break; 
@@ -423,10 +422,9 @@ public class ControllerLehrerStartseite {
                 }
                 else{
                     if(model.richtigerSchuelerRuckListe()){
-                        int tage = model.getTageZuSpaet(code);
+                        
                         String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
-                        if (tage > 0)
-                            msg += " – " + tage + " Tage zu spät!";
+                        
                         feedbackText.setText(msg);
                         zuruecknehmenButton.setDisable(false);
                         break; 
