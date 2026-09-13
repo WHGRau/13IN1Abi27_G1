@@ -217,6 +217,7 @@ public class ControllerLehrerStartseite {
         }
         
         nutzernameText.setText(text);
+        model.resetnurDa();
     }
 
     public void initialize() {
@@ -344,13 +345,13 @@ public class ControllerLehrerStartseite {
                 break;
             case 2: {
                 if (model.getName() == null || model.getErfassteSchuelerName() == ""){
-                    feedbackText.setText("Nutzerausweis scannen");
+                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen scannen");
                     break;
                 }
                 else{
-                    if(model.richtigerSchulerRuck(code)){
+                    if(model.richtigerSchuelerRuckListe()){
                        int tage = model.getTageZuSpaet(code);
-                        String msg = "Buch erfasst, bitte 'zurücknehmen' drücken";
+                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
                         if (tage > 0)
                             msg += " – " + tage + " Tage zu spät!";
                         feedbackText.setText(msg);
@@ -415,15 +416,15 @@ public class ControllerLehrerStartseite {
                 scannenButton.setDisable(true);
                 ausleihenButton.setDisable(true);
                 break;
-            case 13:
+            case 16:
                 if (model.getName() == null || model.getErfassteSchuelerName() == ""){
                     feedbackText.setText("Nutzerausweis oder weiters Buch scannen");
                     break;
                 }
                 else{
-                    if(model.richtigerSchulerRuck(code)){
+                    if(model.richtigerSchuelerRuckListe()){
                         int tage = model.getTageZuSpaet(code);
-                        String msg = "Buch erfasst, bitte 'zurücknehmen' drücken";
+                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
                         if (tage > 0)
                             msg += " – " + tage + " Tage zu spät!";
                         feedbackText.setText(msg);
@@ -437,13 +438,11 @@ public class ControllerLehrerStartseite {
                     }
                     
                 }
-            case 14:
-                int tage = model.getTageZuSpaet(code);
-                String msg = "Buch erfasst, bitte 'zurücknehmen' drücken";
-                if (tage > 0)
-                    msg += " – " + tage + " Tage zu spät!";
-                feedbackText.setText(msg);
-                zuruecknehmenButton.setDisable(false);
+            case 17:
+                feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst");
+                if (model.getErfassteBuecherNamen().size() > 0) {
+                    zuruecknehmenButton.setDisable(false);
+                }
                 break;
                 
         }
@@ -482,6 +481,7 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
         scannenButton.setDisable(false);
+        model.resetnurDa();
     }
 
     public void zurueckgeben() {
@@ -497,9 +497,11 @@ public class ControllerLehrerStartseite {
         updateGescanntListe();
         feedbackZuruecksetzen();
         letzteAktionAnzeigen();
+        model.resetnurDa();
     }
 
     public void ausleihen() {
+        model.resetnurDa();
         try {
             int dauer = Integer.parseInt(ausleihdauerFeld.getText());
             if (dauer >= 1 && dauer <= 200) {

@@ -15,6 +15,7 @@ public class Bibliothek {
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
+    private int nurDa = 0;
 
     public Bibliothek() {
         dbVerbinden();
@@ -317,8 +318,8 @@ public class Bibliothek {
         // 10: schueler gesperrt
         // 11: Buch ist reserviert, bitte Schüler scannen
         // 12: enthält für Andere reservierte Bücher
-        // 13: Buch kann zuruckgegeben und ausgeliehen werden
-        // 14: Schuler furs zuruckgeben
+        // 16: Buch kann zuruckgegeben und ausgeliehen werden
+        // 17: Schuler furs zuruckgeben
 
         if (isLehrer()) {
             dbConnector.executeStatement("SELECT status, anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = '" + code + "'");
@@ -328,6 +329,7 @@ public class Bibliothek {
                 String status = buchResult.getData()[0][0];
                 int da = Integer.parseInt(buchResult.getData()[0][1]);
                 int li = Integer.parseInt(buchResult.getData()[0][2]);
+                
 
                 switch (status) {
                     case "verfuegbar":
@@ -346,15 +348,17 @@ public class Bibliothek {
                             if (!erfassteBuecher.contains(code)) {
                                 erfassteBuecher.add(code);
                             }
-                            if(li > 0 && erfassteBuecher.size() == 1){
-                                return 13;
+                            if(li > 0){
+                                return 16;
                             }
                             else{
+                                nurDa +=1;
                                 return 1;
+                                
                             }
                         }
                     case "verliehen":
-                        if (erfassteBuecher.size() > 0) {
+                        if(nurDa != 0){
                             return 7;
                         }
                         dbConnector.executeStatement(
@@ -425,12 +429,10 @@ public class Bibliothek {
                             return 12;
                         }
                         
-                        if(erfassteBuecher.size() == 1 ){
-                            dbConnector.executeStatement("SELECT status, anzahlLiehen FROM buecher WHERE isbn = '"+ erfassteBuecher.get(0)+"'");
-                            QueryResult result = dbConnector.getCurrentQueryResult();
-                            int li = Integer.parseInt(result.getData()[0][1]);
-                            if(li > 0 && richtigerSchulerRuck(erfassteBuecher.get(0))){
-                                return 14;
+                        if(erfassteBuecher.size() != 1 ){
+                            
+                            if(richtigerSchuelerRuckListe()){
+                                return 17;
                             }
                         }
 
@@ -1257,6 +1259,21 @@ public class Bibliothek {
             return true;
         }
         return false;
+    }
+    
+    public boolean richtigerSchuelerRuckListe(){
+        for(int i= 0; i< erfassteBuecher.size(); i++){
+            dbConnector.executeStatement("SELECT id FROM ausleihen WHERE schueler_id ='"+erfassterSchueler+"' AND isbn='"+erfassteBuecher.get(i)+"'AND ruckgabe_datum IS NULL");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if(result == null && result.getRowCount() == 0){
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public void resetnurDa(){
+        nurDa = 0;
     }
     
 }
