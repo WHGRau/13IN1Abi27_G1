@@ -43,23 +43,28 @@ public class DatabaseConnector{
   }
 
   /**
-   * Der Auftrag schickt den im Parameter pSQLStatement enthaltenen SQL-Befehl an die 
-   * Datenbank ab. 
+   * Der Auftrag schickt den im Parameter pSQLStatement enthaltenen SQL-Befehl-Struktur an die 
+   * Datenbank ab, und ersetzt jedes "?" im Befehl mit dem dazugehoerigen Parameter in params
    * Handelt es sich bei pSQLStatement um einen SQL-Befehl, der eine Ergebnismenge 
    * liefert, so kann dieses Ergebnis anschließend mit der Methode getCurrentQueryResult 
    * abgerufen werden.
    */
-  public void executeStatement(String pSQLStatement){  
+  public void executeStatement(String pSQLStatement, Object... params){  
     //Altes Ergebnis loeschen
     currentQueryResult = null;
     message = null;
 
     try {
-      //Neues Statement erstellen
-      Statement statement = connection.createStatement();
-
+      //Neues Prepared Statement erstellen
+      PreparedStatement statement = connection.prepareStatement(pSQLStatement);
+      
+      // Werte in die Platzhalter (?) einsetzen
+      for (int i = 0; i < params.length; i++) {
+          statement.setObject(i + 1, params[i]);
+      }
+      
       //SQL Anweisung an die DB schicken.
-      if (statement.execute(pSQLStatement)) { //Fall 1: Es gibt ein Ergebnis
+      if (statement.execute()) { //Fall 1: Es gibt ein Ergebnis
 
         //Resultset auslesen
         ResultSet resultset = statement.getResultSet();
@@ -112,6 +117,7 @@ public class DatabaseConnector{
       message = e.getMessage();
     }
   }
+
 
   /**
    * Die Anfrage liefert das Ergebnis des letzten mit der Methode executeStatement an 
