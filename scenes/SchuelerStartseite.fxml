@@ -165,6 +165,7 @@
                         <Image url="@../eulen/kleineEule.png" />
                      </image>
                   </ImageView>
+                  <ImageView fx:id="mahnung" fitHeight="150.0" fitWidth="150.0" layoutX="1490.0" layoutY="6.0" pickOnBounds="true" preserveRatio="true" />
                   
                </children>
             </AnchorPane>
