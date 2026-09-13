@@ -33,6 +33,11 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+/**
+ * Controller-Klasse für die Verwaltung des Buchbestands.
+ * Ermöglicht Suchen, Hinzufügen, Bearbeiten und Löschen von Büchern
+ * sowie die Anzeige der Ausleihhistorie (Verlauf).
+ */
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
     private Buch selectedBuch;
@@ -41,6 +46,7 @@ public class ControllerBuecherVerwaltung {
 
     private String barcodePuffer = "";
     private long letzteTastenZeit = 0;
+    private long letzteBuchDatenAbruf = 0;
 
     @FXML
     private TextField searchBar;
@@ -117,6 +123,9 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private TableColumn<tabelleZeile, String> lehrerSpalte;
 
+    /**
+     * Hilfsklasse zur Darstellung eines Eintrags im Buch-Verlauf (Ausleihhistorie).
+     */
     public static class tabelleZeile {
         private String nachname;
         private String vorname;
@@ -125,6 +134,16 @@ public class ControllerBuecherVerwaltung {
         private String rueckgabe;
         private String lehrer;
 
+        /**
+         * Erstellt einen neuen Verlaufseintrag.
+         * 
+         * @param nachname Der Nachname des Ausleihers.
+         * @param vorname Der Vorname des Ausleihers.
+         * @param email Die E-Mail-Adresse.
+         * @param ausgabe Das Ausgabedatum.
+         * @param rueckgabe Das Rückgabedatum.
+         * @param lehrer Der Lehrer, der die Ausleihe genehmigt hat.
+         */
         public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe, String lehrer) {
             this.nachname = nachname;
             this.vorname = vorname;
@@ -134,35 +153,60 @@ public class ControllerBuecherVerwaltung {
             this.lehrer = lehrer;
         }
 
+        /**
+         * @return Nachname des Ausleihers.
+         */
         public String getNachname() {
             return nachname;
         }
 
+        /**
+         * @return Vorname des Ausleihers.
+         */
         public String getVorname() {
             return vorname;
         }
 
+        /**
+         * @return E-Mail des Ausleihers.
+         */
         public String getEmail() {
             return email;
         }
 
+        /**
+         * @return Ausgabedatum.
+         */
         public String getAusgabe() {
             return ausgabe;
         }
 
+        /**
+         * @return Rückgabedatum.
+         */
         public String getRueckgabe() {
             return rueckgabe;
         }
 
+        /**
+         * @return Lehrername.
+         */
         public String getLehrer() {
             return lehrer;
         }
     }
 
+    /**
+     * Standardkonstruktor für ControllerBuecherVerwaltung.
+     */
     public ControllerBuecherVerwaltung() {
 
     }
 
+    /**
+     * Initialisiert den Controller, setzt Tabellenspalten, EventFilter für Barcode-Scanner 
+     * und dynamische Hintergrundskalierung.
+     */
     public void initialize() {
         isbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         titelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
@@ -234,7 +278,9 @@ public class ControllerBuecherVerwaltung {
                             letzteTastenZeit = jetzt;
                             event.consume();
                         } else if (!isbnFeld.getText().isEmpty()) {
-                            bearbeitenButton.fire();
+                            if (System.currentTimeMillis() - letzteBuchDatenAbruf > 500) {
+                                bearbeitenButton.fire();
+                            }
                             event.consume();
                         }
                     }
@@ -243,6 +289,12 @@ public class ControllerBuecherVerwaltung {
         });
     }
 
+    /**
+     * Reagiert auf Tastenfreigaben im ISBN-Feld.
+     * Stößt die Buchdatenabfrage an, wenn eine vollständige ISBN erkannt wurde.
+     * 
+     * @param event Das auslösende KeyEvent.
+     */
     public void isbnFeldKeyReleased(javafx.scene.input.KeyEvent event) {
         if (!neuAktiv)
             return;
@@ -253,11 +305,20 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Setzt das Modell für die Bibliotheksdaten und lädt initial alle Bücher.
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
         suchen();
     }
 
+    /**
+     * Führt eine Suche im Buchbestand anhand des Suchbegriffs in der SearchBar durch
+     * und aktualisiert die angezeigte Tabelle.
+     */
     public void suchen() {
 
         String suchbegriff = searchBar.getText();
@@ -269,6 +330,11 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Navigiert zurück zur Startseite (Lehrer-Menü).
+     * 
+     * @param event Das auslösende ActionEvent.
+     */
     public void toStartseite(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -287,6 +353,10 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Wird aufgerufen, wenn ein Buch in der Tabelle angeklickt/ausgewählt wird.
+     * Zeigt dessen Details an und aktualisiert Buttons und den Ausleih-Verlauf.
+     */
     public void selectBuch() {
         if (!bearbeitenAktiv && !neuAktiv) {
 
@@ -333,6 +403,12 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Behandelt Klicks auf den Button "bearbeiten" oder "speichern".
+     * Schaltet entweder die Textfelder editierbar oder speichert die vorgenommenen Änderungen am Buch.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void bearbeiten(ActionEvent event) {
         if (selectedBuch == null && !neuAktiv) {
             return;
@@ -424,6 +500,10 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Entfernt (deaktiviert) oder löscht das aktuell ausgewählte Buch vollständig,
+     * abhängig vom aktuellen Status des Buches.
+     */
     public void entfernen() {
         if (selectedBuch == null) {
             return;
@@ -449,6 +529,10 @@ public class ControllerBuecherVerwaltung {
         selectBuch();
     }
 
+    /**
+     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen Buches.
+     * Schaltet Felder frei und leert diese für neue Eingaben.
+     */
     public void buchErstellen() {
         if (!neuAktiv) {
 
@@ -497,6 +581,12 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Hilfsmethode, die prüft, ob in den Textfeldern versehentlich eine ISBN 
+     * gescannt/eingegeben wurde (z. B. wenn der Fokus falsch war).
+     * 
+     * @return Die gefundene ISBN oder ein leerer String, falls keine gefunden wurde.
+     */
     private String pruefeFelderAufIsbn() {
         TextField[] felder = { isbnFeld, titelFeld, autorFeld, jahrFeld };
         for (TextField feld : felder) {
@@ -510,6 +600,12 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Ruft asynchron Buchdaten (Titel, Autor, Jahr, etc.) von externen APIs ab
+     * und füllt die entsprechenden Textfelder.
+     * 
+     * @param isbn Die ISBN des abzufragenden Buches.
+     */
     public void buchDatenAbrufen(String isbn) {
         try {
             String dbSetting = model.getEinstellung("buechersuche_datenbank");
@@ -571,9 +667,18 @@ public class ControllerBuecherVerwaltung {
 
         } catch (Exception e) {
             errorText.setText("Fehler beim Abrufen der Buchdaten");
+        } finally {
+            letzteBuchDatenAbruf = System.currentTimeMillis();
         }
     }
 
+    /**
+     * Extrahiert einen simplen Wert zu einem Schlüssel aus einem JSON-String.
+     * 
+     * @param json Der zu durchsuchende JSON-String.
+     * @param schluessel Der gesuchte Schlüssel.
+     * @return Der Wert oder ein leerer String, falls der Schlüssel nicht existiert.
+     */
     private String wertAuslesen(String json, String schluessel) {
         String suche1 = "\"" + schluessel + "\":\"";
         String suche2 = "\"" + schluessel + "\": \"";
@@ -596,6 +701,13 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Extrahiert den ersten Wert aus einem JSON-Array für einen gegebenen Schlüssel.
+     * 
+     * @param json Der zu durchsuchende JSON-String.
+     * @param schluessel Der gesuchte Array-Schlüssel (z. B. "authors").
+     * @return Der erste Wert im Array oder ein leerer String.
+     */
     private String arrayWertAuslesen(String json, String schluessel) {
         int startPos = json.indexOf("\"" + schluessel + "\"");
         if (startPos != -1) {
@@ -611,6 +723,10 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Lädt den Ausleih-Verlauf (Historie) für das aktuell ausgewählte Buch
+     * und füllt die Verlaufstabelle.
+     */
     public void loadVerlaufTabelle() {
         QueryResult result = model.getBuchVerlauf(selectedBuch.getIsbn());
         if (result != null) {
@@ -633,10 +749,16 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Setzt den Fehlertext zurück (leert die Anzeige).
+     */
     public void errorTextZuruecksetzen() {
         errorText.setText("");
     }
     
+    /**
+     * Löst im Modell die Erstellung einer Bestandsliste als PDF aus.
+     */
     public void bestandsListe() {
         model.bestandListeErstellen();
     }

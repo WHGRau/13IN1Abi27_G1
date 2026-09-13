@@ -39,6 +39,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.chart.CategoryAxis;
 
 
+/**
+ * Controller-Klasse zur Anzeige von Bibliotheksstatistiken.
+ * Visualisiert Daten wie beliebteste oder unbeliebteste Bücher in Tabellen und Diagrammen.
+ */
 public class ControllerStatistiken
 {
     private Bibliothek model;
@@ -67,31 +71,55 @@ public class ControllerStatistiken
     @FXML
     private Text kategorie;
     
+    /**
+     * Hilfsklasse zur Darstellung einer Zeile in der Statistik-Tabelle.
+     */
     public static class tabelleZeile {
         private String anzahl;
         private String titel;
 
+        /**
+         * Konstruktor für eine Tabellenzeile.
+         * 
+         * @param anzahl Die Anzahl der Ausleihen.
+         * @param titel Der Titel des Buches.
+         */
         public tabelleZeile(String anzahl, String titel) {
             this.anzahl = anzahl;
             this.titel = titel;
             
         }
 
+        /**
+         * Gibt die Anzahl zurück.
+         * @return Die Ausleihanzahl.
+         */
         public String getAnzahl() {
             return anzahl;
         }
 
+        /**
+         * Gibt den Titel des Buches zurück.
+         * @return Der Buchtitel.
+         */
         public String getTitel() {
             return titel;
         }
 
     }
     
+    /**
+     * Setzt das Model der Bibliothek für diesen Controller.
+     * @param model Das aktuelle Bibliotheks-Model.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
         
     }
     
+    /**
+     * Initialisiert den Controller, setzt die Spalten der Tabelle und richtet die Skalierung ein.
+     */
     public void initialize(){
         buchTabelleAnzahl.setCellValueFactory(new PropertyValueFactory<>("anzahl"));
         buchTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
@@ -126,6 +154,11 @@ public class ControllerStatistiken
         });
     }
 
+    /**
+     * Navigiert zurück zur Lehrer-Startseite.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void toStartseite(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -142,6 +175,11 @@ public class ControllerStatistiken
         }
     }
     
+    /**
+     * Aktualisiert das Balkendiagramm und die Tabelle basierend auf der ausgewählten Statistik-Kategorie.
+     * 
+     * @param statistik Der Name der Statistik (z. B. "beliebteste Bücher").
+     */
     public void updateGraphBuch(String statistik){
         QueryResult result = null;
         bucherGraph.getData().clear();

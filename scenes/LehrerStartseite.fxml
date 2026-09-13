@@ -97,7 +97,7 @@
                       <Font size="55.0" />
                    </font>
                 </Text>
-                <TableView fx:id="verliehenTabelle" layoutX="1180.0" layoutY="103.0" prefHeight="700.0" prefWidth="726.0">
+                <TableView fx:id="verliehenTabelle" layoutX="1051.0" layoutY="103.0" prefHeight="700.0" prefWidth="855.0">
                   <columns>
                     <TableColumn fx:id="verliehenTabelleIsbn" prefWidth="116.0" text="ISBN" />
                     <TableColumn fx:id="verliehenTabelleTitel" prefWidth="141.0" text="Titel" />
@@ -105,6 +105,7 @@
                       <TableColumn fx:id="verliehenTabelleVorname" prefWidth="67.0" text="Vorname" />
                       <TableColumn fx:id="verliehenTabelleEmail" prefWidth="155.0" text="E-Mail" />
                       <TableColumn fx:id="verliehenTabelleGeplanteRueckgabe" prefWidth="148.0" text="vereinbarte Rückgabe" />
+                        <TableColumn fx:id="verliehenTabelleMahnungen" prefWidth="129.0" text="manuelle Mahnungen" />
                   </columns>
                 </TableView>
                 <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
@@ -176,8 +177,8 @@
                         </Button>
                       <Button fx:id="logout" mnemonicParsing="false" onAction="#logout" prefHeight="87.0" prefWidth="87.0" text="ausloggen" textAlignment="CENTER" />
                         <Button fx:id="statistiken" mnemonicParsing="false" onAction="#loadStatistiken" prefHeight="87.0" prefWidth="87.0" text="Statistiken" textAlignment="CENTER" />
-                      <Button mnemonicParsing="false" onAction="#loadBuecherVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Bücher verwalten" textAlignment="CENTER" wrapText="true" />
-                      <Button mnemonicParsing="false" onAction="#loadNutzerVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Nutzer Verwalten" textAlignment="CENTER" wrapText="true" />
+                      <Button fx:id="loadBuecherVerwaltung" mnemonicParsing="false" onAction="#loadBuecherVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Bücher verwalten" textAlignment="CENTER" wrapText="true" />
+                      <Button fx:id="loadNutzerVerwaltung" mnemonicParsing="false" onAction="#loadNutzerVerwaltung" prefHeight="87.0" prefWidth="87.0" text="Nutzer Verwalten" textAlignment="CENTER" wrapText="true" />
                         <Button fx:id="einstellungenButton" mnemonicParsing="false" onAction="#toEinstellungen" prefHeight="87.0" prefWidth="87.0" text="Einstellungen" textAlignment="CENTER" wrapText="true" />
                         <Button fx:id="passwortAendernButton" mnemonicParsing="false" onAction="#passwortAendern" prefHeight="87.0" prefWidth="87.0" text="Passwort ändern" textAlignment="CENTER" wrapText="true" />
                      </children>
@@ -187,6 +188,7 @@
                         <Font size="18.0" />
                      </font>
                   </Button>
+                  <Button fx:id="mahnungButton" layoutX="1776.0" layoutY="809.0" mnemonicParsing="false" onAction="#mahnungHinzufuegen" text="Mahnung hinzufügen" />
              </children>
         </AnchorPane>
       </children>

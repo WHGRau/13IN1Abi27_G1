@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 07, 2026 at 04:43 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Erstellungszeit: 12. Sep 2026 um 12:39
+-- Server-Version: 10.4.32-MariaDB
+-- PHP-Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `bibliothek`
+-- Datenbank: `bibliothek`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ausleihen`
+-- Tabellenstruktur für Tabelle `ausleihen`
 --
 
 CREATE TABLE `ausleihen` (
@@ -37,22 +37,23 @@ CREATE TABLE `ausleihen` (
   `erinnerung_2tage_gesendet` tinyint(1) NOT NULL DEFAULT 0,
   `erinnerung_heute_gesendet` tinyint(1) NOT NULL DEFAULT 0,
   `erinnerung_1woche_gesendet` tinyint(1) NOT NULL DEFAULT 0,
-  `lehrerId` int(11) NOT NULL
+  `lehrerId` int(11) NOT NULL,
+  `manuelle_mahnungen` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `ausleihen`
+-- Daten für Tabelle `ausleihen`
 --
 
-INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`, `lehrerId`) VALUES
-(10000008, '978-3125739291', '2026-08-20', '2026-09-20', '2026-09-03', 19, 0, 0, 0, 10000009),
-(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20, 0, 0, 0, 0),
-(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21, 0, 0, 0, 0);
+INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckgabe`, `ruckgabe_datum`, `id`, `erinnerung_2tage_gesendet`, `erinnerung_heute_gesendet`, `erinnerung_1woche_gesendet`, `lehrerId`, `manuelle_mahnungen`) VALUES
+(10000008, '978-3125739291', '2026-08-20', '2026-09-20', '2026-09-03', 19, 0, 0, 0, 10000009, 0),
+(10000008, '978-3551321022', '2026-08-24', '2026-09-16', NULL, 20, 0, 0, 0, 0, 0),
+(10000013, '978-3608126013', '2026-08-24', '2026-09-16', NULL, 21, 0, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `benutzer`
+-- Tabellenstruktur für Tabelle `benutzer`
 --
 
 CREATE TABLE `benutzer` (
@@ -61,7 +62,7 @@ CREATE TABLE `benutzer` (
   `nachname` varchar(100) NOT NULL,
   `email` varchar(150) DEFAULT NULL,
   `passwort` varchar(255) NOT NULL,
-  `rolle` enum('schueler','lehrer') NOT NULL,
+  `rolle` enum('schueler','lehrer','helfer') NOT NULL,
   `freigeschaltet` tinyint(1) NOT NULL,
   `gesperrt_von` int(11) DEFAULT NULL,
   `geburtsdatum` date DEFAULT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE `benutzer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `benutzer`
+-- Daten für Tabelle `benutzer`
 --
 
 INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`, `passwortAendern`, `maxBuecherGleichzeitig`) VALUES
@@ -86,7 +87,7 @@ INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle
 -- --------------------------------------------------------
 
 --
--- Table structure for table `buecher`
+-- Tabellenstruktur für Tabelle `buecher`
 --
 
 CREATE TABLE `buecher` (
@@ -100,7 +101,7 @@ CREATE TABLE `buecher` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `buecher`
+-- Daten für Tabelle `buecher`
 --
 
 INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`, `altersbeschraenkung`) VALUES
@@ -119,7 +120,7 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 -- --------------------------------------------------------
 
 --
--- Table structure for table `einstellungen`
+-- Tabellenstruktur für Tabelle `einstellungen`
 --
 
 CREATE TABLE `einstellungen` (
@@ -128,7 +129,7 @@ CREATE TABLE `einstellungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `einstellungen`
+-- Daten für Tabelle `einstellungen`
 --
 
 INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
@@ -151,7 +152,7 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reservierungen`
+-- Tabellenstruktur für Tabelle `reservierungen`
 --
 
 CREATE TABLE `reservierungen` (
@@ -165,18 +166,18 @@ CREATE TABLE `reservierungen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `reservierungen`
+-- Daten für Tabelle `reservierungen`
 --
 
 INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`, `email_gesendet`) VALUES
 (8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03', 0);
 
 --
--- Indexes for dumped tables
+-- Indizes der exportierten Tabellen
 --
 
 --
--- Indexes for table `ausleihen`
+-- Indizes für die Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD PRIMARY KEY (`id`),
@@ -184,26 +185,26 @@ ALTER TABLE `ausleihen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- Indexes for table `benutzer`
+-- Indizes für die Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indexes for table `buecher`
+-- Indizes für die Tabelle `buecher`
 --
 ALTER TABLE `buecher`
   ADD PRIMARY KEY (`isbn`);
 
 --
--- Indexes for table `einstellungen`
+-- Indizes für die Tabelle `einstellungen`
 --
 ALTER TABLE `einstellungen`
   ADD PRIMARY KEY (`schluessel`);
 
 --
--- Indexes for table `reservierungen`
+-- Indizes für die Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD PRIMARY KEY (`id`),
@@ -211,40 +212,40 @@ ALTER TABLE `reservierungen`
   ADD KEY `schueler_id` (`schueler_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT für exportierte Tabellen
 --
 
 --
--- AUTO_INCREMENT for table `ausleihen`
+-- AUTO_INCREMENT für Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
--- AUTO_INCREMENT for table `benutzer`
+-- AUTO_INCREMENT für Tabelle `benutzer`
 --
 ALTER TABLE `benutzer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000021;
 
 --
--- AUTO_INCREMENT for table `reservierungen`
+-- AUTO_INCREMENT für Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- Constraints for dumped tables
+-- Constraints der exportierten Tabellen
 --
 
 --
--- Constraints for table `ausleihen`
+-- Constraints der Tabelle `ausleihen`
 --
 ALTER TABLE `ausleihen`
   ADD CONSTRAINT `ausleihen_ibfk_3` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`),
   ADD CONSTRAINT `ausleihen_ibfk_4` FOREIGN KEY (`isbn`) REFERENCES `buecher` (`isbn`);
 
 --
--- Constraints for table `reservierungen`
+-- Constraints der Tabelle `reservierungen`
 --
 ALTER TABLE `reservierungen`
   ADD CONSTRAINT `reservierungen_ibfk_2` FOREIGN KEY (`schueler_id`) REFERENCES `benutzer` (`id`) ON UPDATE CASCADE,

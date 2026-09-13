@@ -1,5 +1,6 @@
 import javafx.scene.control.TextField;
 import java.io.IOException;
+import javafx.scene.input.MouseEvent;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
@@ -31,6 +32,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 
+/**
+ * Controller für die Schüler-Startseite.
+ * Verwaltet die Anzeige von geliehenen und reservierten Büchern,
+ * die Buchsuche, Reservierungen und den eigenen Ausleihverlauf.
+ */
 public class ControllerSchuelerStartseite {
 
     private Bibliothek model;
@@ -93,12 +99,24 @@ public class ControllerSchuelerStartseite {
     @FXML
     private ImageView mahnung;
 
+    /**
+     * Hilfsklasse für die Zeilen der Tabellen (Geliehen, Reserviert, Verlauf).
+     */
     public static class TabellenZeile {
         private String titel;
         private String autor;
         private String isbn;
         private Label datum;
 
+        /**
+         * Konstruktor für eine Tabellenzeile.
+         * 
+         * @param titel Der Buchtitel.
+         * @param autor Der Autor.
+         * @param isbn Die ISBN.
+         * @param datumText Das anzuzeigende Datum (Rückgabe, Reservierung, etc.).
+         * @param verspaetetRot Ob ein überfälliges Datum rot markiert werden soll.
+         */
         public TabellenZeile(String titel, String autor, String isbn, String datumText, boolean verspaetetRot) {
             this.titel = titel;
             this.autor = autor;
@@ -113,23 +131,33 @@ public class ControllerSchuelerStartseite {
             }
         }
 
+        /** @return Der Buchtitel. */
         public String getTitel() {
             return titel;
         }
 
+        /** @return Der Autor. */
         public String getAutor() {
             return autor;
         }
 
+        /** @return Die ISBN. */
         public String getIsbn() {
             return isbn;
         }
 
+        /** @return Das formatierte Label für das Datum. */
         public Label getDatum() {
             return datum;
         }
     }
 
+    /**
+     * Setzt das Modell, aktualisiert die Nutzerdaten/Tabellen und wählt 
+     * je nach Status (verspätet etc.) das passende Eulen-Bild aus.
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
         String text = "Hallo, " + model.getName() + " !";
@@ -165,6 +193,10 @@ public class ControllerSchuelerStartseite {
         mahnung.setPreserveRatio(true);
     }
 
+    /**
+     * Initialisiert den Controller, setzt Placeholder für Tabellen, 
+     * definiert Spalten und richtet die Skalierung ein.
+     */
     public void initialize() {
         geliehenTabelle.setPlaceholder(new Label("aktuell keine Buecher geliehen"));
         reserviertTabelle.setPlaceholder(new Label("aktuell keine Buecher reserviert"));
@@ -207,6 +239,11 @@ public class ControllerSchuelerStartseite {
         });
     }
 
+    /**
+     * Meldet den aktuellen Nutzer ab und navigiert zum Login-Bildschirm.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void logout(ActionEvent event) {
         model.logout();
         try {
@@ -221,6 +258,10 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    /**
+     * Aktualisiert alle Tabellen (Geliehen, Reserviert, Verlauf) 
+     * mit den neuesten Daten aus dem Model für den aktuellen Nutzer.
+     */
     public void updateTabellen() {
         if (model == null)
             return;
@@ -229,7 +270,7 @@ public class ControllerSchuelerStartseite {
         QueryResult geliehen = model.getMeineGeliehenenBuecher();
         if (geliehen != null) {
             for (String[] row : geliehen.getData()) {
-                geliehenTabelle.getItems().add(new TabellenZeile(row[0], "", "", row[1], true));
+                geliehenTabelle.getItems().add(new TabellenZeile(row[0], "", row[2], row[1], true));
             }
         }
 
@@ -239,10 +280,10 @@ public class ControllerSchuelerStartseite {
             for (String[] row : reserviert.getData()) {
                 if ("bereit".equals(row[2])) {
                     reserviertTabelle.getItems()
-                            .add(new TabellenZeile(row[0], "", "", "bereit zum abholen bis " + row[1], false));
+                            .add(new TabellenZeile(row[0], "", row[3], "bereit zum abholen bis " + row[1], false));
                 } else {
                     reserviertTabelle.getItems().add(
-                            new TabellenZeile(row[0], "", "", row[1] != null ? row[1] : "Warte auf Rückgabe", false));
+                            new TabellenZeile(row[0], "", row[3], row[1] != null ? row[1] : "Warte auf Rückgabe", false));
                 }
             }
         }
@@ -256,6 +297,9 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    /**
+     * Führt eine Buchsuche anhand der SearchBar durch und aktualisiert die Suchergebnis-Liste.
+     */
     public void suchen() {
         if (model == null || searchBar.getText().isEmpty())
             return;
@@ -276,6 +320,7 @@ public class ControllerSchuelerStartseite {
             for (Buch b : suchergebnisse.getItems()) {
                 if (b.getIsbn().equals(altIsbn)) {
                     suchergebnisse.getSelectionModel().select(b);
+                    selectedBuch = b;
                     selectBuch();
                     break;
                 }
@@ -283,11 +328,48 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    /**
+     * Wird aufgerufen, wenn ein Buch in der Suchergebnis-Liste angeklickt wird.
+     * 
+     * @param event Das MouseEvent.
+     */
+    public void selectBuchAusListe(MouseEvent event) {
+        Buch listSelected = suchergebnisse.getSelectionModel().getSelectedItem();
+        if (listSelected != null) {
+            selectedBuch = listSelected;
+            selectBuch();
+        }
+    }
+
+    /**
+     * Wird aufgerufen, wenn eine Tabellenzeile angeklickt wird, 
+     * um die dazugehörigen Buchdetails anzuzeigen.
+     * 
+     * @param event Das MouseEvent.
+     */
+    public void selectBuchAusTabelle(MouseEvent event) {
+        if (event.getSource() instanceof TableView) {
+            TableView<?> table = (TableView<?>) event.getSource();
+            Object selectedItem = table.getSelectionModel().getSelectedItem();
+            if (selectedItem instanceof TabellenZeile) {
+                TabellenZeile zeile = (TabellenZeile) selectedItem;
+                String isbn = zeile.getIsbn();
+                if (isbn != null && !isbn.isEmpty()) {
+                    selectedBuch = model.getBuch(isbn);
+                    selectBuch();
+                }
+            }
+        }
+    }
+
+    /**
+     * Aktualisiert das Info-Feld und den Reservieren-Button 
+     * basierend auf dem aktuell ausgewählten Buch.
+     */
     public void selectBuch() {
-        selectedBuch = suchergebnisse.getSelectionModel().getSelectedItem();
         if (selectedBuch != null) {
             StringBuilder infoBuilder = new StringBuilder();
-            
+
             if (selectedBuch.getTitel() != null && !selectedBuch.getTitel().isEmpty()) {
                 infoBuilder.append("Titel: ").append(selectedBuch.getTitel()).append("\n");
             }
@@ -306,7 +388,7 @@ public class ControllerSchuelerStartseite {
             if (selectedBuch.getBeschreibung() != null && !selectedBuch.getBeschreibung().isEmpty()) {
                 infoBuilder.append("\nBeschreibung:\n").append(selectedBuch.getBeschreibung());
             }
-            
+
             buchInfoFeld.setText(infoBuilder.toString().trim());
             String status = selectedBuch.getStatus();
             if (status.equals("verfuegbar")) {
@@ -336,6 +418,10 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    /**
+     * Führt eine Reservierung des ausgewählten Buches durch oder storniert sie,
+     * falls das Buch bereits vom aktuellen Nutzer reserviert wurde.
+     */
     public void reservieren() {
         if (selectedBuch != null) {
             if (!model.selbstReserviert(selectedBuch.getIsbn())) {
@@ -350,13 +436,20 @@ public class ControllerSchuelerStartseite {
         }
     }
 
+    /**
+     * Wechselt zur Szene "Passwort ändern".
+     * 
+     * @param event Das ActionEvent.
+     */
     public void passwortAendern(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene currentScene = ((Node) event.getSource()).getScene();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/passwortReset.fxml"));
             Parent root = loader.load();
             passwortResetController controller = loader.getController();
             controller.setModel(model);
+            controller.setPreviousScene(currentScene);
             Scene scene = new Scene(root);
             scene.setFill(Color.web("#E9E9D3"));
             stage.setScene(scene);

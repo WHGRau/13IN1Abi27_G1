@@ -30,6 +30,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 
 
+/**
+ * Controller-Klasse für das Popup-Fenster zur manuellen Eingabe oder
+ * automatisierten API-Abfrage (ISBN) eines neuen Buches.
+ */
 public class ControllerPopUpNeu
 {
     String isbn;
@@ -59,6 +63,13 @@ public class ControllerPopUpNeu
     @FXML
     private Text errorText;
     
+    /**
+     * Setzt die anfängliche ISBN und das Model.
+     * Ruft bei Vorhandensein einer ISBN direkt die API zur Datenabfrage auf.
+     * 
+     * @param isbn Die vorab eingegebene ISBN (kann null sein).
+     * @param model Das aktuelle Bibliotheks-Model.
+     */
     public void setISBN(String isbn, Bibliothek model){
         this.isbn = isbn;
         this.model = model;
@@ -68,16 +79,30 @@ public class ControllerPopUpNeu
         isbnFeld.setText(isbn);
     }
 
+    /**
+     * Initialisiert den Controller.
+     */
     public void initialize(){
         
     }
     
+    /**
+     * Führt eine Buchdaten-Abfrage durch, wenn die Enter-Taste im ISBN-Feld gedrückt wird.
+     * 
+     * @param event Das KeyEvent-Objekt.
+     */
     public void enter(KeyEvent event) {
         if (event.getCode().equals(KeyCode.ENTER)) {
             buchDatenAbrufen(isbnFeld.getText());
         }
     }
     
+    /**
+     * Überprüft die eingegebenen Daten und fügt das neue Buch der Bibliothek hinzu.
+     * Schließt danach das Popup-Fenster.
+     * 
+     * @param event Das ActionEvent des Hinzufügen-Buttons.
+     */
     public void hinzu(ActionEvent event){
         try {
             if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
@@ -109,6 +134,12 @@ public class ControllerPopUpNeu
         }
     }
     
+    /**
+     * Ruft Metadaten zu einem Buch (Titel, Autor, etc.) von einer externen API
+     * (Google Books oder OpenLibrary) basierend auf der ISBN ab und füllt die Felder aus.
+     * 
+     * @param isbn Die ISBN des abzufragenden Buches.
+     */
     public void buchDatenAbrufen(String isbn) {
         try {
             String dbSetting = model.getEinstellung("buechersuche_datenbank");
@@ -173,6 +204,14 @@ public class ControllerPopUpNeu
         }
     }
     
+    /**
+     * Hilfsmethode: Extrahiert den ersten Wert aus einem JSON-Array
+     * anhand eines bestimmten Schlüssels (z. B. "authors").
+     * 
+     * @param json Der gesamte JSON-String.
+     * @param schluessel Der gesuchte Array-Schlüssel.
+     * @return Der extrahierte Wert oder ein leerer String, falls nicht gefunden.
+     */
     private String arrayWertAuslesen(String json, String schluessel) {
         int startPos = json.indexOf("\"" + schluessel + "\"");
         if (startPos != -1) {
@@ -188,6 +227,14 @@ public class ControllerPopUpNeu
         return "";
     }
     
+    /**
+     * Hilfsmethode: Extrahiert einen einfachen Textwert aus einem JSON-String
+     * anhand eines bestimmten Schlüssels.
+     * 
+     * @param json Der gesamte JSON-String.
+     * @param schluessel Der gesuchte Schlüssel.
+     * @return Der extrahierte Wert oder ein leerer String, falls nicht gefunden.
+     */
     private String wertAuslesen(String json, String schluessel) {
         String suche1 = "\"" + schluessel + "\":\"";
         String suche2 = "\"" + schluessel + "\": \"";
