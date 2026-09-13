@@ -190,15 +190,9 @@ public class Bibliothek {
     public void buchHinzufuegen(String isbn, String titel, String autor, Integer jahr, String beschreibung,
             String alter) {
         if (isLehrer()) {
-            if (titel != null)
-                titel = titel.replace("'", "''");
-            if (autor != null)
-                autor = autor.replace("'", "''");
-            if (beschreibung != null)
-                beschreibung = beschreibung.replace("'", "''");
-
-            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : "NULL";
-            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : "NULL";
+            
+            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : null;
+            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : null;
 
             String sql = "INSERT INTO buecher (isbn, titel,autor,erscheinungsjahr, beschreibung, status, altersbeschraenkung)"
                     + " VALUES(?, ?, ?,?,?,'verfuegbar', ?)" ;
@@ -303,7 +297,7 @@ public class Bibliothek {
                     case "verfuegbar":
                         dbConnector.executeStatement(
                                 "SELECT schueler_id FROM reservierungen WHERE isbn = ?" 
-                                        + " AND status = 'bereit'");
+                                        + " AND status = 'bereit'", code);
                         if (dbConnector.getCurrentQueryResult() != null
                                 && dbConnector.getCurrentQueryResult().getRowCount() > 0) {
                             if (erfassterSchueler == null) {
@@ -560,15 +554,9 @@ public class Bibliothek {
     public void buchBearbeiten(String isbn, String titel, String autor, Integer jahr, String beschreibung,
             String status, String alter) {
         if (isLehrer()) {
-            if (titel != null)
-                titel = titel.replace("'", "''");
-            if (autor != null)
-                autor = autor.replace("'", "''");
-            if (beschreibung != null)
-                beschreibung = beschreibung.replace("'", "''");
 
-            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : "NULL";
-            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : "NULL";
+            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : null;
+            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : null;
 
             dbConnector.executeStatement(
                     "UPDATE buecher SET titel = ?, autor = ?, erscheinungsjahr = ?, beschreibung = ?, status = ?"
@@ -812,11 +800,11 @@ public class Bibliothek {
             int pMaxBuecher) {
         if (isLehrer()) {
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
-            String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL"
-                    : "'" + pGeburtsdatum + "'";
-            String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? "NULL" : "'" + pEmail.toLowerCase() + "'";
+            String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? null
+                    : pGeburtsdatum ;
+            String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? null :  pEmail.toLowerCase() ;
             String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum, passwortAendern, maxBuecherGleichzeitig)"
-                    + " VALUES(?,?,?,?,?,?,?,'1',?))";
+                    + " VALUES(?,?,?,?,?,?,?,'1',?)";
             dbConnector.executeStatement(sql, pVn, pNn, emailSql, hashen(passwort), pRolle,1,gebDatumSql,pMaxBuecher);
             if (pEmail != null && !pEmail.trim().isEmpty()) {
                 initialesPasswortSenden(pEmail);
@@ -883,10 +871,10 @@ public class Bibliothek {
             dbConnector.executeStatement("SELECT email FROM benutzer WHERE id = ?" , pID);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
-                String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL"
-                        : "'" + pGeburtsdatum + "'";
-                String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? "NULL"
-                        : "'" + pEmail.toLowerCase() + "'";
+                String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? null
+                        :  pGeburtsdatum;
+                String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? null
+                        : pEmail.toLowerCase() ;
                 dbConnector.executeStatement(
                         "UPDATE benutzer SET vorname = ?, nachname = ?, rolle = ?"
                                 + ", email = ?, geburtsdatum = ?" 
