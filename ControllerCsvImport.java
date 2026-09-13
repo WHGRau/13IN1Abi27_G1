@@ -29,6 +29,10 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 
+/**
+ * Controller für den CSV-Import von Benutzern.
+ * Bietet Funktionen zur Dateiauswahl und zum Generieren von Bibliotheksausweisen als PDF.
+ */
 public class ControllerCsvImport {
 
     private Bibliothek model;
@@ -52,10 +56,19 @@ public class ControllerCsvImport {
     @FXML
     private Button importierenButton;
 
+    /**
+     * Setzt das Model der Bibliothek für diesen Controller.
+     * @param model Das aktuelle Bibliotheks-Model.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
     }
 
+    /**
+     * Kehrt zur Nutzerverwaltungs-Ansicht zurück.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void zurueck(ActionEvent event) {
         try {
@@ -71,6 +84,11 @@ public class ControllerCsvImport {
         }
     }
 
+    /**
+     * Öffnet einen Dateiauswahldialog zur Auswahl der zu importierenden CSV-Datei.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void csvWaehlen(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -89,6 +107,12 @@ public class ControllerCsvImport {
         }
     }
 
+    /**
+     * Reagiert auf eine Änderung der Checkbox "Ausweise generieren".
+     * Aktiviert oder deaktiviert den Button zur Pfadauswahl entsprechend.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void ausweiseOptionGeaendert(ActionEvent event) {
         boolean selected = ausweiseGenerierenCheckBox.isSelected();
@@ -99,6 +123,11 @@ public class ControllerCsvImport {
         }
     }
 
+    /**
+     * Öffnet einen Dialog, um den Zielordner zum Speichern der generierten PDF-Ausweise zu wählen.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void pfadWaehlen(ActionEvent event) {
         DirectoryChooser dirChooser = new DirectoryChooser();
@@ -114,6 +143,12 @@ public class ControllerCsvImport {
         }
     }
 
+    /**
+     * Führt den Import-Vorgang aus. Liest die CSV-Datei ein und generiert, 
+     * falls ausgewählt, die PDF-Ausweise in den angegebenen Zielordner.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void importieren(ActionEvent event) {
         if (selectedCsv == null) {
@@ -169,6 +204,14 @@ public class ControllerCsvImport {
         }
     }
 
+    /**
+     * Generiert eine PDF-Datei mit Bibliotheksausweisen (inkl. Barcodes) 
+     * für eine Gruppe von bis zu vier Benutzern.
+     * 
+     * @param schulerList Liste von Benutzern für diesen PDF-Batch.
+     * @param zielOrdner Der Ordner, in dem das PDF gespeichert wird.
+     * @param batchIndex Fortlaufende Nummer zur Benennung der PDF-Datei.
+     */
     private void generiereAusweiseFuerGruppe(ArrayList<Benutzer> schulerList, String zielOrdner, int batchIndex) {
         try {
             File temp = new File("eulen/Karten.pdf");

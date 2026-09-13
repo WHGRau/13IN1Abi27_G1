@@ -12,6 +12,10 @@ import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
+/**
+ * Controller für den Bildschirm zum Zurücksetzen bzw. Ändern des Passworts.
+ * Handhabt die Eingabe und Validierung des neuen Passworts.
+ */
 public class passwortResetController {
 
     private Bibliothek model;
@@ -23,14 +27,28 @@ public class passwortResetController {
     @FXML private Button fertigButton;
     @FXML private Button zurueckButton;
 
+    /**
+     * Setzt das Model (die Bibliotheks-Instanz) für diesen Controller.
+     * @param model Das aktuelle Bibliotheks-Model.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
     }
 
+    /**
+     * Speichert die vorherige Szene, um bei einem Abbruch dorthin zurückkehren zu können.
+     * @param scene Die Szene, von der aus dieser Controller aufgerufen wurde.
+     */
     public void setPreviousScene(Scene scene) {
         this.previousScene = scene;
     }
 
+    /**
+     * Bricht den Vorgang ab und navigiert zurück zur vorherigen Ansicht 
+     * (Startseite, Login oder gespeicherte Szene).
+     * 
+     * @param event Das ausgelöste ActionEvent.
+     */
     public void zurueck(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -68,6 +86,12 @@ public class passwortResetController {
         }
     }
 
+    /**
+     * Überprüft die eingegebenen Passwörter auf Übereinstimmung und Mindestlänge.
+     * Speichert das neue Passwort bei Erfolg ab und leitet zum Login zurück.
+     * 
+     * @param event Das ausgelöste ActionEvent.
+     */
     public void speichern(ActionEvent event) {
         if (passwort1.getText().equals(passwort2.getText())) {
             if(passwort1.getText().length() < 8) {

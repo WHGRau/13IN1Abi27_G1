@@ -37,6 +37,10 @@ import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * Controller für die Lehrer-Startseite (Hauptmenü der Anwendung).
+ * Verwaltet Ausleihen, Rückgaben, Scanner-Eingaben, Tabellenübersichten und Navigation.
+ */
 public class ControllerLehrerStartseite {
 
     private Bibliothek model;
@@ -153,6 +157,9 @@ public class ControllerLehrerStartseite {
     @FXML
     private Button mahnungButton;
 
+    /**
+     * Hilfsklasse für die Zeilen der Tabelle "Verliehene Bücher".
+     */
     public static class tabelleZeile {
         private String isbn;
         private String titel;
@@ -163,6 +170,18 @@ public class ControllerLehrerStartseite {
         private int anzahlMahnungen;
         private int id;
 
+        /**
+         * Konstruktor für eine Zeile in der Verliehen-Tabelle.
+         * 
+         * @param isbn Die ISBN des Buches.
+         * @param titel Der Titel des Buches.
+         * @param nachname Der Nachname des Entleihers.
+         * @param vorname Der Vorname des Entleihers.
+         * @param email Die E-Mail-Adresse.
+         * @param geplante_Rueckgabe Das geplante Rückgabedatum.
+         * @param anzahlMahnungen Die Anzahl bisheriger Mahnungen.
+         * @param id Die ID des Verleihvorgangs.
+         */
         public tabelleZeile(String isbn, String titel, String nachname, String vorname, String email,
                 String geplante_Rueckgabe, int anzahlMahnungen, int id) {
             this.isbn = isbn;
@@ -181,39 +200,50 @@ public class ControllerLehrerStartseite {
             }
         }
 
+        /** @return ISBN des Buches. */
         public String getIsbn() {
             return isbn;
         }
 
+        /** @return Titel des Buches. */
         public String getTitel() {
             return titel;
         }
 
+        /** @return Nachname des Entleihers. */
         public String getNachname() {
             return nachname;
         }
 
+        /** @return Vorname des Entleihers. */
         public String getVorname() {
             return vorname;
         }
 
+        /** @return E-Mail des Entleihers. */
         public String getEmail() {
             return email;
         }
 
+        /** @return Geplante Rückgabe als farblich angepasstes Label. */
         public Label getGeplanteRueckgabe() {
             return geplanteRueckgabe;
         }
 
+        /** @return Anzahl der Mahnungen. */
         public int getAnzahlMahnungen() {
             return anzahlMahnungen;
         }
 
+        /** @return ID des Verleih-Eintrags. */
         public int getId() {
             return id;
         }
     }
 
+    /**
+     * Hilfsklasse für die Zeilen der Tabelle "Reservierte Bücher".
+     */
     public static class tabelleZeileReservierung {
         private String isbn;
         private String titel;
@@ -221,6 +251,15 @@ public class ControllerLehrerStartseite {
         private String vorname;
         private String email;
 
+        /**
+         * Konstruktor für eine Reservierungszeile.
+         * 
+         * @param isbn Die ISBN des Buches.
+         * @param titel Der Titel des Buches.
+         * @param nachname Der Nachname des Reservierenden.
+         * @param vorname Der Vorname des Reservierenden.
+         * @param email Die E-Mail-Adresse.
+         */
         public tabelleZeileReservierung(String isbn, String titel, String nachname, String vorname, String email) {
             this.isbn = isbn;
             this.titel = titel;
@@ -229,27 +268,38 @@ public class ControllerLehrerStartseite {
             this.email = email;
         }
 
+        /** @return ISBN des Buches. */
         public String getIsbn() {
             return isbn;
         }
 
+        /** @return Titel des Buches. */
         public String getTitel() {
             return titel;
         }
 
+        /** @return Nachname des Reservierenden. */
         public String getNachname() {
             return nachname;
         }
 
+        /** @return Vorname des Reservierenden. */
         public String getVorname() {
             return vorname;
         }
 
+        /** @return E-Mail des Reservierenden. */
         public String getEmail() {
             return email;
         }
     }
 
+    /**
+     * Setzt das Modell, aktualisiert die Anzeige (Name, Tabellen) 
+     * und prüft die Rechte des aktuellen Benutzers (Lehrer/Schüler/Helfer).
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
 
@@ -280,6 +330,10 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Initialisiert den Controller, setzt Skalierungseinstellungen für das Fenster, 
+     * konfiguriert das Seitenmenü und EventListener für den Scanner.
+     */
     public void initialize() {
         neuesBuch.setVisible(false);
         
@@ -356,34 +410,30 @@ public class ControllerLehrerStartseite {
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
                     long jetzt = System.currentTimeMillis();
                     if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
-                            ausleihdauerFeld.setEditable(false);
-                            String e = ausleihdauerFeld.getText();
-                            if (e != null){
-                                
-                                ausleihdauerFeld.setText(dauer);
-                            }
-                            
-                        } 
-                        else{
-                            ausleihdauerFeld.setEditable(true);
+                        ausleihdauerFeld.setEditable(false);
+                        String e = ausleihdauerFeld.getText();
+                        if (e != null){
+                            ausleihdauerFeld.setText(dauer);
                         }
-
                     } else {
                         ausleihdauerFeld.setEditable(true);
                     }
                     letzteTastenZeit = jetzt;
-
                 });
             }
-        });
 
         background.sceneProperty().addListener((observable, oldScene, newScene) -> {
             if (newScene != null) {
                 registerGlobalScanner(newScene);
             }
         });
+        });
     }
 
+    /**
+     * Lädt alle aktuell verliehenen Bücher aus der Datenbank 
+     * und füllt die Verliehen-Tabelle.
+     */
     public void loadVerliehenTabelle() {
         QueryResult result = model.getVerlieheneBuecher();
         if (result != null) {
@@ -409,6 +459,12 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Registriert einen globalen EventFilter auf der Szene,
+     * um Barcode-Scanner-Eingaben (Tastatur-Events + ENTER) systemweit abzufangen.
+     * 
+     * @param scene Die aktuelle JavaFX-Szene.
+     */
     public void registerGlobalScanner(javafx.scene.Scene scene) {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             String character = event.getText();
@@ -428,6 +484,9 @@ public class ControllerLehrerStartseite {
         });
     }
 
+    /**
+     * Lädt alle reservierten Bücher aus der Datenbank und füllt die Reserviert-Tabelle.
+     */
     public void loadReserviertTabelle() {
         QueryResult result = model.getAlleReservierungen();
         if (result != null) {
@@ -449,6 +508,10 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Wird aufgerufen, wenn ein Barcode (ISBN oder Schüler-ID) gescannt wurde.
+     * Führt die Logik im Model aus (Feedback-Code) und aktualisiert UI-Elemente.
+     */
     public void scannen() {
         neuesBuch.setVisible(false);
         if (feedbackTimer != null)
@@ -561,6 +624,10 @@ public class ControllerLehrerStartseite {
         updateGescanntListe();
     }
 
+    /**
+     * Aktualisiert die Liste der aktuell im Ausleih-/Rückgabevorgang 
+     * gepufferten bzw. gescannten Bücher (Konflikte rot markiert).
+     */
     private void updateGescanntListe() {
         if (gescanntListe != null && model != null) {
             gescanntListe.getItems().clear();
@@ -572,6 +639,9 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Setzt den Status-/Feedback-Text nach 10 Sekunden automatisch zurück.
+     */
     private void feedbackZuruecksetzen() {
         if (feedbackTimer != null)
             feedbackTimer.stop();
@@ -583,6 +653,10 @@ public class ControllerLehrerStartseite {
         feedbackTimer.play();
     }
 
+    /**
+     * Bricht den aktuellen Scan-/Ausleih-/Rückgabevorgang ab 
+     * und leert die entsprechenden Listen im Modell.
+     */
     public void abbrechen() {
         ausleihenButton.setDisable(true);
         zuruecknehmenButton.setDisable(true);
@@ -595,6 +669,10 @@ public class ControllerLehrerStartseite {
         abbrechenButton.setDisable(true);
     }
 
+    /**
+     * Führt die Rückgabe für alle aktuell erfassten Bücher im Model durch
+     * und aktualisiert anschließend die Anzeige.
+     */
     public void zurueckgeben() {
         rueckgaengigButton.setDisable(false);
         model.buchRueckgabe();
@@ -610,6 +688,10 @@ public class ControllerLehrerStartseite {
         letzteAktionAnzeigen();
     }
 
+    /**
+     * Führt die Ausleihe für den aktuell erfassten Schüler und die erfassten Bücher
+     * im Model durch und aktualisiert anschließend die Anzeige.
+     */
     public void ausleihen() {
         try {
             int dauer = Integer.parseInt(ausleihdauerFeld.getText());
@@ -635,6 +717,11 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Meldet den aktuellen Nutzer ab und lädt die Login-Szene.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void logout(ActionEvent event) {
         model.logout();
         try {
@@ -649,6 +736,11 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Wechselt zur Szene "Bücherverwaltung" (nur für Lehrer verfügbar).
+     * 
+     * @param event Das ActionEvent.
+     */
     public void loadBuecherVerwaltung(ActionEvent event) {
         if (model.isLehrer()) {
             try {
@@ -669,6 +761,11 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Wechselt zur Szene "Nutzerverwaltung" (nur für Lehrer verfügbar).
+     * 
+     * @param event Das ActionEvent.
+     */
     public void loadNutzerVerwaltung(ActionEvent event) {
         if (model.isLehrer()) {
             try {
@@ -689,6 +786,11 @@ public class ControllerLehrerStartseite {
         }
     }
     
+    /**
+     * Wechselt zur Szene "Statistiken".
+     * 
+     * @param event Das ActionEvent.
+     */
     public void loadStatistiken(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -707,23 +809,35 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Wechselt zur Szene "Einstellungen" (nur für Lehrer verfügbar).
+     * 
+     * @param event Das ActionEvent.
+     */
     public void toEinstellungen(ActionEvent event) {
-        try {
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
-            Parent root = loader.load();
+        if(model.isLehrer()){
+            try {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
+                Parent root = loader.load();
 
-            ControllerEinstellungen controller = loader.getController();
-            controller.setModel(model);
+                ControllerEinstellungen controller = loader.getController();
+                controller.setModel(model);
 
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
+    /**
+     * Wechselt zur Szene "Passwort ändern".
+     * 
+     * @param event Das ActionEvent.
+     */
     public void passwortAendern(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -742,6 +856,10 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Entfernt das in der Liste markierte (gescannte) Buch aus dem Puffer
+     * und aktualisiert die UI (Buttons/Liste).
+     */
     public void gescanntesBuchEntfernen() {
         int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
@@ -767,6 +885,10 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Zeigt in der Liste die zuletzt ausgeführte Aktion (Ausleihe/Rückgabe) 
+     * mitsamt betroffenen Büchern und Schülern an.
+     */
     public void letzteAktionAnzeigen(){
         neuesBuch.setVisible(false);
         ArrayList<String> liste = new ArrayList<>();
@@ -781,6 +903,9 @@ public class ControllerLehrerStartseite {
         gescanntListe.getItems().addAll(liste);
     }
 
+    /**
+     * Macht die zuletzt durchgeführte Ausleihe oder Rückgabe im Model rückgängig.
+     */
     public void letzteAktionZureucknehmen() {
         model.letzteAktionZuruecknehmen();
         loadVerliehenTabelle();
@@ -794,6 +919,11 @@ public class ControllerLehrerStartseite {
         gescanntListe.getItems().clear();
     }
     
+    /**
+     * Öffnet das Seitenmenü.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void openmenu(ActionEvent event){
         if (menuPane.getTranslateX() == 0) { 
             menuPane.setTranslateX(-200); 
@@ -807,6 +937,11 @@ public class ControllerLehrerStartseite {
         transition.play();
     }
     
+    /**
+     * Schließt das Seitenmenü.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void closemenu(ActionEvent event){
         menuPane.setVisible(false);
         TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
@@ -817,6 +952,10 @@ public class ControllerLehrerStartseite {
         transition.play();
     }
 
+    /**
+     * Fügt dem Entleiher des ausgewählten Buches (in der Verliehen-Tabelle) eine Mahnung hinzu 
+     * (nur für Lehrer möglich).
+     */
     public void mahnungHinzufuegen() {
         if (model.isLehrer()) {
             tabelleZeile selectedItem = verliehenTabelle.getSelectionModel().getSelectedItem();
@@ -827,6 +966,12 @@ public class ControllerLehrerStartseite {
         }
     }
 
+    /**
+     * Öffnet ein Popup-Fenster, um ein neues Buch hinzuzufügen, 
+     * falls ein unbekannter Barcode gescannt wurde.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void openPopUp(ActionEvent event){
         try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/PopUpNeu.fxml"));
