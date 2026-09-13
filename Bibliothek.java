@@ -134,50 +134,53 @@ public class Bibliothek {
         if (isLehrer()) {
             if (erfassteBuecher.isEmpty())
                 return;
-            String isbn = erfassteBuecher.get(0);
-            dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '" + isbn + "'");
-            QueryResult result = dbConnector.getCurrentQueryResult();
-            //Schuler auch zu ruckgabe scannen
-            letzterSchueler = erfassterSchueler;
-            if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
-                letzteAktionAusleihen = false;
-                letzteBuecher.clear();
-                letzteBuecher.add(isbn);
-                
-                dbConnector
-                        .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
-                                + "' AND ruckgabe_datum IS NULL AND schueler_id ='" + letzterSchueler+"'");
-
-                dbConnector.executeStatement(
-                        "SELECT status FROM reservierungen WHERE isbn = '" + isbn + "' AND status = 'wartend'");
-                QueryResult resResult = dbConnector.getCurrentQueryResult();
-
-                if (resResult != null && resResult.getRowCount() > 0) {
-                    hinzuRE(isbn);
-                    loeschLI(isbn);
-                    updateBuchStatus(isbn);
-                    //hier
-
-                    updateReservierung(isbn);
-
-                    // Email senden an den wartenden Schüler
+            for(int i = 0; i < erfassteBuecher.size(); i ++){
+               String isbn = erfassteBuecher.get(0);
+                dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '" + isbn + "'");
+                QueryResult result = dbConnector.getCurrentQueryResult();
+                //Schuler auch zu ruckgabe scannen
+                letzterSchueler = erfassterSchueler;
+                if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
+                    letzteAktionAusleihen = false;
+                    letzteBuecher.clear();
+                    letzteBuecher.add(isbn);
+                    
+                    dbConnector
+                            .executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = '" + isbn
+                                    + "' AND ruckgabe_datum IS NULL AND schueler_id ='" + letzterSchueler+"'");
+    
                     dbConnector.executeStatement(
-                            "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = '"
-                                    + isbn + "' AND reservierungen.status = 'bereit'");
-                    QueryResult mailResult = dbConnector.getCurrentQueryResult();
-                    if (mailResult != null && mailResult.getRowCount() > 0) {
-                        String empfaengerEmail = mailResult.getData()[0][0];
-                        String vorname = mailResult.getData()[0][1];
-                        String titel = mailResult.getData()[0][2];
-                        MailService mailService = new MailService(this);
-                        mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+                            "SELECT status FROM reservierungen WHERE isbn = '" + isbn + "' AND status = 'wartend'");
+                    QueryResult resResult = dbConnector.getCurrentQueryResult();
+    
+                    if (resResult != null && resResult.getRowCount() > 0) {
+                        hinzuRE(isbn);
+                        loeschLI(isbn);
+                        updateBuchStatus(isbn);
+                        //hier
+    
+                        updateReservierung(isbn);
+    
+                        // Email senden an den wartenden Schüler
+                        dbConnector.executeStatement(
+                                "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = '"
+                                        + isbn + "' AND reservierungen.status = 'bereit'");
+                        QueryResult mailResult = dbConnector.getCurrentQueryResult();
+                        if (mailResult != null && mailResult.getRowCount() > 0) {
+                            String empfaengerEmail = mailResult.getData()[0][0];
+                            String vorname = mailResult.getData()[0][1];
+                            String titel = mailResult.getData()[0][2];
+                            MailService mailService = new MailService(this);
+                            mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+                        }
+                    } else {
+                        loeschLI(isbn);
+                        hinzuDA(isbn);
+                        updateBuchStatus(isbn);
                     }
-                } else {
-                    loeschLI(isbn);
-                    hinzuDA(isbn);
-                    updateBuchStatus(isbn);
-                }
+                } 
             }
+            
         }
     }
 
@@ -1188,7 +1191,7 @@ public class Bibliothek {
     
     private void updateReservierung(String isbn){
         int dauer = getReservierungDauer();
-        dbConnector.executeStatement("SELECT id FROM reservierung WHERE isbn= '"+ isbn
+        dbConnector.executeStatement("SELECT id FROM reservierungen WHERE isbn= '"+ isbn
                                     + "' AND status = 'wartend' ORDER BY reservierung_beginn ASC");
         QueryResult result = dbConnector.getCurrentQueryResult();
         
@@ -1265,7 +1268,7 @@ public class Bibliothek {
         for(int i= 0; i< erfassteBuecher.size(); i++){
             dbConnector.executeStatement("SELECT id FROM ausleihen WHERE schueler_id ='"+erfassterSchueler+"' AND isbn='"+erfassteBuecher.get(i)+"'AND ruckgabe_datum IS NULL");
             QueryResult result = dbConnector.getCurrentQueryResult();
-            if(result == null && result.getRowCount() == 0){
+            if(result == null || result.getRowCount() == 0){
                 return false;
             }
         }
