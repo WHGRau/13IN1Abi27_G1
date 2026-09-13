@@ -20,6 +20,10 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.transform.Scale;
 
+/**
+ * Controller für die Einstellungen der Bibliothek.
+ * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration, Mahnungseinstellungen und APIs.
+ */
 public class ControllerEinstellungen {
 
     @FXML
@@ -62,6 +66,10 @@ public class ControllerEinstellungen {
 
     private Bibliothek model;
 
+    /**
+     * Initialisiert den Einstellungen-Controller.
+     * Passt den Hintergrund dynamisch an die Fenstergröße an.
+     */
     @FXML
     public void initialize() {
 
@@ -90,6 +98,12 @@ public class ControllerEinstellungen {
         });
     }
 
+    /**
+     * Setzt das Model der Bibliothek und lädt alle gespeicherten Einstellungen in die UI-Elemente.
+     * Aktiviert/Deaktiviert Eingabefelder basierend auf den jeweiligen Checkboxen (z. B. Reservierungen aktiv).
+     * 
+     * @param model Das aktuelle Bibliotheks-Model.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
 
@@ -178,6 +192,12 @@ public class ControllerEinstellungen {
         buechersucheApiKeyFeld.setDisable("Open Library".equals(buechersucheDatenbankChoiceBox.getValue()));
     }
 
+    /**
+     * Speichert alle in der UI vorgenommenen Einstellungen im Model (bzw. in der Datenbank) ab
+     * und leitet zurück auf die Startseite.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void speichern(ActionEvent event) {
         String email = emailFeld.getText().trim();
@@ -216,6 +236,11 @@ public class ControllerEinstellungen {
         toStartseite(event);
     }
 
+    /**
+     * Bricht den Vorgang ab (oder navigiert nach dem Speichern) und kehrt zur Lehrer-Startseite zurück.
+     * 
+     * @param event Das ActionEvent.
+     */
     @FXML
     public void toStartseite(ActionEvent event) {
         try {

@@ -48,7 +48,13 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import javafx.scene.control.SplitMenuButton;
 
+/**
+ * Controller für die Benutzerverwaltung.
+ * Verwaltet das Suchen, Bearbeiten, Sperren, Löschen und Erstellen von Benutzern,
+ * sowie das Erzeugen von Benutzerausweisen.
+ */
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
     private Benutzer selectedNutzer;
@@ -93,7 +99,7 @@ public class ControllerNutzerVerwaltung {
     private Button zurueckButton;
 
     @FXML
-    private Button neuButton;
+    private SplitMenuButton neuButton;
 
     @FXML
     private Button entfernenButton;
@@ -142,6 +148,9 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private TableColumn<tabelleZeile, String> verlaufLehrerSpalte;
 
+    /**
+     * Hilfsklasse für die Darstellung eines Eintrags im Ausleih-Verlauf.
+     */
     public static class tabelleZeile {
         private String isbn;
         private String titel;
@@ -150,6 +159,16 @@ public class ControllerNutzerVerwaltung {
         private String rueckgabe;
         private String lehrer;
 
+        /**
+         * Erstellt einen neuen Verlaufseintrag.
+         * 
+         * @param isbn Die ISBN des ausgeliehenen Buches.
+         * @param titel Der Titel des Buches.
+         * @param geliehen Datum der Ausleihe.
+         * @param geplRueckgabe Geplantes Rückgabedatum.
+         * @param rueckgabe Tatsächliches Rückgabedatum.
+         * @param lehrer Der die Ausleihe genehmigende Lehrer.
+         */
         public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe,
                 String lehrer) {
             this.isbn = isbn;
@@ -160,35 +179,57 @@ public class ControllerNutzerVerwaltung {
             this.lehrer = lehrer;
         }
 
+        /**
+         * @return ISBN des Buches.
+         */
         public String getIsbn() {
             return isbn;
         }
 
+        /**
+         * @return Titel des Buches.
+         */
         public String getTitel() {
             return titel;
         }
 
+        /**
+         * @return Ausleihdatum.
+         */
         public String getGeliehen() {
             return geliehen;
         }
 
+        /**
+         * @return Geplantes Rückgabedatum.
+         */
         public String getGeplRueckgabe() {
             return geplRueckgabe;
         }
 
+        /**
+         * @return Tatsächliches Rückgabedatum.
+         */
         public String getRueckgabe() {
             return rueckgabe;
         }
 
+        /**
+         * @return Name des Lehrers.
+         */
         public String getLehrer() {
             return lehrer;
         }
     }
 
+    /**
+     * Initialisiert den Controller, setzt Tabellenspalten, konfiguriert den Hintergrund
+     * und fügt Cell-Factories für farbliche Markierungen (überfällig) hinzu.
+     */
     public void initialize() {
         errorTextTimer = new PauseTransition(Duration.seconds(10));
         errorTextTimer.setOnFinished(e -> errorText.setText(""));
-        rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
+        rolleAuswahl.getItems().addAll("Schüler", "Lehrer", "Helfer");
         rolleAuswahl.setDisable(true);
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
@@ -282,11 +323,19 @@ public class ControllerNutzerVerwaltung {
         });
     }
 
+    /**
+     * Setzt das Modell der Bibliothek und lädt initial die Nutzerliste.
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
         suchen();
     }
 
+    /**
+     * Sucht anhand des Textes in der Suchleiste nach Benutzern und füllt die Tabelle mit den Ergebnissen.
+     */
     public void suchen() {
 
         String suchbegriff = searchBar.getText();
@@ -298,6 +347,11 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Navigiert zurück zur Startseite (Lehrer-Menü).
+     * 
+     * @param event Das ActionEvent.
+     */
     public void toStartseite(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -314,6 +368,10 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Wird ausgeführt, wenn ein Nutzer in der Tabelle angeklickt wird.
+     * Füllt die Textfelder mit den Daten des Nutzers und aktualisiert Sperren-Button/Ausleihverlauf.
+     */
     public void selectBenutzer() {
         errorText.setText("");
         if (errorTextTimer != null)
@@ -334,6 +392,8 @@ public class ControllerNutzerVerwaltung {
 
                 if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
                     rolleAuswahl.setValue("Lehrer");
+                } else if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("helfer")) {
+                    rolleAuswahl.setValue("Helfer");
                 } else {
                     rolleAuswahl.setValue("Schüler");
                 }
@@ -370,29 +430,50 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Überprüft, ob bei Lehrern/Helfern eine E-Mail fehlt, bzw. warnt Schüler ohne E-Mail.
+     */
     public void checkEmailWarnung() {
         if (neuAktiv || bearbeitenAktiv) {
-            boolean isSchueler = "Schüler".equals(rolleAuswahl.getValue());
-            if (isSchueler && emailFeld.getText().trim().isEmpty()) {
-                errorText.setFill(Color.ORANGE);
-                errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+            String rolle = rolleAuswahl.getValue();
+            if ("Schüler".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+                } else {
+                    errorText.setText("");
+                }
+            } else if ("Lehrer".equals(rolle) || "Helfer".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText(rolle + " benötigen eine Email-Adresse");
+                } else {
+                    errorText.setText("");
+                }
             } else {
                 errorText.setText("");
             }
         }
     }
 
+    /**
+     * Behandelt Klicks auf den "bearbeiten" oder "speichern" Button.
+     * Wechselt in den Editier-Modus oder speichert die geänderten Benutzerdaten.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void bearbeiten(ActionEvent event) {
         if (selectedNutzer == null && !neuAktiv) {
             return;
         }
         if (bearbeitenAktiv) {
-            boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+            boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
             if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                    || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                    || (isStaff && emailFeld.getText().trim().isEmpty())) {
                 errorText.setFill(Color.RED);
                 errorText.setText(
-                        isLehrer ? "Lehrer benötigen eine Email-Adresse" : "Bitte füllen Sie Name und Vorname aus!");
+                        isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
+                                : "Bitte füllen Sie Name und Vorname aus!");
                 return;
             }
             String eingegebeneEmail = emailFeld.getText().trim();
@@ -461,6 +542,8 @@ public class ControllerNutzerVerwaltung {
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
+            } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                rolle = "helfer";
             }
             String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
 
@@ -484,7 +567,7 @@ public class ControllerNutzerVerwaltung {
             if (isNeueEmail && isJetztEmail) {
                 model.initialesPasswortSenden(emailFeld.getText().trim());
                 errorText.setFill(Color.GREEN);
-                errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                errorText.setText("Anmeldedaten per E-Mail verschickt");
                 errorTextTimer.playFromStart();
             } else {
                 errorText.setText("");
@@ -493,11 +576,11 @@ public class ControllerNutzerVerwaltung {
 
         } else {
             if (neuAktiv) {
-                boolean isLehrer = "Lehrer".equals(rolleAuswahl.getValue());
+                boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
                 if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                        || (isLehrer && emailFeld.getText().trim().isEmpty())) {
+                        || (isStaff && emailFeld.getText().trim().isEmpty())) {
                     errorText.setFill(Color.RED);
-                    errorText.setText(isLehrer ? "Lehrer benötigen eine Email-Adresse"
+                    errorText.setText(isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
                             : "Bitte füllen Sie Name und Vorname aus!");
                     return;
                 }
@@ -548,6 +631,8 @@ public class ControllerNutzerVerwaltung {
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
+                } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                    rolle = "helfer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
                 model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
@@ -555,7 +640,7 @@ public class ControllerNutzerVerwaltung {
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
-                    errorText.setText("Anmeldedaten für Schülerportal per E-Mail verschickt");
+                    errorText.setText("Anmeldedaten per E-Mail verschickt");
                     errorTextTimer.playFromStart();
                 } else {
                     errorText.setText("");
@@ -601,6 +686,9 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Sperrt oder entsperrt den aktuell ausgewählten Benutzer.
+     */
     public void sperren() {
         if (selectedNutzer == null) {
             return;
@@ -624,6 +712,9 @@ public class ControllerNutzerVerwaltung {
         selectBenutzer();
     }
 
+    /**
+     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen Nutzers.
+     */
     public void nutzerErstellen() {
         errorText.setText("");
         if (errorTextTimer != null)
@@ -679,6 +770,28 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Wechselt zur Szene für den CSV-Import von Benutzern.
+     * 
+     * @param event Das ActionEvent.
+     */
+    public void csvImportieren(ActionEvent event) {
+        try {
+            Stage stage = (Stage) neuButton.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/CSV-import.fxml"));
+            Parent root = loader.load();
+            ControllerCsvImport controller = loader.getController();
+            controller.setModel(model);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Löscht den aktuell ausgewählten Nutzer nach einer Sicherheitsabfrage.
+     */
     public void nutzerLoeschen() {
         if (selectedNutzer == null) {
             return;
@@ -710,6 +823,9 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Lädt die Ausleih-Historie des ausgewählten Nutzers und zeigt sie in der Verlaufstabelle an.
+     */
     public void loadVerlaufTabelle() {
         QueryResult result = model.getNutzerVerlauf(selectedNutzer.getId());
         if (result != null) {
@@ -734,6 +850,11 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Fügt den ausgewählten Nutzer der Liste für den Barcode-/Ausweisdruck hinzu.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void hinzu(ActionEvent event) {
         if (selectedNutzer != null) {
             int anzahl = 4 - schulerList.getItems().size();
@@ -750,6 +871,12 @@ public class ControllerNutzerVerwaltung {
 
     }
 
+    /**
+     * Druckt (bzw. generiert als PDF) Benutzerausweise mit Code-128 Barcodes
+     * für alle in der Auswahlliste (schulerList) befindlichen Nutzer.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void druck(ActionEvent event) {
         if (schulerList.getItems().size() != 0) {
             try {
