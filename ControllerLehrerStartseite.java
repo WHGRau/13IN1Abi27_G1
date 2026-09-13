@@ -32,6 +32,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+import javafx.scene.shape.Rectangle;
 
 public class ControllerLehrerStartseite {
 
@@ -45,6 +49,7 @@ public class ControllerLehrerStartseite {
     private final StringBuilder isbnbuild= new StringBuilder();
     private String isbn;
     private long letzteTastenZeit;
+    private String isbnNeu;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -105,6 +110,9 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button scannenButton;
+    
+    @FXML
+    private Button statistiken;
 
     @FXML
     private TextField ausleihdauerFeld;
@@ -117,6 +125,18 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button rueckgaengigButton;
+    
+    @FXML
+    private VBox menuPane;
+    
+    @FXML
+    private Button aufMenu;
+    
+    @FXML 
+    private Button zuMenu;
+    
+    @FXML
+    private Button neuesBuch;
 
 
     public static class tabelleZeile {
@@ -226,9 +246,20 @@ public class ControllerLehrerStartseite {
         }
         
         nutzernameText.setText(text);
+        
     }
 
     public void initialize() {
+        neuesBuch.setVisible(false);
+        
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(menuPane.widthProperty());
+        clip.heightProperty().bind(menuPane.heightProperty());
+    
+        menuPane.setClip(clip);
+        
+        menuPane.setVisible(false);
+        
         verliehenTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verliehenTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verliehenTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
@@ -289,14 +320,16 @@ public class ControllerLehrerStartseite {
                 
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
                 
+                String dauer = ausleihdauerFeld.getText();
+                
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
                     long jetzt = System.currentTimeMillis();
                     if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
                             ausleihdauerFeld.setEditable(false);
                             String e = ausleihdauerFeld.getText();
                             if (e != null){
-                                e = e.substring(0, e.length()-1);
-                                ausleihdauerFeld.setText(e);
+                                
+                                ausleihdauerFeld.setText(dauer);
                             }
                             
                         } 
@@ -379,6 +412,7 @@ public class ControllerLehrerStartseite {
     }
 
     public void scannen() {
+        neuesBuch.setVisible(false);
         if (feedbackTimer != null)
             feedbackTimer.stop();
         feedbackText.setFill(Color.BLACK);
@@ -390,7 +424,7 @@ public class ControllerLehrerStartseite {
         else{
             code = codeFeld.getText();
         }
-        
+        isbnNeu = code;
         int feedback = model.scannen(code);
 
         switch (feedback) {
@@ -441,7 +475,8 @@ public class ControllerLehrerStartseite {
                 break;
             case 8:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Code nicht erkannt!");
+                feedbackText.setText("Code nicht erkannt! \nWollen Sie ein neues Buch anlegen?");
+                neuesBuch.setVisible(true);
                 break;
             case 9:
                 feedbackText.setFill(Color.RED);
@@ -611,6 +646,24 @@ public class ControllerLehrerStartseite {
             e.printStackTrace();
         }
     }
+    
+    public void loadStatistiken(ActionEvent event) {
+        try {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Statistiken.fxml"));
+            Parent root = loader.load();
+            ControllerStatistiken controller = loader.getController();
+            controller.setModel(model);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.web("#E9E9D3"));
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void toEinstellungen(ActionEvent event) {
         try {
@@ -671,6 +724,7 @@ public class ControllerLehrerStartseite {
     }
 
     public void letzteAktionAnzeigen(){
+        neuesBuch.setVisible(false);
         ArrayList<String> liste = new ArrayList<>();
         liste.add("Letzte Aktion: ");
         liste.addAll(model.getLetzteBuecher());
@@ -695,6 +749,45 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
     }
+    
+    public void openmenu(ActionEvent event){
+        if (menuPane.getTranslateX() == 0) { 
+            menuPane.setTranslateX(-200); 
+        }
+        menuPane.setVisible(true);
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        transition.setToX(0);
+        menuPane.setMouseTransparent(false);
+        transition.setOnFinished(null);
+        aufMenu.setVisible(false);
+        transition.play();
+    }
+    
+    public void closemenu(ActionEvent event){
+        menuPane.setVisible(false);
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        transition.setToX(-200);
+        menuPane.setMouseTransparent(true);
+        transition.setOnFinished(e -> menuPane.setVisible(false));
+        aufMenu.setVisible(true);
+        transition.play();
+    }
 
-
+    public void openPopUp(ActionEvent event){
+        try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/PopUpNeu.fxml"));
+                Parent root = loader.load();
+                ControllerPopUpNeu popupController = loader.getController();
+                popupController.setISBN(isbnNeu, model);
+                Stage stage = new Stage();
+                stage.setTitle("Neues Buch");
+                stage.setScene(new Scene(root));
+                stage.showAndWait();
+                feedbackText.setText("");
+                neuesBuch.setVisible(false);
+            }
+        catch (IOException e) {
+            e.printStackTrace();
+            }
+    }
 }

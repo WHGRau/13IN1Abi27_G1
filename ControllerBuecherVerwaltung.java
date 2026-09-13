@@ -27,6 +27,12 @@ import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
     private Buch selectedBuch;
@@ -77,6 +83,9 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private Button entfernenButton;
+    
+    @FXML
+    private Button bestand;
 
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
@@ -626,5 +635,9 @@ public class ControllerBuecherVerwaltung {
 
     public void errorTextZuruecksetzen() {
         errorText.setText("");
+    }
+    
+    public void bestandsListe() {
+        model.bestandListeErstellen();
     }
 }
