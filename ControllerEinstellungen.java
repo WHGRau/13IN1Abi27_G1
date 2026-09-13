@@ -155,6 +155,8 @@ public class ControllerEinstellungen {
         String resetDatum = model.getEinstellung("sperren_reset_datum");
         if (resetDatum != null)
             sperrenResetFeld.setValue(LocalDate.parse(resetDatum));
+            else
+                sperrenResetFeld.setValue(null);
 
 
         buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
