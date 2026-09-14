@@ -26,6 +26,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
+import javafx.scene.control.CheckBox;
+import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -73,10 +75,18 @@ public class ControllerBuecherVerwaltung {
     private TextField jahrFeld;
 
     @FXML
-    private TextArea beschreibungFeld;
+    private TextField alterFeld;
 
     @FXML
-    private Text statusText;
+    private TextArea beschreibungFeld;
+
+        
+    
+    
+    
+
+    @FXML
+    private Button add;
 
     @FXML
     private Button bearbeitenButton;
@@ -93,6 +103,11 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Button bestand;
 
+    
+    
+    @FXML
+    private TextField schulerid;
+    
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
 
@@ -110,15 +125,27 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private TableColumn<tabelleZeile, String> verlaufRueckgabeSpalte;
+    
+    @FXML
+    private TableView<tabelleZeileEx> exemplareTabelle;
+    
+    @FXML
+    private TableColumn<tabelleZeileEx, String> nameSpalte;
+
+    @FXML
+    private TableColumn<tabelleZeileEx, String> artSpalte;
 
     @FXML
     private StackPane background;
 
     @FXML
     private Text errorText;
+    
+    @FXML
+    private Text fehlerStatus;
 
     @FXML
-    private TextField alterFeld;
+    private Text statusText;
 
     @FXML
     private TableColumn<tabelleZeile, String> lehrerSpalte;
@@ -195,6 +222,31 @@ public class ControllerBuecherVerwaltung {
             return lehrer;
         }
     }
+    
+    public static class tabelleZeileEx {
+        private String status;
+        private String name;
+        private String id;
+
+        public tabelleZeileEx(String status, String name, String id) {
+            this.status = status;
+            this.name = name;
+            this.id = id;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getName() {
+            return name;
+        }
+        
+        public String getId(){
+            return id;
+        }
+
+    }
 
     /**
      * Standardkonstruktor für ControllerBuecherVerwaltung.
@@ -213,12 +265,16 @@ public class ControllerBuecherVerwaltung {
         buecherTabelle.setPlaceholder(new Label("Keine Bücher gefunden"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
+        add.setDisable(true);
+        
 
         verlaufNachnameSpalte.setCellValueFactory(new PropertyValueFactory<>("nachname"));
         verlaufVornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        artSpalte.setCellValueFactory(new PropertyValueFactory<>("status"));
+        nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         lehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         Platform.runLater(() -> {
@@ -284,6 +340,7 @@ public class ControllerBuecherVerwaltung {
                             event.consume();
                         }
                     }
+                   
                 });
             }
         });
@@ -388,20 +445,14 @@ public class ControllerBuecherVerwaltung {
                 } else {
                     entfernenButton.setText("entfernen");
                 }
-                if (selectedBuch.getStatus().equals("entfernt")) {
-                    entfernenButton.setText("freischalten");
-                } else {
-                    if (selectedBuch.getStatus().equals("verliehen")) {
-                        entfernenButton.setText("entfernen (Buch gilt automatisch als zurückgegeben)");
-                    } else {
-                        entfernenButton.setText("entfernen");
-                    }
-                }
+                add.setDisable(false);
                 entfernenButton.setDisable(false);
                 loadVerlaufTabelle();
+                updateExemplareTabelle();
             }
         }
     }
+    
 
     /**
      * Behandelt Klicks auf den Button "bearbeiten" oder "speichern".
@@ -425,6 +476,7 @@ public class ControllerBuecherVerwaltung {
             alterFeld.setEditable(false);
 
             entfernenButton.setDisable(false);
+            add.setDisable(false);
             try {
                 if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
                     errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
@@ -466,14 +518,35 @@ public class ControllerBuecherVerwaltung {
                         return;
                     }
                     if (model.isbnVorhanden(neueIsbn)) {
-                        errorText.setText("Diese ISBN existiert bereits!");
+                        neuButton.fire();
+                        searchBar.setText(neueIsbn);
+                        suchen();
+                        for (Buch b : buecherTabelle.getItems()) {
+                            if (b.getIsbn().equals(neueIsbn)) {
+                                buecherTabelle.getSelectionModel().select(b);
+                                selectedBuch = b;
+                                break;
+                            }
+                        }
+                        selectBuch();
+                        errorText.setText("Diese ISBN existiert bereits! Sie können über 'hinzufügen' weitere Exemplare anlegen.");
                         return;
                     }
                     model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
                             jahr, beschreibungFeld.getText(), alterFeld.getText());
                     suchen();
-                    
-
+                    neuAktiv = false;
+                    bearbeitenButton.setText("bearbeiten");
+                    titelFeld.setEditable(false);
+                    autorFeld.setEditable(false);
+                    jahrFeld.setEditable(false);
+                    beschreibungFeld.setEditable(false);
+                    alterFeld.setEditable(false);
+                    zurueckButton.setDisable(false);
+                    neuButton.setText("neu");
+                    entfernenButton.setDisable(false);
+                    add.setDisable(false);
+                    searchBar.setEditable(true);
                     titelFeld.clear();
                     autorFeld.clear();
                     jahrFeld.clear();
@@ -496,37 +569,116 @@ public class ControllerBuecherVerwaltung {
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
+                add.setDisable(true);
             }
         }
     }
+    
+    public void addExemplare(ActionEvent event){
+        String isbn = isbnFeld.getText();
+        if(isbn!=null && !isbn.isEmpty()){
+            model.hinzuDA(isbn);
+            model.updateBuchStatus(isbn);
+            String savedIsbn = isbn;
+            suchen();
+            for (Buch b : buecherTabelle.getItems()) {
+                if (b.getIsbn().equals(savedIsbn)) {
+                    buecherTabelle.getSelectionModel().select(b);
+                    selectedBuch = b;
+                    break;
+                }
+            }
+            selectBuch();
+        }
+    }
+    
 
-    /**
-     * Entfernt (deaktiviert) oder löscht das aktuell ausgewählte Buch vollständig,
-     * abhängig vom aktuellen Status des Buches.
-     */
     public void entfernen() {
+        entfernen(null);
+    }
+
+    public void entfernen(ActionEvent event) {
         if (selectedBuch == null) {
             return;
         }
 
-        String savedIsbn = selectedBuch.getIsbn();
-
         if (!selectedBuch.getStatus().equals("entfernt")) {
-            model.buchLoeschen(selectedBuch.getIsbn());
+            if(exemplareTabelle.getSelectionModel().getSelectedIndex() < 0){
+                fehlerStatus.setText("Bitte die Zeile, aus welcher ein Buch entfernt werden soll, auswählen.");
+                return;
+            }
+            else{
+                tabelleZeileEx selectzeile = exemplareTabelle.getSelectionModel().getSelectedItem();
+                String status = selectzeile.getStatus();
+                String id = selectzeile.getId();
+                if (status.equals("verfügbar")){
+                    if(!selectzeile.getName().equals("0")){
+                        model.buchLoeschen(selectedBuch.getIsbn());
+                    } else {
+                        fehlerStatus.setText("Kein verfügbares Exemplar zum Entfernen vorhanden.");
+                        return;
+                    }
+                }
+                else if (status.startsWith("verliehen")){
+                    model.buchLoeschenS(selectedBuch.getIsbn(), id);
+                }
+                else if (status.startsWith("reserviert")){
+                    model.buchLoeschenR(selectedBuch.getIsbn(), id);
+                }
+            }
         } else {
             model.buchFreigeben(selectedBuch.getIsbn());
         }
 
+        fehlerStatus.setText("");
+        String savedIsbn = selectedBuch.getIsbn();
         suchen();
-
         for (Buch b : buecherTabelle.getItems()) {
             if (b.getIsbn().equals(savedIsbn)) {
                 buecherTabelle.getSelectionModel().select(b);
+                selectedBuch = b;
                 break;
             }
         }
-
         selectBuch();
+    }
+    
+    public void updateExemplareTabelle(){
+        exemplareTabelle.getItems().clear();
+        String anzahl = model.getDa(selectedBuch.getIsbn());
+        if(anzahl != null){
+            
+            tabelleZeileEx zeile = new tabelleZeileEx("verfügbar", anzahl, "0");
+            exemplareTabelle.getItems().add(zeile);
+        }
+        QueryResult result = model.getLiehen(selectedBuch.getIsbn());
+        if (result != null) {
+            
+            for (int i = 0; i < result.getRowCount(); i++) {
+                
+                String vorname = result.getData()[i][0];
+                String nachname = result.getData()[i][1];
+                String id = result.getData()[i][2];
+                
+                tabelleZeileEx zeile = new tabelleZeileEx("verliehen an", vorname + " " + nachname, id);
+                exemplareTabelle.getItems().add(zeile);
+
+            }
+        }
+        result = model.getReserviert(selectedBuch.getIsbn());
+        if (result != null) {
+            
+            for (int i = 0; i < result.getRowCount(); i++) {
+                
+                String vorname = result.getData()[i][0];
+                String nachname = result.getData()[i][1];
+                String id = result.getData()[i][2];
+                
+                tabelleZeileEx zeile = new tabelleZeileEx("reserviert für", vorname + " " + nachname, id);
+                exemplareTabelle.getItems().add(zeile);
+
+            }
+        }
     }
 
     /**
@@ -538,6 +690,7 @@ public class ControllerBuecherVerwaltung {
 
             neuButton.setText("abbrechen");
             entfernenButton.setDisable(true);
+            add.setDisable(true);
             bearbeitenButton.setDisable(false);
             bearbeitenButton.setText("speichern");
             isbnFeld.clear();
@@ -560,6 +713,7 @@ public class ControllerBuecherVerwaltung {
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
+            add.setDisable(true);
             bearbeitenButton.setText("bearbeiten");
             errorText.setText("");
             isbnFeld.clear();
