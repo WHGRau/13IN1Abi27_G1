@@ -345,7 +345,7 @@ public class ControllerLehrerStartseite {
                 break;
             case 2: {
                 if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
-                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen scannen");
+                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen");
                     break;
                 }
                 else{
