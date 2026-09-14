@@ -31,7 +31,8 @@ import com.google.zxing.oned.Code128Writer;
 
 /**
  * Controller für den CSV-Import von Benutzern.
- * Bietet Funktionen zur Dateiauswahl und zum Generieren von Bibliotheksausweisen als PDF.
+ * Bietet Funktionen zur Dateiauswahl und zum Generieren von
+ * Bibliotheksausweisen als PDF.
  */
 public class ControllerCsvImport {
 
@@ -58,6 +59,7 @@ public class ControllerCsvImport {
 
     /**
      * Setzt das Model der Bibliothek für diesen Controller.
+     * 
      * @param model Das aktuelle Bibliotheks-Model.
      */
     public void setModel(Bibliothek model) {
@@ -124,7 +126,8 @@ public class ControllerCsvImport {
     }
 
     /**
-     * Öffnet einen Dialog, um den Zielordner zum Speichern der generierten PDF-Ausweise zu wählen.
+     * Öffnet einen Dialog, um den Zielordner zum Speichern der generierten
+     * PDF-Ausweise zu wählen.
      * 
      * @param event Das ActionEvent.
      */
@@ -144,7 +147,7 @@ public class ControllerCsvImport {
     }
 
     /**
-     * Führt den Import-Vorgang aus. Liest die CSV-Datei ein und generiert, 
+     * Führt den Import-Vorgang aus. Liest die CSV-Datei ein und generiert,
      * falls ausgewählt, die PDF-Ausweise in den angegebenen Zielordner.
      * 
      * @param event Das ActionEvent.
@@ -205,12 +208,12 @@ public class ControllerCsvImport {
     }
 
     /**
-     * Generiert eine PDF-Datei mit Bibliotheksausweisen (inkl. Barcodes) 
+     * Generiert eine PDF-Datei mit Bibliotheksausweisen (inkl. Barcodes)
      * für eine Gruppe von bis zu vier Benutzern.
      * 
      * @param schulerList Liste von Benutzern für diesen PDF-Batch.
-     * @param zielOrdner Der Ordner, in dem das PDF gespeichert wird.
-     * @param batchIndex Fortlaufende Nummer zur Benennung der PDF-Datei.
+     * @param zielOrdner  Der Ordner, in dem das PDF gespeichert wird.
+     * @param batchIndex  Fortlaufende Nummer zur Benennung der PDF-Datei.
      */
     private void generiereAusweiseFuerGruppe(ArrayList<Benutzer> schulerList, String zielOrdner, int batchIndex) {
         try {
@@ -226,7 +229,7 @@ public class ControllerCsvImport {
                     acroForm.getField("nachname" + i).setValue(b.getName());
 
                     if (i == 1) {
-
+                        vorname = b.getVorname();
                     }
 
                     try {
