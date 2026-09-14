@@ -37,6 +37,7 @@ import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 import javafx.scene.shape.Rectangle;
 
+
 /**
  * Controller für die Lehrer-Startseite (Hauptmenü der Anwendung).
  * Verwaltet Ausleihen, Rückgaben, Scanner-Eingaben, Tabellenübersichten und Navigation.
@@ -54,6 +55,8 @@ public class ControllerLehrerStartseite {
     private String isbn;
     private long letzteTastenZeit;
     private String isbnNeu;
+    
+    private TranslateTransition currentTransition;
 
     @FXML
     private TableView<tabelleZeile> verliehenTabelle;
@@ -928,13 +931,18 @@ public class ControllerLehrerStartseite {
         if (menuPane.getTranslateX() == 0) { 
             menuPane.setTranslateX(-200); 
         }
+        if (currentTransition != null) {
+            currentTransition.stop();
+        }
+        aufMenu.setDisable(true); 
         menuPane.setVisible(true);
-        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
-        transition.setToX(0);
+        currentTransition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        currentTransition.setToX(0);
         menuPane.setMouseTransparent(false);
-        transition.setOnFinished(null);
+        currentTransition.setOnFinished(null);
         aufMenu.setVisible(false);
-        transition.play();
+        currentTransition.play();
+        zuMenu.setDisable(false);
     }
     
     /**
@@ -943,13 +951,18 @@ public class ControllerLehrerStartseite {
      * @param event Das ActionEvent.
      */
     public void closemenu(ActionEvent event){
+        if (currentTransition != null) {
+            currentTransition.stop();
+        }
+        zuMenu.setDisable(true);
         menuPane.setVisible(false);
-        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), menuPane);
-        transition.setToX(-200);
+        currentTransition = new TranslateTransition(Duration.seconds(0.3), menuPane);
+        currentTransition.setToX(-200);
         menuPane.setMouseTransparent(true);
-        transition.setOnFinished(e -> menuPane.setVisible(false));
+        currentTransition.setOnFinished(e -> menuPane.setVisible(false));
         aufMenu.setVisible(true);
-        transition.play();
+        currentTransition.play();
+        aufMenu.setDisable(false);
     }
 
     /**
