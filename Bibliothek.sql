@@ -64,7 +64,7 @@ CREATE TABLE `benutzer` (
   `passwort` varchar(255) NOT NULL,
   `rolle` enum('schueler','lehrer','helfer') NOT NULL,
   `freigeschaltet` tinyint(1) NOT NULL,
-  `tage_spaet` int(3) NOT NULL,
+  `tage_spaet` int(3) NOT NULL DEFAULT 0,
   `gesperrt_von` int(11) DEFAULT NULL,
   `geburtsdatum` date DEFAULT NULL,
   `passwortAendern` tinyint(1) NOT NULL,

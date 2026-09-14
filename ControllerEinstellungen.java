@@ -166,11 +166,10 @@ public class ControllerEinstellungen {
             else
             sperrenVerspaetungFeld.setText("14");
             
-        String resetDatum = model.getEinstellung("sperren_reset_datum");
-        if (resetDatum != null)
-            sperrenResetFeld.setValue(LocalDate.parse(resetDatum));
-            else
-                sperrenResetFeld.setValue(null);
+        String resetDatumStr = model.getEinstellung("sperren_reset_datum");
+        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty())
+            sperrenResetFeld.setValue(LocalDate.parse(resetDatumStr));
+        
 
 
         buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
@@ -232,7 +231,8 @@ public class ControllerEinstellungen {
 
         model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());
-        model.setEinstellung("sperren_reset_datum", sperrenResetFeld.getValue().toString().trim());
+        String resetDatum = sperrenResetFeld.getValue() != null ? sperrenResetFeld.getValue().toString().trim(): "";
+        model.setEinstellung("sperren_reset_datum", resetDatum);
 
         String dbSelection = buechersucheDatenbankChoiceBox.getValue();
         if (dbSelection != null)

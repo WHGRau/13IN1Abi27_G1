@@ -226,6 +226,7 @@ public class Bibliothek {
                     int newLateDays = getTageZuSpaet(isbn);
                    if("1".equals(getEinstellung("sperren_aktiv")))
                     dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+newLateDays+" WHERE id = "+schuelerID+"");
+                }
                 letzteAktionAusleihen = false;
                 letzteBuecher.clear();
                 letzteBuecher.add(isbn);
@@ -272,7 +273,7 @@ public class Bibliothek {
                 }
             }
             
-        }
+        
     }
 }
     /**
@@ -1575,8 +1576,8 @@ public class Bibliothek {
     }
     
     public void lateDaysAktualisieren(){
-        
-        if(getEinstellung("sperren_reset_datum") != null){
+        String resetDatumStr = getEinstellung("sperren_reset_datum");
+        if(resetDatumStr != null && !resetDatumStr.trim().isEmpty()){
             LocalDate resetDatum = LocalDate.parse(getEinstellung("sperren_reset_datum"));
             if (!resetDatum.isAfter(LocalDate.now())) {
                 dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
@@ -1588,7 +1589,7 @@ public class Bibliothek {
         if("1".equals(getEinstellung("sperren_aktiv"))){
             
             String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
-            int sperrungTage = (sperrungTageStr != null) ? Integer.parseInt(sperrungTageStr) : 14;
+            int sperrungTage = (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) ? Integer.parseInt(sperrungTageStr) : 14;
             dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
             QueryResult result = dbConnector.getCurrentQueryResult();
             int sumDaysLate = 0;
