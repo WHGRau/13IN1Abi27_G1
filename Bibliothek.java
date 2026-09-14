@@ -5,6 +5,9 @@ import javax.swing.event.*;
 import java.sql.*;
 import java.util.ArrayList;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 import java.util.Random;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -43,7 +46,9 @@ public class Bibliothek {
         dbVerbinden();
         reservierungenAktualisieren();
         erinnerungenPruefenUndVersenden();
+        lateDaysAktualisieren();
     }
+
 
     /**
      * Prüft anhand des aktuellen Datums alle Ausleihen auf fällige Mahnungen
@@ -66,7 +71,7 @@ public class Bibliothek {
                     mailService.sendeMahnungMail(email, vorname, titel, "2_Tage_vorher", datum);
                 }
                 dbConnector
-                        .executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?" ,ausleihId);
+                        .executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?", ausleihId);
             }
         }
 
@@ -149,7 +154,7 @@ public class Bibliothek {
      * @return Den Wert als String oder null.
      */
     public String getEinstellung(String schluessel) {
-        dbConnector.executeStatement("SELECT wert FROM einstellungen WHERE schluessel = ?" , schluessel);
+        dbConnector.executeStatement("SELECT wert FROM einstellungen WHERE schluessel = ?", schluessel);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
             return result.getData()[0][0];
@@ -164,7 +169,9 @@ public class Bibliothek {
      * @param wert       Der zu speichernde Wert.
      */
     public void setEinstellung(String schluessel, String wert) {
-        dbConnector.executeStatement("INSERT INTO einstellungen (schluessel, wert) VALUES (?, ?) ON DUPLICATE KEY UPDATE wert = ?" , schluessel, wert, wert);
+        dbConnector.executeStatement(
+                "INSERT INTO einstellungen (schluessel, wert) VALUES (?, ?) ON DUPLICATE KEY UPDATE wert = ?",
+                schluessel, wert, wert);
     }
 
     /**
@@ -233,10 +240,38 @@ public class Bibliothek {
                 if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
                     letzteAktionAusleihen = false;
                     letzteBuecher.add(isbn);
-                    
-                    dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ?", isbn, letzterSchueler);
 
-                    dbConnector.executeStatement("SELECT status FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
+                    int verspaetung = getTageZuSpaet(isbn, letzterSchueler);
+                    if (verspaetung > 0 && "1".equals(getEinstellung("sperren_aktiv"))) {
+                        dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + ? WHERE id = ?",
+                                verspaetung, letzterSchueler);
+                        String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
+                        int sperrungTage = 14;
+                        if (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) {
+                            try {
+                                sperrungTage = Integer.parseInt(sperrungTageStr.trim());
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                        dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", letzterSchueler);
+                        QueryResult tRes = dbConnector.getCurrentQueryResult();
+                        if (tRes != null && tRes.getRowCount() > 0) {
+                            try {
+                                int curLate = Integer.parseInt(tRes.getData()[0][0]);
+                                if (curLate > sperrungTage && !isGesperrt(letzterSchueler)) {
+                                    sperren(letzterSchueler, true);
+                                }
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
+
+                    dbConnector.executeStatement(
+                            "UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ?",
+                            isbn, letzterSchueler);
+
+                    dbConnector.executeStatement(
+                            "SELECT status FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
                     QueryResult resResult = dbConnector.getCurrentQueryResult();
 
                     if (resResult != null && resResult.getRowCount() > 0) {
@@ -248,7 +283,8 @@ public class Bibliothek {
 
                         // Email senden an den wartenden Schüler
                         dbConnector.executeStatement(
-                                "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = ? AND reservierungen.status = 'bereit'", isbn);
+                                "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = ? AND reservierungen.status = 'bereit'",
+                                isbn);
                         QueryResult mailResult = dbConnector.getCurrentQueryResult();
                         if (mailResult != null && mailResult.getRowCount() > 0) {
                             String empfaengerEmail = mailResult.getData()[0][0];
@@ -298,6 +334,7 @@ public class Bibliothek {
 
     /**
      * Löscht (reduziert Exemplaranzahl / markiert als 'entfernt') ein Buch aus der Datenbank.
+     * 
      * @param isbn Die ISBN des Buches.
      */
     public void buchLoeschen(String isbn) {
@@ -375,14 +412,16 @@ public class Bibliothek {
             pS = "";
         String suchbegriff = "%" + pS + "%";
         if (isLehrer()) {
-            
+
             dbConnector.executeStatement(
                     "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE "
-                    +"(titel LIKE ? OR isbn LIKE ? OR autor LIKE ?)",suchbegriff,suchbegriff,suchbegriff);
+                            + "(titel LIKE ? OR isbn LIKE ? OR autor LIKE ?)",
+                    suchbegriff, suchbegriff, suchbegriff);
         } else {
             dbConnector.executeStatement(
                     "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE (titel LIKE ?"
-                    +" OR isbn LIKE ? OR autor LIKE ?) AND status NOT LIKE 'entfernt'", suchbegriff,suchbegriff,suchbegriff);
+                            + " OR isbn LIKE ? OR autor LIKE ?) AND status NOT LIKE 'entfernt'",
+                    suchbegriff, suchbegriff, suchbegriff);
         }
 
         QueryResult result = dbConnector.getCurrentQueryResult();
@@ -656,7 +695,7 @@ public class Bibliothek {
     public ArrayList<String> getErfassteBuecherNamen() {
         ArrayList<String> list = new ArrayList<String>();
         for (String isbn : erfassteBuecher) {
-            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = ?", isbn );
+            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = ?", isbn);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 String titel = result.getData()[0][0];
@@ -666,6 +705,33 @@ public class Bibliothek {
         return list;
     }
     /**
+     * Berechnet, um wie viele Tage ein verliehenes Buch für einen bestimmten Schüler überfällig ist.
+     * 
+     * @param isbn Die ISBN des Buches.
+     * @param schuelerId Die ID des Schülers.
+     * @return Die Anzahl der Tage (0 wenn nicht überfällig).
+     */
+    public int getTageZuSpaet(String isbn, int schuelerId) {
+        dbConnector.executeStatement(
+                "SELECT DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NULL",
+                isbn, schuelerId);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            String daysStr = result.getData()[0][0];
+            if (daysStr != null) {
+                try {
+                    int days = Integer.parseInt(daysStr);
+                    if (days > 0)
+                        return days;
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Berechnet, um wie viele Tage ein verliehenes Buch überfällig ist.
      * 
      * @param isbn Die ISBN des Buches.
@@ -673,9 +739,9 @@ public class Bibliothek {
      */
     public int getTageZuSpaet(String isbn) {
         if (erfassterSchueler != null) {
-            dbConnector.executeStatement("SELECT DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ?", isbn, erfassterSchueler);
+            return getTageZuSpaet(isbn, erfassterSchueler);
         } else {
-            dbConnector.executeStatement("SELECT DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL", isbn);
+            dbConnector.executeStatement("SELECT DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL ORDER BY geplante_rueckgabe ASC", isbn);
         }
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
@@ -705,7 +771,7 @@ public class Bibliothek {
         // Vorname grosgeschrieben ist das Passwort
         String gespeichertesPasswort;
         dbConnector.executeStatement(
-                "SELECT id, passwort, passwortAendern FROM benutzer WHERE email = ?" , email.toLowerCase() );
+                "SELECT id, passwort, passwortAendern FROM benutzer WHERE email = ?", email.toLowerCase());
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
 
@@ -736,7 +802,7 @@ public class Bibliothek {
      * @return Der Vor- und Nachname des aktuell angemeldeten Nutzers.
      */
     public String getName() {
-        dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ? " , angemeldet);
+        dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ? ", angemeldet);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             return result.getData()[0][0] + " " + result.getData()[0][1];
@@ -749,7 +815,7 @@ public class Bibliothek {
      *         false.
      */
     public boolean isLehrer() {
-        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = ?" , angemeldet);
+        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = ?", angemeldet);
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result != null && result.getRowCount() > 0
                 && "lehrer".equals(result.getData()[0][0]);
@@ -760,7 +826,7 @@ public class Bibliothek {
      *         false.
      */
     public boolean isHelfer() {
-        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = ?",angemeldet);
+        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = ?", angemeldet);
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result != null && result.getRowCount() > 0
                 && "helfer".equals(result.getData()[0][0]);
@@ -773,11 +839,11 @@ public class Bibliothek {
      */
     public String getVerleihSchuelerName(String isbn) {
         dbConnector.executeStatement(
-                "SELECT schueler_id FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL" , isbn);
+                "SELECT schueler_id FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL", isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             String schuelerId = result.getData()[0][0];
-            dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ?" , schuelerId);
+            dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ?", schuelerId);
             result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 return result.getData()[0][0] + " " + result.getData()[0][1];
@@ -832,7 +898,8 @@ public class Bibliothek {
     public QueryResult getBuchVerlauf(String isbn) {
         if (isLehrer()) {
             dbConnector.executeStatement(
-                    "SELECT nachname, vorname, email, ausleihdatum, ruckgabe_datum, lehrerId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id WHERE isbn = ?",isbn);
+                    "SELECT nachname, vorname, email, ausleihdatum, ruckgabe_datum, lehrerId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id WHERE isbn = ?",
+                    isbn);
             return dbConnector.getCurrentQueryResult();
         }
         return null;
@@ -846,7 +913,8 @@ public class Bibliothek {
         if (angemeldet != null) {
             dbConnector.executeStatement(
                     "SELECT buecher.titel, ausleihen.geplante_rueckgabe, buecher.isbn FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = ?"
-                            + " AND ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe",angemeldet);
+                            + " AND ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.geplante_rueckgabe",
+                    angemeldet);
             return dbConnector.getCurrentQueryResult();
         }
         return null;
@@ -860,7 +928,8 @@ public class Bibliothek {
         if (angemeldet != null) {
             dbConnector.executeStatement(
                     "SELECT buecher.titel, reservierungen.reservierung_ende, reservierungen.status, buecher.isbn FROM reservierungen INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.schueler_id = ?"
-                            + " AND (reservierungen.status = 'wartend' OR reservierungen.status = 'bereit') ORDER BY reservierung_beginn", angemeldet);
+                            + " AND (reservierungen.status = 'wartend' OR reservierungen.status = 'bereit') ORDER BY reservierung_beginn",
+                    angemeldet);
             return dbConnector.getCurrentQueryResult();
         }
         return null;
@@ -879,7 +948,8 @@ public class Bibliothek {
         }
         dbConnector.executeStatement(
                 "SELECT buecher.titel, buecher.autor, buecher.isbn, ausleihen.ausleihdatum, ausleihen.geplante_rueckgabe, ausleihen.ruckgabe_datum, lehrerId FROM ausleihen INNER JOIN buecher ON buecher.isbn = ausleihen.isbn WHERE ausleihen.schueler_id = ?"
-                        + " ORDER BY ausleihen.ausleihdatum DESC", id);
+                        + " ORDER BY ausleihen.ausleihdatum DESC",
+                id);
         return dbConnector.getCurrentQueryResult();
     }
 
@@ -888,7 +958,7 @@ public class Bibliothek {
      */
     public boolean isFreigeschaltet() {
         if (angemeldet != null) {
-            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?" ,angemeldet);
+            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", angemeldet);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 return !result.getData()[0][0].equals("0");
@@ -905,12 +975,12 @@ public class Bibliothek {
      */
     public void reservieren(String isbn) {
         if (angemeldet != null) {
-            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?" , angemeldet);
+            dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", angemeldet);
             if (dbConnector.getCurrentQueryResult().getData()[0][0].equals("0")) {
                 return;
             }
             if (reservierungMoeglich(isbn)) {
-                dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = ?" , isbn);
+                dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = ?", isbn);
                 QueryResult result = dbConnector.getCurrentQueryResult();
                 if (result != null && result.getRowCount() > 0) {
                     String status = result.getData()[0][0];
@@ -1016,8 +1086,8 @@ public class Bibliothek {
 
         if (angemeldet != null) {
             int sperre = getReservierungSperre();
-            dbConnector.executeStatement("SELECT COUNT(*) FROM reservierungen WHERE schueler_id = ?" 
-                    + " AND isbn = ?" 
+            dbConnector.executeStatement("SELECT COUNT(*) FROM reservierungen WHERE schueler_id = ?"
+                    + " AND isbn = ?"
                     + " AND status = 'abgelaufen' AND reservierung_ende >= DATE_SUB(CURRENT_DATE(), INTERVAL "
                     + "? DAY)", angemeldet, isbn, sperre);
             QueryResult blockResult = dbConnector.getCurrentQueryResult();
@@ -1089,7 +1159,7 @@ public class Bibliothek {
     public boolean selbstReserviert(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT id FROM reservierungen WHERE isbn = ?"
-                    + " AND (status = 'wartend' OR status = 'bereit') AND schueler_id = ?" , isbn, angemeldet);
+                    + " AND (status = 'wartend' OR status = 'bereit') AND schueler_id = ?", isbn, angemeldet);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 return true;
@@ -1145,11 +1215,12 @@ public class Bibliothek {
         if (isLehrer()) {
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
             String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? null
-                    : pGeburtsdatum ;
-            String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? null :  pEmail.toLowerCase() ;
+                    : pGeburtsdatum;
+            String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? null : pEmail.toLowerCase();
             String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum, passwortAendern, maxBuecherGleichzeitig)"
                     + " VALUES(?,?,?,?,?,?,?,'1',?)";
-            dbConnector.executeStatement(sql, pVn, pNn, emailSql, hashen(passwort), pRolle,1,gebDatumSql,pMaxBuecher);
+            dbConnector.executeStatement(sql, pVn, pNn, emailSql, hashen(passwort), pRolle, 1, gebDatumSql,
+                    pMaxBuecher);
             if (pEmail != null && !pEmail.trim().isEmpty()) {
                 initialesPasswortSenden(pEmail);
             }
@@ -1202,12 +1273,16 @@ public class Bibliothek {
                             + " OR LOWER(TRIM(nachname)) = ?)"
                             + " AND " + gebDatumCheckSql;
                     QueryResult existResult;
-                    if (geburtsdatum.isEmpty()){
-                        dbConnector.executeStatement(checkSql,vorname.toLowerCase().trim(),nachname.toLowerCase().trim(),("\uFEFF" + nachname).toLowerCase().trim());}
-                    else {
-                        dbConnector.executeStatement(checkSql,vorname.toLowerCase().trim(),nachname.toLowerCase().trim(),("\uFEFF" + nachname).toLowerCase().trim(), geburtsdatum);}
+                    if (geburtsdatum.isEmpty()) {
+                        dbConnector.executeStatement(checkSql, vorname.toLowerCase().trim(),
+                                nachname.toLowerCase().trim(), ("\uFEFF" + nachname).toLowerCase().trim());
+                    } else {
+                        dbConnector.executeStatement(checkSql, vorname.toLowerCase().trim(),
+                                nachname.toLowerCase().trim(), ("\uFEFF" + nachname).toLowerCase().trim(),
+                                geburtsdatum);
+                    }
                     existResult = dbConnector.getCurrentQueryResult();
-                    
+
                     if (existResult != null && existResult.getRowCount() > 0) {
                         continue;
                     }
@@ -1217,16 +1292,17 @@ public class Bibliothek {
                     String sql;
                     if (!email.isEmpty()) {
                         sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE email = ?";
-                        dbConnector.executeStatement(sql,email.toLowerCase());
+                        dbConnector.executeStatement(sql, email.toLowerCase());
                     } else {
                         sql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE vorname = ?"
                                 + " AND nachname = ? AND " + gebDatumCheckSql
                                 + " ORDER BY id DESC LIMIT 1";
-                        if (geburtsdatum.isEmpty()){
-                        dbConnector.executeStatement(sql,vorname, nachname);}
-                        else {
-                        dbConnector.executeStatement(sql,vorname, nachname, geburtsdatum);}
-                        
+                        if (geburtsdatum.isEmpty()) {
+                            dbConnector.executeStatement(sql, vorname, nachname);
+                        } else {
+                            dbConnector.executeStatement(sql, vorname, nachname, geburtsdatum);
+                        }
+
                     }
                     QueryResult result = dbConnector.getCurrentQueryResult();
                     if (result != null && result.getRowCount() > 0) {
@@ -1270,10 +1346,10 @@ public class Bibliothek {
      */
     public void benutzerLoeschen(int pID) {
         if (isLehrer()) {
-            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?" , pID);
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?", pID);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
-                dbConnector.executeStatement("DELETE FROM benutzer WHERE id=?" , pID );
+                dbConnector.executeStatement("DELETE FROM benutzer WHERE id=?", pID);
             }
         }
     }
@@ -1284,19 +1360,24 @@ public class Bibliothek {
      * 
      * @param pID Die ID des Benutzers.
      */
-    public void sperren(int pID) {
-        if (isLehrer()) {
-            dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = ?" , pID);
-            QueryResult result = dbConnector.getCurrentQueryResult();
-            if (result != null && result.getRowCount() > 0) {
-                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = ?"
-                        + " WHERE id = ?" ,angemeldet, pID);
+    public void sperren(int pID, boolean automatisch) {
 
-                String email = result.getData()[0][0];
-                String vorname = result.getData()[0][1];
-                MailService mailService = new MailService(this);
-                mailService.sendeGesperrtMail(email, vorname);
+        dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = ?", pID);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            if (automatisch) {
+                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = NULL"
+                        + " WHERE id = ?", pID);
+            } else {
+                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = ?"
+                        + " WHERE id = ?", angemeldet, pID);
             }
+
+            String email = result.getData()[0][0];
+            String vorname = result.getData()[0][1];
+            MailService mailService = new MailService(this);
+            mailService.sendeGesperrtMail(email, vorname);
+
         }
     }
 
@@ -1307,11 +1388,12 @@ public class Bibliothek {
      */
     public void entsperren(int pID) {
         if (isLehrer()) {
-            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?" , pID );
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?", pID);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
                 dbConnector.executeStatement(
-                        "UPDATE benutzer SET freigeschaltet = 1, gesperrt_von = NULL WHERE id = ?" , pID);
+                        "UPDATE benutzer SET freigeschaltet = 1, gesperrt_von = NULL WHERE id = ?", pID);
+                dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE id = ?", pID);
 
             }
         }
@@ -1322,7 +1404,7 @@ public class Bibliothek {
      * @return Vor- und Nachname des Benutzers oder "Unbekannt".
      */
     public String getBenutzerName(int pID) {
-        dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ?" , pID);
+        dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ?", pID);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             return result.getData()[0][0] + " " + result.getData()[0][1];
@@ -1359,17 +1441,18 @@ public class Bibliothek {
     public void benutzerBearbeiten(int pID, String pRolle, String pEmail, String pNn, String pVn, String pGeburtsdatum,
             int pMaxBuecher) {
         if (isLehrer()) {
-            dbConnector.executeStatement("SELECT email FROM benutzer WHERE id = ?" , pID);
+            dbConnector.executeStatement("SELECT email FROM benutzer WHERE id = ?", pID);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
                 String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? null
-                        :  pGeburtsdatum;
+                        : pGeburtsdatum;
                 String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? null
-                        : pEmail.toLowerCase() ;
+                        : pEmail.toLowerCase();
                 dbConnector.executeStatement(
                         "UPDATE benutzer SET vorname = ?, nachname = ?, rolle = ?"
-                                + ", email = ?, geburtsdatum = ?" 
-                                + ", maxBuecherGleichzeitig = ? WHERE id = ?", pVn, pNn,pRolle,emailSql,gebDatumSql,pMaxBuecher,pID);
+                                + ", email = ?, geburtsdatum = ?"
+                                + ", maxBuecherGleichzeitig = ? WHERE id = ?",
+                        pVn, pNn, pRolle, emailSql, gebDatumSql, pMaxBuecher, pID);
 
             }
         }
@@ -1398,7 +1481,7 @@ public class Bibliothek {
         if (email == null || email.trim().isEmpty())
             return false;
         dbConnector.executeStatement(
-                "SELECT id FROM benutzer WHERE LOWER(email) = LOWER(?) AND id != ?", email,ignoreId);
+                "SELECT id FROM benutzer WHERE LOWER(email) = LOWER(?) AND id != ?", email, ignoreId);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             int besitzerId = Integer.parseInt(result.getData()[0][0]);
@@ -1429,7 +1512,7 @@ public class Bibliothek {
      */
     public void passwortAendern(int pID, String pNewPW) {
         if (isLehrer() || pID == angemeldet) {
-            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?" , pID );
+            dbConnector.executeStatement("SELECT nachname FROM benutzer WHERE id = ?", pID);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null) {
                 dbConnector.executeStatement(
@@ -1468,7 +1551,8 @@ public class Bibliothek {
     public String getreserviertSchuelerName(String isbn) {
         dbConnector.executeStatement(
                 "SELECT benutzer.nachname, benutzer.vorname FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id WHERE reservierungen.isbn ="
-                        + "? AND reservierungen.status = 'bereit';", isbn);
+                        + "? AND reservierungen.status = 'bereit';",
+                isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             String nachname = result.getData()[0][0] != null ? result.getData()[0][0] : "";
@@ -1544,7 +1628,7 @@ public class Bibliothek {
 
         for (int i = 0; i < erfassteBuecher.size(); i++) {
             String isbn = erfassteBuecher.get(i);
-            dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?" , isbn);
+            dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", isbn);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
                 try {
@@ -1561,6 +1645,7 @@ public class Bibliothek {
 
     /**
      * Kombiniert Alters-, Reservierungs- und Doppelausleihe-Konflikte und gibt deren Buchtitel zurück.
+     * 
      * @return Eine Liste der betroffenen Buchtitel.
      */
     public ArrayList<String> getKonfliktBuecherNamen() {
@@ -1601,7 +1686,7 @@ public class Bibliothek {
     public String getErfassteSchuelerName() {
         if (erfassterSchueler == null)
             return "";
-        dbConnector.executeStatement("SELECT nachname, vorname FROM benutzer WHERE id = ?" , erfassterSchueler);
+        dbConnector.executeStatement("SELECT nachname, vorname FROM benutzer WHERE id = ?", erfassterSchueler);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             return result.getData()[0][0] + " " + result.getData()[0][1];
@@ -1647,8 +1732,8 @@ public class Bibliothek {
                     whereClause += " OR ";
                 }
                 whereClause += "(nachname LIKE ? "
-                    + "OR vorname LIKE ? "
-                    + "OR email LIKE ?)";
+                        + "OR vorname LIKE ? "
+                        + "OR email LIKE ?)";
 
                 String suchbegriff = "%" + terms[i] + "%";
 
@@ -1660,7 +1745,8 @@ public class Bibliothek {
 
         dbConnector.executeStatement(
                 "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE "
-                        + whereClause, params.toArray());
+                        + whereClause,
+                params.toArray());
 
         QueryResult result = dbConnector.getCurrentQueryResult();
         ArrayList<Benutzer> nutzerListe = new ArrayList<>();
@@ -1726,6 +1812,89 @@ public class Bibliothek {
         return score;
     }
 
+    public void lateDaysAktualisieren() {
+        String resetDatumStr = getEinstellung("sperren_reset_datum");
+        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty()) {
+            try {
+                LocalDate resetDatum = LocalDate.parse(resetDatumStr.trim());
+                if (!resetDatum.isAfter(LocalDate.now())) {
+                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
+
+                    LocalDate naechstesReset = resetDatum.plusYears(1);
+                    while (!naechstesReset.isAfter(LocalDate.now())) {
+                        naechstesReset = naechstesReset.plusYears(1);
+                    }
+                    setEinstellung("sperren_reset_datum", naechstesReset.toString());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if ("1".equals(getEinstellung("sperren_aktiv"))) {
+            String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
+            int sperrungTage = 14;
+            if (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) {
+                try {
+                    sperrungTage = Integer.parseInt(sperrungTageStr.trim());
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            dbConnector.executeStatement(
+                    "SELECT schueler_id, DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            int sumDaysLate = 0;
+            int lastStudent = -1;
+            int lateDays;
+            if (result != null && result.getRowCount() > 0) {
+                for (int i = 0; i < result.getRowCount(); i++) {
+                    int schuelerID = Integer.parseInt(result.getData()[i][0]);
+                    int buchLateDays = 0;
+                    try {
+                        buchLateDays = Integer.parseInt(result.getData()[i][1]);
+                    } catch (NumberFormatException ignored) {
+                    }
+                    if (buchLateDays < 0) {
+                        buchLateDays = 0;
+                    }
+
+                    if (schuelerID == lastStudent) {
+                        sumDaysLate += buchLateDays;
+                    } else {
+                        if (lastStudent != -1) {
+                            dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", lastStudent);
+                            QueryResult lateRes = dbConnector.getCurrentQueryResult();
+                            if (lateRes != null && lateRes.getRowCount() > 0) {
+                                try {
+                                    lateDays = Integer.parseInt(lateRes.getData()[0][0]);
+                                    if (lateDays + sumDaysLate > sperrungTage && !isGesperrt(lastStudent)) {
+                                        sperren(lastStudent, true);
+                                    }
+                                } catch (NumberFormatException ignored) {
+                                }
+                            }
+                        }
+                        sumDaysLate = buchLateDays;
+                    }
+
+                    lastStudent = schuelerID;
+                }
+                if (lastStudent != -1) {
+                    dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", lastStudent);
+                    QueryResult lateRes = dbConnector.getCurrentQueryResult();
+                    if (lateRes != null && lateRes.getRowCount() > 0) {
+                        try {
+                            lateDays = Integer.parseInt(lateRes.getData()[0][0]);
+                            if (lateDays + sumDaysLate > sperrungTage && !isGesperrt(lastStudent)) {
+                                sperren(lastStudent, true);
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * @return True, wenn die letzte gebuchte Aktion eine Ausleihe war, sonst false
      *         (Rückgabe).
@@ -1740,7 +1909,7 @@ public class Bibliothek {
     public ArrayList<String> getLetzteBuecher() {
         ArrayList<String> titelListe = new ArrayList<>();
         for (String isbn : letzteBuecher) {
-            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = ?" , isbn);
+            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = ?", isbn);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 titelListe.add(result.getData()[0][0]);
@@ -2021,8 +2190,6 @@ public class Bibliothek {
         return true;
     }
     
-    
-    
     public boolean bereitsAusgeliehen(String isbn) {
         if (erfassterSchueler == null) {
             return false;
@@ -2149,7 +2316,7 @@ public class Bibliothek {
      *         besteht.
      */
     public int getBuchAltersbeschraenkung(String isbn) {
-        dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?" , isbn);
+        dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
             try {
@@ -2169,7 +2336,7 @@ public class Bibliothek {
      */
     private int getNutzerAlter(int nutzerId) {
         dbConnector.executeStatement(
-                "SELECT TIMESTAMPDIFF(YEAR, geburtsdatum, CURDATE()) FROM benutzer WHERE id = ?" , nutzerId);
+                "SELECT TIMESTAMPDIFF(YEAR, geburtsdatum, CURDATE()) FROM benutzer WHERE id = ?", nutzerId);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
             try {
@@ -2189,7 +2356,7 @@ public class Bibliothek {
      */
     public void passwortAendern(String passwort) {
         dbConnector.executeStatement("UPDATE benutzer SET passwort = ?"
-                + ", passwortAendern = '0' WHERE id = ? " , passwordEncoder.encode(passwort), angemeldet);
+                + ", passwortAendern = '0' WHERE id = ? ", passwordEncoder.encode(passwort), angemeldet);
     }
 
     /**
@@ -2199,7 +2366,7 @@ public class Bibliothek {
      * @param email Die E-Mail-Adresse.
      */
     public void passwortVergessen(String email) {
-        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?" , email);
+        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?", email);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
@@ -2217,12 +2384,12 @@ public class Bibliothek {
      * @param email Die E-Mail-Adresse.
      */
     public void initialesPasswortSenden(String email) {
-        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?" , email);
+        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?", email);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
-            dbConnector.executeStatement("UPDATE benutzer SET passwort = ?" 
-                    + ", passwortAendern = '1' WHERE email = ?",passwordEncoder.encode(passwort),email);
+            dbConnector.executeStatement("UPDATE benutzer SET passwort = ?"
+                    + ", passwortAendern = '1' WHERE email = ?", passwordEncoder.encode(passwort), email);
             MailService mailService = new MailService(this);
             mailService.sendeAnmeldeMail(email, result.getData()[0][1] + " " + result.getData()[0][2], passwort);
         }
@@ -2295,7 +2462,7 @@ public class Bibliothek {
      * @return Ein Buch-Objekt oder null, falls nicht gefunden.
      */
     public Buch getBuch(String isbn) {
-        dbConnector.executeStatement("SELECT * FROM buecher WHERE isbn = ?" , isbn );
+        dbConnector.executeStatement("SELECT * FROM buecher WHERE isbn = ?", isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
             return new Buch(result.getData()[0][0], result.getData()[0][1], result.getData()[0][2],
@@ -2316,4 +2483,15 @@ public class Bibliothek {
                             + " AND ruckgabe_datum IS NULL", ausleiheId);
         }
     }
+
+    public boolean isGesperrt(int id) {
+
+        dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", id);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("0")) {
+            return true;
+        }
+        return false;
+    }
+
 }
