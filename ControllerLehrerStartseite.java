@@ -450,29 +450,7 @@ public class ControllerLehrerStartseite {
                     zuruecknehmenButton.setDisable(false);
                 }
                 break;
-            case 18:
-                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
-                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen scannen");
-                    break;
-                }
-                else{
-                    if(model.richtigerSchuelerRuckListe()){
-                       
-                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
-                        int tage = model.getTageZuSpaet(code);
-                        
-                        if (tage > 0)
-                            msg += " – " + tage + " Tage zu spät!";
-                        feedbackText.setText(msg);
-                        
-                        zuruecknehmenButton.setDisable(false);
-                        break; 
-                    }
-                    else{
-                        feedbackText.setText("falscher Schülerausweis gescannt");
-                        break;
-                    }
-                }
+            
             case 19:
                 feedbackText.setFill(Color.RED);
                 feedbackText.setText("Schüler muss zuerst gescannt werden, um doppelte Ausgabe zu verhindern");

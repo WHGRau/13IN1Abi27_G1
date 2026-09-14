@@ -341,7 +341,7 @@ public class Bibliothek {
         // 12: enthält für Andere reservierte Bücher
         // 16: Buch kann zuruckgegeben und ausgeliehen werden
         // 17: Schuler furs zuruckgeben
-        // 18: Schueler hat das Buch bereits ausgeliehen
+        
         // 19: Schueler muss gescannt werden, um doppelte ausgabe verhindern zu konnen
 
         if (isLehrer()) {
@@ -386,9 +386,7 @@ public class Bibliothek {
                                 
                             }
                             else{
-                                if(bereitsAusgeliehen(code)){
-                                    return 18;
-                                }
+                                
                                 
                                 return 1;
                                 
@@ -766,7 +764,7 @@ public class Bibliothek {
                     QueryResult wartendResult = dbConnector.getCurrentQueryResult();
                     int wartend = Integer.parseInt(wartendResult.getData()[0][0]);
                 
-                    if(wartend < verliehen || verliehen == 0){
+                    if(wartend < verliehen || (verliehen == 0 && wartend == 0)){
                         return true;
                     }
                 
@@ -1322,7 +1320,7 @@ public class Bibliothek {
     }
     
     public QueryResult getReserviert(String isbn){
-        dbConnector.executeStatement("SELECT vorname, nachname, benutzer.id FROM benutzer, reservierungen WHERE reservierungen.isbn='"+isbn+"' AND reservierungen.schueler_id = benutzer.id AND reservierung_ende IS NULL");
+        dbConnector.executeStatement("SELECT vorname, nachname, benutzer.id FROM benutzer, reservierungen WHERE reservierungen.isbn='"+isbn+"' AND reservierungen.schueler_id = benutzer.id AND (reservierung_ende IS NULL OR status ='bereit')");
         QueryResult result = dbConnector.getCurrentQueryResult();
         return result;
     }
