@@ -201,7 +201,11 @@
                            </GridPane>
                         </VBox>
 
-                                                                                             </children>
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </children>
       </VBox>
    </children>
 </StackPane>

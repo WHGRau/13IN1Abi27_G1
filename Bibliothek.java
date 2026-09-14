@@ -221,10 +221,10 @@ public class Bibliothek {
 
             if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("verliehen")) {
                 if(getTageZuSpaet(isbn)> 0){
-                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihe WHERE isbn = '"+isbn+"' AND ruckgabe_datum IS NULL");
+                    dbConnector.executeStatement("SELECT schueler_id FROM ausleihen WHERE isbn = '"+isbn+"' AND ruckgabe_datum IS NULL");
                     int schuelerID = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
                     int newLateDays = getTageZuSpaet(isbn);
-                    if(getEinstellung("sperren_aktiv").equals("1"))
+                   if("1".equals(getEinstellung("sperren_aktiv")))
                     dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + "+newLateDays+" WHERE id = "+schuelerID+"");
                 letzteAktionAusleihen = false;
                 letzteBuecher.clear();
@@ -274,7 +274,7 @@ public class Bibliothek {
             
         }
     }
-
+}
     /**
      * Fügt ein neues Buch zur Datenbank hinzu.
      * @param isbn Die ISBN des Buches.
@@ -1071,10 +1071,10 @@ public class Bibliothek {
             String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? "NULL"
                     : "'" + pGeburtsdatum + "'";
             String emailSql = (pEmail == null || pEmail.trim().isEmpty()) ? "NULL" : "'" + pEmail.toLowerCase() + "'";
-            String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum, passwortAendern, maxBuecherGleichzeitig)"
+            String sql = "INSERT INTO benutzer (vorname, nachname, email,passwort,rolle, freigeschaltet, geburtsdatum, passwortAendern, maxBuecherGleichzeitig, tage_spaet)"
                     + " VALUES('"
                     + pVn + "', '" + pNn + "', " + emailSql + ",'" + hashen(passwort) + "','" + pRolle + "','"
-                    + 1 + "', " + gebDatumSql + ", '1', " + pMaxBuecher + ")";
+                    + 1 + "', " + gebDatumSql + ", '1', " + pMaxBuecher + ", 0)";
             dbConnector.executeStatement(sql);
             if (pEmail != null && !pEmail.trim().isEmpty()) {
                 initialesPasswortSenden(pEmail);
@@ -1575,8 +1575,9 @@ public class Bibliothek {
     }
     
     public void lateDaysAktualisieren(){
-        LocalDate resetDatum = LocalDate.parse(getEinstellung("sperren_reset_datum"));
-        if(resetDatum != null){
+        
+        if(getEinstellung("sperren_reset_datum") != null){
+            LocalDate resetDatum = LocalDate.parse(getEinstellung("sperren_reset_datum"));
             if (!resetDatum.isAfter(LocalDate.now())) {
                 dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
             
@@ -1584,9 +1585,10 @@ public class Bibliothek {
                 setEinstellung("sperren_reset_datum", naechstesReset.toString());
             }
         }
-        if(getEinstellung("sperren_aktiv").equals("1")){
+        if("1".equals(getEinstellung("sperren_aktiv"))){
             
-            int sperrungTage = Integer.parseInt(getEinstellung("sperren_verspaetung_tage"));
+            String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
+            int sperrungTage = (sperrungTageStr != null) ? Integer.parseInt(sperrungTageStr) : 14;
             dbConnector.executeStatement("SELECT schueler_id, isbn FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
             QueryResult result = dbConnector.getCurrentQueryResult();
             int sumDaysLate = 0;
@@ -1616,7 +1618,7 @@ public class Bibliothek {
                 }
                 dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = "+lastStudent+"");
                 lateDays = Integer.parseInt(dbConnector.getCurrentQueryResult().getData()[0][0]);
-                if(lateDays + sumDaysLate > Integer.parseInt(getEinstellung("sperren_verspaetung_tage"))){
+                if(lateDays + sumDaysLate > sperrungTage){
                      sperren(lastStudent);
                 }
                 

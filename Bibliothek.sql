@@ -148,7 +148,7 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 ('smtp_server', 'smtp.gmail.com'),
 ('sperren_aktiv', '0'),
 ('sperren_verspaetung_tage', ''),
-('sperren_zuruecksetzen_monate', '');
+('sperren_reset_datum', '');
 
 -- --------------------------------------------------------
 
