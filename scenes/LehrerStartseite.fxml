@@ -47,7 +47,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerLehrerStartseite">
   <children>
     <VBox prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
       <children>
@@ -156,11 +156,11 @@
                 </TableView>
                 <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen:">
                      <font>
-                        <Font name="Bookman Old Style Bold" size="18.0" />
+                        <Font name="System Bold" size="21.0" />
                      </font></Text>
-                  <Text layoutX="1052.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:">
+                  <Text layoutX="1051.0" layoutY="85.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen">
                      <font>
-                        <Font name="Bookman Old Style Bold" size="18.0" />
+                        <Font name="System Bold" size="21.0" />
                      </font></Text>
                   <Button fx:id="rueckgaengigButton" layoutX="323.0" layoutY="390.0" mnemonicParsing="false" onAction="#letzteAktionZureucknehmen" text="rückgängig" />
                   <Button fx:id="aufMenu" layoutX="54.0" layoutY="2.0" mnemonicParsing="false" onAction="#openmenu" prefHeight="76.0" prefWidth="76.0" style="-fx-background-color: #E9E9D3;" text="☰" textAlignment="CENTER">

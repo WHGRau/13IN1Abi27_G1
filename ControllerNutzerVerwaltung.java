@@ -317,7 +317,8 @@ public class ControllerNutzerVerwaltung {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(item.getEmail());
+                    String name = item.getVorname() + " " + item.getName();
+                    setText(name);
                 }
             }
         });
@@ -890,6 +891,7 @@ public class ControllerNutzerVerwaltung {
                         Benutzer b = schulerList.getItems().get(i - 1);
                         acroForm.getField("vorname" + i).setValue(b.getVorname());
                         acroForm.getField("nachname" + i).setValue(b.getName());
+                        acroForm.getField("codeFeld" + i).setValue(String.valueOf(b.getId()));
                         vorname = b.getVorname();
 
                         try {
