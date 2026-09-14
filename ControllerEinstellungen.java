@@ -13,8 +13,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
-
+import javafx.scene.control.DatePicker;
 import java.io.IOException;
+import java.time.LocalDate;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -58,7 +59,7 @@ public class ControllerEinstellungen {
     @FXML
     private CheckBox sperrenAktivierenCheckBox;
     @FXML
-    private TextField sperrenZuruecksetzenFeld;
+    private DatePicker sperrenResetFeld;
     @FXML
     private ChoiceBox<String> buechersucheDatenbankChoiceBox;
     @FXML
@@ -162,10 +163,14 @@ public class ControllerEinstellungen {
         String sperrenVerspaetung = model.getEinstellung("sperren_verspaetung_tage");
         if (sperrenVerspaetung != null)
             sperrenVerspaetungFeld.setText(sperrenVerspaetung);
+            else
+            sperrenVerspaetungFeld.setText("14");
+            
+        String resetDatumStr = model.getEinstellung("sperren_reset_datum");
+        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty())
+            sperrenResetFeld.setValue(LocalDate.parse(resetDatumStr));
+        
 
-        String sperrenZuruecksetzen = model.getEinstellung("sperren_zuruecksetzen_monate");
-        if (sperrenZuruecksetzen != null)
-            sperrenZuruecksetzenFeld.setText(sperrenZuruecksetzen);
 
         buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
         String buecherDb = model.getEinstellung("buechersuche_datenbank");
@@ -184,7 +189,7 @@ public class ControllerEinstellungen {
         reservierungMaxAnzahlFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
 
         sperrenVerspaetungFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
-        sperrenZuruecksetzenFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
+        sperrenResetFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
 
         buechersucheDatenbankChoiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             buechersucheApiKeyFeld.setDisable("Open Library".equals(newVal));
@@ -226,7 +231,8 @@ public class ControllerEinstellungen {
 
         model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());
-        model.setEinstellung("sperren_zuruecksetzen_monate", sperrenZuruecksetzenFeld.getText().trim());
+        String resetDatum = sperrenResetFeld.getValue() != null ? sperrenResetFeld.getValue().toString().trim(): "";
+        model.setEinstellung("sperren_reset_datum", resetDatum);
 
         String dbSelection = buechersucheDatenbankChoiceBox.getValue();
         if (dbSelection != null)

@@ -13,6 +13,7 @@ public class Benutzer
     private String rolle;
     private int id;
     private boolean freigeschaltet;
+    private int lateDays;
     private int gesperrtVon;
     private String geburtsdatum;
     private int maxBuecherGleichzeitig;
@@ -75,6 +76,7 @@ public class Benutzer
         rolle = pRolle;
         id = pId;
         freigeschaltet = pFreigeschaltet;
+        lateDays = 0;
         gesperrtVon = pGesperrtVon;
         geburtsdatum = pGeburtsdatum;
         maxBuecherGleichzeitig = pMaxBuecherGleichzeitig;
@@ -143,6 +145,13 @@ public class Benutzer
         return freigeschaltet;
     }
     
+    public void setLateDays(int days){
+        lateDays = days;
+    }
+    
+    public int getLateDays(){
+        return lateDays;
+    }
     /**
      * Gibt die ID des Admins zurück, der diesen Benutzer gesperrt hat.
      * 

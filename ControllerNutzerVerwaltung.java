@@ -698,7 +698,7 @@ public class ControllerNutzerVerwaltung {
         if (!selectedNutzer.isFreigeschaltet()) {
             model.entsperren(selectedNutzer.getId());
         } else {
-            model.sperren(selectedNutzer.getId());
+            model.sperren(selectedNutzer.getId(), false);
         }
 
         suchen();
