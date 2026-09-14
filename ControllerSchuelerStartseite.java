@@ -398,7 +398,10 @@ public class ControllerSchuelerStartseite {
                 status = "nicht verfügbar";
             }
             statusText.setText("aktueller Status: " + status);
-            if (model.reservierungMoeglich(selectedBuch.getIsbn())) {
+            if (model.selbstReserviert(selectedBuch.getIsbn())) {
+                reservierenButton.setText("reservierung stornieren");
+                reservierenButton.setDisable(false);
+            } else if (model.reservierungMoeglich(selectedBuch.getIsbn())) {
                 if (model.buchGeliehen(selectedBuch.getIsbn()) || !model.isFreigeschaltet()) {
                     reservierenButton.setDisable(true);
                     reservierenButton.setText("reservieren");
@@ -407,13 +410,8 @@ public class ControllerSchuelerStartseite {
                     reservierenButton.setText("reservieren");
                 }
             } else {
-                if (model.selbstReserviert(selectedBuch.getIsbn())) {
-                    reservierenButton.setText("reservierung stornieren");
-                    reservierenButton.setDisable(false);
-                } else {
-                    reservierenButton.setText("reservieren");
-                    reservierenButton.setDisable(true);
-                }
+                reservierenButton.setText("reservieren");
+                reservierenButton.setDisable(true);
             }
         }
     }

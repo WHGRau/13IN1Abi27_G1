@@ -27,6 +27,7 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `ausleihen`
 --
 
+DROP TABLE IF EXISTS `ausleihen`;
 CREATE TABLE `ausleihen` (
   `schueler_id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
@@ -56,6 +57,7 @@ INSERT INTO `ausleihen` (`schueler_id`, `isbn`, `ausleihdatum`, `geplante_rueckg
 -- Tabellenstruktur für Tabelle `benutzer`
 --
 
+DROP TABLE IF EXISTS `benutzer`;
 CREATE TABLE `benutzer` (
   `id` int(11) NOT NULL,
   `vorname` varchar(100) NOT NULL,
@@ -90,6 +92,7 @@ INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle
 -- Tabellenstruktur für Tabelle `buecher`
 --
 
+DROP TABLE IF EXISTS `buecher`;
 CREATE TABLE `buecher` (
   `isbn` varchar(20) NOT NULL,
   `titel` varchar(255) NOT NULL,
@@ -97,25 +100,28 @@ CREATE TABLE `buecher` (
   `erscheinungsjahr` year(4) DEFAULT NULL,
   `beschreibung` text DEFAULT NULL,
   `status` enum('verfuegbar','verliehen','reserviert','entfernt') NOT NULL,
-  `altersbeschraenkung` int(2) DEFAULT NULL
+  `altersbeschraenkung` int(2) DEFAULT NULL,
+  `anzahlDa` tinyint(3) UNSIGNED NOT NULL DEFAULT 1,
+  `anzahlLiehen` tinyint(3) UNSIGNED NOT NULL DEFAULT 0,
+  `anzahlRes` tinyint(3) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `buecher`
 --
 
-INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`, `altersbeschraenkung`) VALUES
-('978-0261102217', 'The Hobbit', '', NULL, 'Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely travelling further than the pantry of his hobbit-hole in Bag End. But his contentment is disturbed when the wizard, Gandalf, and a company of thirteen dwarves arrive on his doorstep one day to whisk him away on an unexpected journey ‘there and back again’. They have a plot to raid the treasure hoard of Smaug the Magnificent, a large and very dangerous dragon…', 'verfuegbar', NULL),
-('978-1464221378', 'The Teacher', 'Freida McFadden', '2024', 'Eve has a good life. She gets up each day, gets a kiss from her husband Nate, and heads off to teach math at the local high school. All is as it should be. Except…\r\n\r\nLast year, Caseham High was rocked by a scandal, with one student, Addie, at its center. And this year, Eve is dismayed to find the girl in her class.\r\n\r\nAddie can\'t be trusted. She lies. She hurts people. She destroys lives. At least, that\'s what everyone says.\r\n\r\nBut nobody knows the real Addie. Nobody knows the secrets that could destroy her. And Addie will do anything to keep it quiet.', 'verfuegbar', NULL),
-('978-1642750331', 'I want to eat your pancreas', 'Yoru Sumino', '2018', 'A high school boy finds the diary of his classmate—only to discover that she’s dying. Yamauchi Sakura has been silently suffering from a pancreatic disease, and now exactly one person outside her family knows. He swears to her that he won’t tell anyone what he learned, and the shared secret brings them closer together in this deeply moving, first-person story that traces their developing relationship in Sakura’s final months of life.', 'verfuegbar', NULL),
-('978-1645052975', 'At Night, I Become a Monster', 'Yoru Sumino', '2020', 'Every night, Adachi transforms into a nightmarish creature―and every morning, he reverts to human form. When he encounters his ostracized classmate Yano Satsuki in his monstrous state, the two develop a peculiar bond. But daylight brings its own form of terrors. Which is worse, the monster at night, or the cruel realities of the classroom by day?', 'entfernt', NULL),
-('978-3125739291', 'Nineteen Eighty-Four', 'George Orwell', '2021', 'Winston Smith lives in 1984 in a London ruled by a fearsome totalitarian regime, headed by the ever-present Big Brother, and watched closely by the hugely feared Thought Police. But, he rebels…', 'reserviert', NULL),
-('978-3551317148', 'Im Zeichen der Zauberkugel 1', 'Stefan Gemmel', '2019', 'Beim Stöbern auf dem Dachboden seiner Großeltern entdeckt Alex eine verborgene Tür, die er noch nie gesehen hat. Eine Tür, die laut seiner Oma strengstens verboten ist. Natürlich öffnet Alex sie trotzdem. Dahinter liegt das geheime Arbeitszimmer seines Großvaters – ein Professor, der vor Jahren spurlos verschwand. Und zwischen all den rätselhaften Büchern und seltsamen Gegenständen findet Alex eine leuchtende Kugel. Darin steckt Sahli, ein echter Dschinn! Alex kann sein Glück kaum fassen. Doch das ändert sich schnell. Denn mit der Befreiung des Kugelgeists hat Alex nicht nur drei Wünsche frei – sondern auch Argus gegen sich aufgebracht. Den mächtigsten und gefährlichsten Dschinn aller Zeiten!', 'verfuegbar', NULL),
-('978-3551321022', 'Im Zeichen der Zauberkugel 2: Der Fluch des Skorpions', 'Stefan Gemmel', '2022', 'Alex hat einen neuen Freund: Sahli, den Jungen aus der Zauberkugel. Doch sie werden von dem geheimnisvollen Dschinn Argus verfolgt! Mächtiger und böser denn je, ist er wild entschlossen, den Fluch des Skorpions gegen die Freunde einzusetzen. Gemeinsam mit der magischen Katze Kadabra und den Zwillingen Liv und Sally müssen die beiden Jungs sich wehren - und werden dabei in eine aufregende Suche verwickelt, die bis tief in die Steinzeit führt …', 'verliehen', NULL),
-('978-3608126013', 'Der Herr der Ringe. Bd. 1 - Die Gefährten', 'J. R. R. Tolkien', '2026', 'Ein ungewöhnlicher Held. Eine Reise voller Gefahren. Das größte Abenteuer aller Zeiten.\r\n\r\nIn einem ruhigen Dorf im Auenland bekommt der junge Frodo ein Geschenk, das sein Leben für immer verändern wird – den Einen Ring, der seit Jahrhunderten als verschollen galt. Ein mächtiges und furchterregendes Ding, mit dem der Dunkle Herrscher einst Mittelerde versklavte.\r\n\r\nNun erhebt sich die Dunkelheit erneut, und Frodo muss tief in das Reich des Dunklen Herrschers vordringen, bis zu dem einzigen Ort, an dem der Ring zerstört werden kann: dem Schicksalsberg. Die Reise wird Frodos Mut, seine Freundschaften und sein Herz auf die Probe stellen. Denn der Ring korrumpiert alle, die ihn tragen. Kann Frodo den Ring vernichten, bevor der Ring ihn vernichtet? ', 'verliehen', NULL),
-('978-3641306113', 'Die Ehefrau – Was hat sie zu verbergen?', 'Freida McFadden', '2026', 'Sylvia Robinson wird im Haus der Barnetts als private Pflegekraft eingestellt. Nach einem Unfall benötigt Victoria Barnett rund um die Uhr Betreuung. Sie kann weder gehen noch sprechen und ist an ihr Bett im obersten Stockwerk des Hauses gefesselt. Daher hat ihr Mann Sylvia als Unterstützung hinzugeholt. Doch schon bald hat Sylvia das Gefühl, dass Victoria nicht so hilflos ist, wie sie scheint. Dann entdeckt sie Victorias Tagebuch versteckt in einer Kommode. Und was sie darin liest, zieht ihr den Boden unter den Füßen weg.', 'verfuegbar', NULL),
-('9783060311316', 'Macbeth. Textheft', 'William Shakespeare', '2005', '', 'verfuegbar', NULL),
-('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. Its a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt', NULL);
+INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibung`, `status`, `altersbeschraenkung`, `anzahlDa`, `anzahlLiehen`, `anzahlRes`) VALUES
+('978-0261102217', 'The Hobbit', 'J. R. R. Tolkien', '2011', 'Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely travelling further than the pantry of his hobbit-hole in Bag End. But his contentment is disturbed when the wizard, Gandalf, and a company of thirteen dwarves arrive on his doorstep one day to whisk him away on an unexpected journey ‘there and back again’. They have a plot to raid the treasure hoard of Smaug the Magnificent, a large and very dangerous dragon…', 'verfuegbar', NULL, 1, 0, 0),
+('978-1464221378', 'The Teacher', 'Freida McFadden', '2024', 'Eve has a good life. She gets up each day, gets a kiss from her husband Nate, and heads off to teach math at the local high school. All is as it should be. Except…\r\n\r\nLast year, Caseham High was rocked by a scandal, with one student, Addie, at its center. And this year, Eve is dismayed to find the girl in her class.\r\n\r\nAddie can\'t be trusted. She lies. She hurts people. She destroys lives. At least, that\'s what everyone says.\r\n\r\nBut nobody knows the real Addie. Nobody knows the secrets that could destroy her. And Addie will do anything to keep it quiet.', 'verfuegbar', NULL, 1, 0, 0),
+('978-1642750331', 'I want to eat your pancreas', 'Yoru Sumino', '2018', 'A high school boy finds the diary of his classmate—only to discover that she’s dying. Yamauchi Sakura has been silently suffering from a pancreatic disease, and now exactly one person outside her family knows. He swears to her that he won’t tell anyone what he learned, and the shared secret brings them closer together in this deeply moving, first-person story that traces their developing relationship in Sakura’s final months of life.', 'verfuegbar', NULL, 1, 0, 0),
+('978-1645052975', 'At Night, I Become a Monster', 'Yoru Sumino', '2020', 'Every night, Adachi transforms into a nightmarish creature―and every morning, he reverts to human form. When he encounters his ostracized classmate Yano Satsuki in his monstrous state, the two develop a peculiar bond. But daylight brings its own form of terrors. Which is worse, the monster at night, or the cruel realities of the classroom by day?', 'entfernt', NULL, 0, 0, 0),
+('978-3125739291', 'Nineteen Eighty-Four', 'George Orwell', '2021', 'Winston Smith lives in 1984 in a London ruled by a fearsome totalitarian regime, headed by the ever-present Big Brother, and watched closely by the hugely feared Thought Police. But, he rebels…', 'reserviert', NULL, 0, 0, 1),
+('978-3551317148', 'Im Zeichen der Zauberkugel 1', 'Stefan Gemmel', '2019', 'Beim Stöbern auf dem Dachboden seiner Großeltern entdeckt Alex eine verborgene Tür, die er noch nie gesehen hat. Eine Tür, die laut seiner Oma strengstens verboten ist. Natürlich öffnet Alex sie trotzdem. Dahinter liegt das geheime Arbeitszimmer seines Großvaters – ein Professor, der vor Jahren spurlos verschwand. Und zwischen all den rätselhaften Büchern und seltsamen Gegenständen findet Alex eine leuchtende Kugel. Darin steckt Sahli, ein echter Dschinn! Alex kann sein Glück kaum fassen. Doch das ändert sich schnell. Denn mit der Befreiung des Kugelgeists hat Alex nicht nur drei Wünsche frei – sondern auch Argus gegen sich aufgebracht. Den mächtigsten und gefährlichsten Dschinn aller Zeiten!', 'reserviert', NULL, 0, 0, 2),
+('978-3551321022', 'Im Zeichen der Zauberkugel 2: Der Fluch des Skorpions', 'Stefan Gemmel', '2022', 'Alex hat einen neuen Freund: Sahli, den Jungen aus der Zauberkugel. Doch sie werden von dem geheimnisvollen Dschinn Argus verfolgt! Mächtiger und böser denn je, ist er wild entschlossen, den Fluch des Skorpions gegen die Freunde einzusetzen. Gemeinsam mit der magischen Katze Kadabra und den Zwillingen Liv und Sally müssen die beiden Jungs sich wehren - und werden dabei in eine aufregende Suche verwickelt, die bis tief in die Steinzeit führt …', 'verliehen', NULL, 0, 2, 0),
+('978-3608126013', 'Der Herr der Ringe. Bd. 1 - Die Gefährten', 'J. R. R. Tolkien', '2026', 'Ein ungewöhnlicher Held. Eine Reise voller Gefahren. Das größte Abenteuer aller Zeiten.\r\n\r\nIn einem ruhigen Dorf im Auenland bekommt der junge Frodo ein Geschenk, das sein Leben für immer verändern wird – den Einen Ring, der seit Jahrhunderten als verschollen galt. Ein mächtiges und furchterregendes Ding, mit dem der Dunkle Herrscher einst Mittelerde versklavte.\r\n\r\nNun erhebt sich die Dunkelheit erneut, und Frodo muss tief in das Reich des Dunklen Herrschers vordringen, bis zu dem einzigen Ort, an dem der Ring zerstört werden kann: dem Schicksalsberg. Die Reise wird Frodos Mut, seine Freundschaften und sein Herz auf die Probe stellen. Denn der Ring korrumpiert alle, die ihn tragen. Kann Frodo den Ring vernichten, bevor der Ring ihn vernichtet? ', 'verliehen', NULL, 0, 1, 0),
+('978-3641306113', 'Die Ehefrau – Was hat sie zu verbergen?', 'Freida McFadden', '2026', 'Sylvia Robinson wird im Haus der Barnetts als private Pflegekraft eingestellt. Nach einem Unfall benötigt Victoria Barnett rund um die Uhr Betreuung. Sie kann weder gehen noch sprechen und ist an ihr Bett im obersten Stockwerk des Hauses gefesselt. Daher hat ihr Mann Sylvia als Unterstützung hinzugeholt. Doch schon bald hat Sylvia das Gefühl, dass Victoria nicht so hilflos ist, wie sie scheint. Dann entdeckt sie Victorias Tagebuch versteckt in einer Kommode. Und was sie darin liest, zieht ihr den Boden unter den Füßen weg.', 'verfuegbar', NULL, 2, 0, 0),
+('9783060311316', 'Macbeth. Textheft', 'William Shakespeare', '2005', '', 'verfuegbar', NULL, 1, 0, 0),
+('979-8285838210', '50 Groundbreaking Roller Coasters: The Most Important Scream Machines Ever Built', 'Nick Weisenberger', '2025', '50 Groundbreaking Roller Coasters is a comprehensive list of the most influential scream machines that drove the evolution of the modern roller coaster. Its a new and interesting look at roller coaster history. What makes a majority of the roller coasters listed in this book even more impressive is the fact that they were designed using pencil and paper rather than computers.\r\n\r\nPerfect for coaster fans, theme park travelers, and thrill ride historians alike, this book dives into the technology, stories, and bold ideas behind each groundbreaking coaster. Learn how engineers and visionaries shattered records, changed coaster design forever, and sparked new trends that continue to thrill millions today.\r\n\r\nThe groundbreaking scream machines that shaped the evolution of the roller coaster made this list because they were the first of their kind, crossed a threshold that had never been broken before, or have some other historical or cultural significance, such as:\r\nThe first floorless coaster.\r\nThe first to use lap bar restraints.\r\nThe first to use Linear Induction Motors.\r\nThe first to have two hills over 100 feet.\r\nThe first modern wooden coaster built in China.\r\nThe first steel inverting coaster.\r\nThe first to break 100mph.\r\nThe biggest wooden coaster ever built.\r\nAnd much more!\r\nTrace the evolution of white knuckle rides through these 50 Groundbreaking Roller Coasters. Whether you’re a casual parkgoer or a hardcore coaster enthusiast, this book is your front-row seat to the greatest achievements in roller coaster history.\r\nGet ready to ride — the most groundbreaking coasters of all time are waiting for you!', 'entfernt', NULL, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -123,6 +129,7 @@ INSERT INTO `buecher` (`isbn`, `titel`, `autor`, `erscheinungsjahr`, `beschreibu
 -- Tabellenstruktur für Tabelle `einstellungen`
 --
 
+DROP TABLE IF EXISTS `einstellungen`;
 CREATE TABLE `einstellungen` (
   `schluessel` varchar(50) NOT NULL,
   `wert` varchar(255) DEFAULT NULL
@@ -155,6 +162,7 @@ INSERT INTO `einstellungen` (`schluessel`, `wert`) VALUES
 -- Tabellenstruktur für Tabelle `reservierungen`
 --
 
+DROP TABLE IF EXISTS `reservierungen`;
 CREATE TABLE `reservierungen` (
   `id` int(11) NOT NULL,
   `isbn` varchar(20) NOT NULL,
@@ -170,7 +178,8 @@ CREATE TABLE `reservierungen` (
 --
 
 INSERT INTO `reservierungen` (`id`, `isbn`, `schueler_id`, `status`, `reservierung_beginn`, `reservierung_ende`, `email_gesendet`) VALUES
-(8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03', 0);
+(8, '978-3551317148', 10000013, 'bereit', '2026-08-20', '2026-09-03', 0),
+(9, '978-0261102217', 10000007, 'abgesagt', '2026-08-29', '2026-09-12', 0);
 
 --
 -- Indizes der exportierten Tabellen
