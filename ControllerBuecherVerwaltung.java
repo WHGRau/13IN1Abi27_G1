@@ -29,6 +29,17 @@ import javafx.application.Platform;
 import javafx.scene.control.CheckBox;
 import java.io.IOException;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+
+/**
+ * Controller-Klasse für die Verwaltung des Buchbestands.
+ * Ermöglicht Suchen, Hinzufügen, Bearbeiten und Löschen von Büchern
+ * sowie die Anzeige der Ausleihhistorie (Verlauf).
+ */
 public class ControllerBuecherVerwaltung {
     private Bibliothek model;
     private Buch selectedBuch;
@@ -37,6 +48,7 @@ public class ControllerBuecherVerwaltung {
 
     private String barcodePuffer = "";
     private long letzteTastenZeit = 0;
+    private long letzteBuchDatenAbruf = 0;
 
     @FXML
     private TextField searchBar;
@@ -87,6 +99,9 @@ public class ControllerBuecherVerwaltung {
 
     @FXML
     private Button entfernenButton;
+    
+    @FXML
+    private Button bestand;
 
     
     
@@ -129,39 +144,82 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private Text fehlerStatus;
 
+    @FXML
+    private Text statusText;
+
+    @FXML
+    private TableColumn<tabelleZeile, String> lehrerSpalte;
+
+    /**
+     * Hilfsklasse zur Darstellung eines Eintrags im Buch-Verlauf (Ausleihhistorie).
+     */
     public static class tabelleZeile {
         private String nachname;
         private String vorname;
         private String email;
         private String ausgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe) {
+        /**
+         * Erstellt einen neuen Verlaufseintrag.
+         * 
+         * @param nachname Der Nachname des Ausleihers.
+         * @param vorname Der Vorname des Ausleihers.
+         * @param email Die E-Mail-Adresse.
+         * @param ausgabe Das Ausgabedatum.
+         * @param rueckgabe Das Rückgabedatum.
+         * @param lehrer Der Lehrer, der die Ausleihe genehmigt hat.
+         */
+        public tabelleZeile(String nachname, String vorname, String email, String ausgabe, String rueckgabe, String lehrer) {
             this.nachname = nachname;
             this.vorname = vorname;
             this.email = email;
             this.ausgabe = ausgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
+        /**
+         * @return Nachname des Ausleihers.
+         */
         public String getNachname() {
             return nachname;
         }
 
+        /**
+         * @return Vorname des Ausleihers.
+         */
         public String getVorname() {
             return vorname;
         }
 
+        /**
+         * @return E-Mail des Ausleihers.
+         */
         public String getEmail() {
             return email;
         }
 
+        /**
+         * @return Ausgabedatum.
+         */
         public String getAusgabe() {
             return ausgabe;
         }
 
+        /**
+         * @return Rückgabedatum.
+         */
         public String getRueckgabe() {
             return rueckgabe;
+        }
+
+        /**
+         * @return Lehrername.
+         */
+        public String getLehrer() {
+            return lehrer;
         }
     }
     
@@ -190,10 +248,17 @@ public class ControllerBuecherVerwaltung {
 
     }
 
+    /**
+     * Standardkonstruktor für ControllerBuecherVerwaltung.
+     */
     public ControllerBuecherVerwaltung() {
 
     }
 
+    /**
+     * Initialisiert den Controller, setzt Tabellenspalten, EventFilter für Barcode-Scanner 
+     * und dynamische Hintergrundskalierung.
+     */
     public void initialize() {
         isbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         titelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
@@ -208,9 +273,9 @@ public class ControllerBuecherVerwaltung {
         verlaufEmailSpalte.setCellValueFactory(new PropertyValueFactory<>("email"));
         verlaufAusgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("ausgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
-        
         artSpalte.setCellValueFactory(new PropertyValueFactory<>("status"));
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
+        lehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();
@@ -247,20 +312,32 @@ public class ControllerBuecherVerwaltung {
 
                 scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                     if (neuAktiv && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                        if (barcodePuffer.length() >= 10) {
-                            isbnFeld.setText(barcodePuffer);
+                        long jetzt = System.currentTimeMillis();
+                        if (jetzt - letzteTastenZeit < 200 || barcodePuffer.length() >= 10) {
+                            if (barcodePuffer.length() >= 10) {
+                                isbnFeld.setText(barcodePuffer);
 
-                            if (titelFeld.getText().equals(barcodePuffer))
-                                titelFeld.clear();
-                            if (autorFeld.getText().equals(barcodePuffer))
-                                autorFeld.clear();
-                            if (jahrFeld.getText().equals(barcodePuffer))
-                                jahrFeld.clear();
-                            if (beschreibungFeld.getText().equals(barcodePuffer))
-                                beschreibungFeld.clear();
+                                if (titelFeld.getText().equals(barcodePuffer))
+                                    titelFeld.clear();
+                                if (autorFeld.getText().equals(barcodePuffer))
+                                    autorFeld.clear();
+                                if (jahrFeld.getText().equals(barcodePuffer))
+                                    jahrFeld.clear();
+                                if (beschreibungFeld.getText().equals(barcodePuffer))
+                                    beschreibungFeld.clear();
+                                if (alterFeld.getText().equals(barcodePuffer))
+                                    alterFeld.clear();
 
-                            buchDatenAbrufen(barcodePuffer);
-                            barcodePuffer = "";
+                                buchDatenAbrufen(barcodePuffer);
+                                barcodePuffer = "";
+                            }
+                            letzteTastenZeit = jetzt;
+                            event.consume();
+                        } else if (!isbnFeld.getText().isEmpty()) {
+                            if (System.currentTimeMillis() - letzteBuchDatenAbruf > 500) {
+                                bearbeitenButton.fire();
+                            }
+                            event.consume();
                         }
                     }
                    
@@ -269,6 +346,12 @@ public class ControllerBuecherVerwaltung {
         });
     }
 
+    /**
+     * Reagiert auf Tastenfreigaben im ISBN-Feld.
+     * Stößt die Buchdatenabfrage an, wenn eine vollständige ISBN erkannt wurde.
+     * 
+     * @param event Das auslösende KeyEvent.
+     */
     public void isbnFeldKeyReleased(javafx.scene.input.KeyEvent event) {
         if (!neuAktiv)
             return;
@@ -279,10 +362,20 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Setzt das Modell für die Bibliotheksdaten und lädt initial alle Bücher.
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
+        suchen();
     }
 
+    /**
+     * Führt eine Suche im Buchbestand anhand des Suchbegriffs in der SearchBar durch
+     * und aktualisiert die angezeigte Tabelle.
+     */
     public void suchen() {
 
         String suchbegriff = searchBar.getText();
@@ -294,6 +387,11 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Navigiert zurück zur Startseite (Lehrer-Menü).
+     * 
+     * @param event Das auslösende ActionEvent.
+     */
     public void toStartseite(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -312,22 +410,35 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Wird aufgerufen, wenn ein Buch in der Tabelle angeklickt/ausgewählt wird.
+     * Zeigt dessen Details an und aktualisiert Buttons und den Ausleih-Verlauf.
+     */
     public void selectBuch() {
         if (!bearbeitenAktiv && !neuAktiv) {
 
             selectedBuch = buecherTabelle.getSelectionModel().getSelectedItem();
             if (selectedBuch != null) {
-                isbnFeld.setText(selectedBuch.getIsbn());
-                titelFeld.setText(selectedBuch.getTitel());
-                autorFeld.setText(selectedBuch.getAutor());
-                jahrFeld.setText(selectedBuch.getErscheinungsjahr());
-                beschreibungFeld.setText(selectedBuch.getBeschreibung());
+                isbnFeld.setText(selectedBuch.getIsbn() != null ? selectedBuch.getIsbn() : "");
+                titelFeld.setText(selectedBuch.getTitel() != null ? selectedBuch.getTitel() : "");
+                autorFeld.setText(selectedBuch.getAutor() != null ? selectedBuch.getAutor() : "");
+                jahrFeld.setText(selectedBuch.getErscheinungsjahr() != null ? selectedBuch.getErscheinungsjahr() : "");
+                beschreibungFeld.setText(selectedBuch.getBeschreibung() != null ? selectedBuch.getBeschreibung() : "");
+                alterFeld.setText(selectedBuch.getAlter() != null ? selectedBuch.getAlter() : "");
                 String status = selectedBuch.getStatus();
                 if (status.equals("verfuegbar")) {
                     status = "verfügbar";
                 }
-                
-                
+                if (status.equals("verliehen")) {
+                    status += " an " + model.getVerleihSchuelerName(selectedBuch.getIsbn());
+                }
+                if (status.equals("reserviert")) {
+                    String schueler = model.getreserviertSchuelerName(selectedBuch.getIsbn());
+                    if (schueler != null && !schueler.trim().isEmpty()) {
+                        status += " für " + schueler.trim();
+                    }
+                }
+                statusText.setText("aktueller Status: " + status);
                 bearbeitenButton.setDisable(false);
                 if (selectedBuch.getStatus().equals("entfernt")) {
                     entfernenButton.setText("freigeben");
@@ -343,6 +454,12 @@ public class ControllerBuecherVerwaltung {
     }
     
 
+    /**
+     * Behandelt Klicks auf den Button "bearbeiten" oder "speichern".
+     * Schaltet entweder die Textfelder editierbar oder speichert die vorgenommenen Änderungen am Buch.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void bearbeiten(ActionEvent event) {
         if (selectedBuch == null && !neuAktiv) {
             return;
@@ -356,23 +473,50 @@ public class ControllerBuecherVerwaltung {
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
             beschreibungFeld.setEditable(false);
+            alterFeld.setEditable(false);
 
             entfernenButton.setDisable(false);
             add.setDisable(false);
             try {
-                int jahr = Integer.parseInt(jahrFeld.getText().trim());
+                if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
+                    errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
+                    return;
+                }
+                String neueIsbn = isbnFeld.getText().trim();
+                if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                        || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                    errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                    return;
+                }
+                Integer jahr = null;
+                if (!jahrFeld.getText().trim().isEmpty()) {
+                    jahr = Integer.parseInt(jahrFeld.getText().trim());
+                }
                 model.buchBearbeiten(isbnFeld.getText(), titelFeld.getText(), autorFeld.getText(),
-                        jahr, beschreibungFeld.getText());
+                        jahr, beschreibungFeld.getText(),
+                        selectedBuch.getStatus(), alterFeld.getText());
                 suchen();
             } catch (NumberFormatException e) {
-                errorText.setText("Fehler: Ungültiges Jahr");
+                errorText.setText("Fehler: Jahr muss eine Zahl sein");
                 e.printStackTrace();
             }
         } else {
             if (neuAktiv) {
                 try {
-                    int jahr = Integer.parseInt(jahrFeld.getText().trim());
+                    if (isbnFeld.getText().trim().isEmpty() || titelFeld.getText().trim().isEmpty()) {
+                        errorText.setText("Fehler: ISBN und Titel sind Pflichtfelder!");
+                        return;
+                    }
+                    Integer jahr = null;
+                    if (!jahrFeld.getText().trim().isEmpty()) {
+                        jahr = Integer.parseInt(jahrFeld.getText().trim());
+                    }
                     String neueIsbn = isbnFeld.getText().trim();
+                    if (!neueIsbn.matches("[0-9]+") || neueIsbn.length() != 13
+                            || (!neueIsbn.startsWith("978") && !neueIsbn.startsWith("979"))) {
+                        errorText.setText("ungültige ISBN! Bitte ohne Leerzeichen oder Bindestriche eingeben");
+                        return;
+                    }
                     if (model.isbnVorhanden(neueIsbn)) {
                         neuButton.fire();
                         searchBar.setText(neueIsbn);
@@ -389,7 +533,7 @@ public class ControllerBuecherVerwaltung {
                         return;
                     }
                     model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
-                            jahr, beschreibungFeld.getText());
+                            jahr, beschreibungFeld.getText(), alterFeld.getText());
                     suchen();
                     neuAktiv = false;
                     bearbeitenButton.setText("bearbeiten");
@@ -397,6 +541,7 @@ public class ControllerBuecherVerwaltung {
                     autorFeld.setEditable(false);
                     jahrFeld.setEditable(false);
                     beschreibungFeld.setEditable(false);
+                    alterFeld.setEditable(false);
                     zurueckButton.setDisable(false);
                     neuButton.setText("neu");
                     entfernenButton.setDisable(false);
@@ -406,9 +551,11 @@ public class ControllerBuecherVerwaltung {
                     autorFeld.clear();
                     jahrFeld.clear();
                     beschreibungFeld.clear();
+                    alterFeld.clear();
                     isbnFeld.clear();
+                    Platform.runLater(() -> isbnFeld.requestFocus());
                 } catch (NumberFormatException e) {
-                    errorText.setText("Fehler: Ungültiges Jahr");
+                    errorText.setText("Fehler: Jahr muss eine Zahl sein");
                     e.printStackTrace();
                 }
             } else {
@@ -418,6 +565,7 @@ public class ControllerBuecherVerwaltung {
                 autorFeld.setEditable(true);
                 jahrFeld.setEditable(true);
                 beschreibungFeld.setEditable(true);
+                alterFeld.setEditable(true);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
@@ -444,6 +592,10 @@ public class ControllerBuecherVerwaltung {
         }
     }
     
+
+    public void entfernen() {
+        entfernen(null);
+    }
 
     public void entfernen(ActionEvent event) {
         if (selectedBuch == null) {
@@ -529,6 +681,10 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen Buches.
+     * Schaltet Felder frei und leert diese für neue Eingaben.
+     */
     public void buchErstellen() {
         if (!neuAktiv) {
 
@@ -542,13 +698,16 @@ public class ControllerBuecherVerwaltung {
             autorFeld.clear();
             jahrFeld.clear();
             beschreibungFeld.clear();
+            alterFeld.clear();
             isbnFeld.setEditable(true);
             titelFeld.setEditable(true);
             autorFeld.setEditable(true);
             jahrFeld.setEditable(true);
             beschreibungFeld.setEditable(true);
+            alterFeld.setEditable(true);
             zurueckButton.setDisable(true);
             searchBar.setEditable(false);
+            buecherTabelle.setDisable(true);
             neuAktiv = true;
             Platform.runLater(() -> isbnFeld.requestFocus());
         } else {
@@ -562,17 +721,26 @@ public class ControllerBuecherVerwaltung {
             autorFeld.clear();
             jahrFeld.clear();
             beschreibungFeld.clear();
+            alterFeld.clear();
             isbnFeld.setEditable(false);
             titelFeld.setEditable(false);
             autorFeld.setEditable(false);
             jahrFeld.setEditable(false);
             beschreibungFeld.setEditable(false);
+            alterFeld.setEditable(false);
             zurueckButton.setDisable(false);
+            buecherTabelle.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
         }
     }
 
+    /**
+     * Hilfsmethode, die prüft, ob in den Textfeldern versehentlich eine ISBN 
+     * gescannt/eingegeben wurde (z. B. wenn der Fokus falsch war).
+     * 
+     * @return Die gefundene ISBN oder ein leerer String, falls keine gefunden wurde.
+     */
     private String pruefeFelderAufIsbn() {
         TextField[] felder = { isbnFeld, titelFeld, autorFeld, jahrFeld };
         for (TextField feld : felder) {
@@ -586,6 +754,12 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Ruft asynchron Buchdaten (Titel, Autor, Jahr, etc.) von externen APIs ab
+     * und füllt die entsprechenden Textfelder.
+     * 
+     * @param isbn Die ISBN des abzufragenden Buches.
+     */
     public void buchDatenAbrufen(String isbn) {
         try {
             String dbSetting = model.getEinstellung("buechersuche_datenbank");
@@ -647,9 +821,18 @@ public class ControllerBuecherVerwaltung {
 
         } catch (Exception e) {
             errorText.setText("Fehler beim Abrufen der Buchdaten");
+        } finally {
+            letzteBuchDatenAbruf = System.currentTimeMillis();
         }
     }
 
+    /**
+     * Extrahiert einen simplen Wert zu einem Schlüssel aus einem JSON-String.
+     * 
+     * @param json Der zu durchsuchende JSON-String.
+     * @param schluessel Der gesuchte Schlüssel.
+     * @return Der Wert oder ein leerer String, falls der Schlüssel nicht existiert.
+     */
     private String wertAuslesen(String json, String schluessel) {
         String suche1 = "\"" + schluessel + "\":\"";
         String suche2 = "\"" + schluessel + "\": \"";
@@ -672,6 +855,13 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Extrahiert den ersten Wert aus einem JSON-Array für einen gegebenen Schlüssel.
+     * 
+     * @param json Der zu durchsuchende JSON-String.
+     * @param schluessel Der gesuchte Array-Schlüssel (z. B. "authors").
+     * @return Der erste Wert im Array oder ein leerer String.
+     */
     private String arrayWertAuslesen(String json, String schluessel) {
         int startPos = json.indexOf("\"" + schluessel + "\"");
         if (startPos != -1) {
@@ -687,6 +877,10 @@ public class ControllerBuecherVerwaltung {
         return "";
     }
 
+    /**
+     * Lädt den Ausleih-Verlauf (Historie) für das aktuell ausgewählte Buch
+     * und füllt die Verlaufstabelle.
+     */
     public void loadVerlaufTabelle() {
         QueryResult result = model.getBuchVerlauf(selectedBuch.getIsbn());
         if (result != null) {
@@ -699,8 +893,9 @@ public class ControllerBuecherVerwaltung {
                     String email = data[i][2];
                     String ausgabe = data[i][3];
                     String rueckgabe = data[i][4];
+                    String lehrer = data[i][5];
 
-                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(nachname, vorname, email, ausgabe, rueckgabe, model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }
@@ -708,7 +903,17 @@ public class ControllerBuecherVerwaltung {
         }
     }
 
+    /**
+     * Setzt den Fehlertext zurück (leert die Anzeige).
+     */
     public void errorTextZuruecksetzen() {
         errorText.setText("");
+    }
+    
+    /**
+     * Löst im Modell die Erstellung einer Bestandsliste als PDF aus.
+     */
+    public void bestandsListe() {
+        model.bestandListeErstellen();
     }
 }

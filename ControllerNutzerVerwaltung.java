@@ -12,23 +12,55 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.paint.Color;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import javafx.scene.text.Text;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import java.io.File;
+import org.apache.pdfbox.Loader;
+import java.awt.Desktop;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDTerminalField;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.oned.Code128Writer;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import javafx.scene.control.SplitMenuButton;
+
+/**
+ * Controller für die Benutzerverwaltung.
+ * Verwaltet das Suchen, Bearbeiten, Sperren, Löschen und Erstellen von Benutzern,
+ * sowie das Erzeugen von Benutzerausweisen.
+ */
 public class ControllerNutzerVerwaltung {
     private Bibliothek model;
     private Benutzer selectedNutzer;
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
+    private PauseTransition errorTextTimer;
 
     @FXML
     private TextField searchBar;
@@ -46,13 +78,13 @@ public class ControllerNutzerVerwaltung {
     private TextField emailFeld;
 
     @FXML
-    private TextField passwortFeld;
-
-    @FXML
     private TextField nameFeld;
 
     @FXML
     private TextField vornameFeld;
+
+    @FXML
+    private TextField ausleihlimitFeld;
 
     @FXML
     private Text statusText;
@@ -67,13 +99,18 @@ public class ControllerNutzerVerwaltung {
     private Button zurueckButton;
 
     @FXML
-    private Button neuButton;
+    private SplitMenuButton neuButton;
 
     @FXML
     private Button entfernenButton;
 
     @FXML
+    private Button loeschenButton;
+
+    @FXML
     private ChoiceBox<String> rolleAuswahl;
+    @FXML
+    private DatePicker geburtsdatumPicker;
 
     @FXML
     private TableView<tabelleZeile> verlaufTabelle;
@@ -96,82 +133,156 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private StackPane background;
 
+    @FXML
+    private Text hinweisText;
+
+    @FXML
+    private Button addButton;
+
+    @FXML
+    private Button druckenButton;
+
+    @FXML
+    private ListView<Benutzer> schulerList;
+
+    @FXML
+    private TableColumn<tabelleZeile, String> verlaufLehrerSpalte;
+
+    /**
+     * Hilfsklasse für die Darstellung eines Eintrags im Ausleih-Verlauf.
+     */
     public static class tabelleZeile {
         private String isbn;
         private String titel;
         private String geliehen;
         private String geplRueckgabe;
         private String rueckgabe;
+        private String lehrer;
 
-        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe) {
+        /**
+         * Erstellt einen neuen Verlaufseintrag.
+         * 
+         * @param isbn Die ISBN des ausgeliehenen Buches.
+         * @param titel Der Titel des Buches.
+         * @param geliehen Datum der Ausleihe.
+         * @param geplRueckgabe Geplantes Rückgabedatum.
+         * @param rueckgabe Tatsächliches Rückgabedatum.
+         * @param lehrer Der die Ausleihe genehmigende Lehrer.
+         */
+        public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe,
+                String lehrer) {
             this.isbn = isbn;
             this.titel = titel;
             this.geliehen = geliehen;
             this.geplRueckgabe = geplRueckgabe;
             this.rueckgabe = rueckgabe;
+            this.lehrer = lehrer;
         }
 
+        /**
+         * @return ISBN des Buches.
+         */
         public String getIsbn() {
             return isbn;
         }
 
+        /**
+         * @return Titel des Buches.
+         */
         public String getTitel() {
             return titel;
         }
 
+        /**
+         * @return Ausleihdatum.
+         */
         public String getGeliehen() {
             return geliehen;
         }
 
+        /**
+         * @return Geplantes Rückgabedatum.
+         */
         public String getGeplRueckgabe() {
             return geplRueckgabe;
         }
 
+        /**
+         * @return Tatsächliches Rückgabedatum.
+         */
         public String getRueckgabe() {
             return rueckgabe;
         }
+
+        /**
+         * @return Name des Lehrers.
+         */
+        public String getLehrer() {
+            return lehrer;
+        }
     }
 
+    /**
+     * Initialisiert den Controller, setzt Tabellenspalten, konfiguriert den Hintergrund
+     * und fügt Cell-Factories für farbliche Markierungen (überfällig) hinzu.
+     */
     public void initialize() {
-        rolleAuswahl.getItems().addAll("Schüler", "Lehrer");
+        errorTextTimer = new PauseTransition(Duration.seconds(10));
+        errorTextTimer.setOnFinished(e -> errorText.setText(""));
+        rolleAuswahl.getItems().addAll("Schüler", "Lehrer", "Helfer");
         rolleAuswahl.setDisable(true);
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         nutzerTabelle.setPlaceholder(new Label("Keine Nutzer gefunden"));
+        nutzerTabelle.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            selectBenutzer();
+        });
         verlaufTabelle.setPlaceholder(new Label("noch kein Buch entliehen"));
         bearbeitenButton.setDisable(true);
         entfernenButton.setDisable(true);
+        loeschenButton.setDisable(true);
+
+        if (ausleihlimitFeld != null) {
+            ausleihlimitFeld.setTextFormatter(new javafx.scene.control.TextFormatter<String>(change -> {
+                if (change.getControlNewText().matches("\\d*")) {
+                    return change;
+                }
+                return null;
+            }));
+        }
 
         verlaufIsbnSpalte.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verlaufTitelSpalte.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verlaufGeliehenSpalte.setCellValueFactory(new PropertyValueFactory<>("geliehen"));
         verlaufGeplRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("geplRueckgabe"));
         verlaufRueckgabeSpalte.setCellValueFactory(new PropertyValueFactory<>("rueckgabe"));
+        verlaufLehrerSpalte.setCellValueFactory(new PropertyValueFactory<>("lehrer"));
 
         verlaufRueckgabeSpalte.setCellFactory(column -> new TableCell<tabelleZeile, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
+                if (empty || item == null || item.equals("null") || item.isEmpty()) {
+                    setText("");
                     setStyle("");
                 } else {
                     setText(item);
                     tabelleZeile zeile = getTableRow().getItem();
-                    if (zeile != null && zeile.getGeplRueckgabe() != null) {
+                    if (zeile != null && zeile.getGeplRueckgabe() != null && !zeile.getGeplRueckgabe().equals("null")
+                            && !zeile.getGeplRueckgabe().isEmpty()) {
                         try {
                             LocalDate gepl = LocalDate.parse(zeile.getGeplRueckgabe());
                             LocalDate rueck = LocalDate.parse(item);
                             if (rueck.isAfter(gepl)) {
                                 setTextFill(Color.RED);
                             } else {
-                                setTextFill(null);
+                                setTextFill(Color.BLACK);
                             }
                         } catch (Exception e) {
-                            setTextFill(null);
+                            setTextFill(Color.BLACK);
                         }
                     } else {
-                        setTextFill(null);
+                        setTextFill(Color.BLACK);
                     }
                 }
             }
@@ -198,12 +309,34 @@ public class ControllerNutzerVerwaltung {
                 StackPane.setAlignment(background, Pos.TOP_LEFT);
             }
         });
+
+        schulerList.setCellFactory(lv -> new javafx.scene.control.ListCell<Benutzer>() {
+            @Override
+            protected void updateItem(Benutzer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    String name = item.getVorname() + " " + item.getName();
+                    setText(name);
+                }
+            }
+        });
     }
 
+    /**
+     * Setzt das Modell der Bibliothek und lädt initial die Nutzerliste.
+     * 
+     * @param model Die Bibliotheksinstanz.
+     */
     public void setModel(Bibliothek model) {
         this.model = model;
+        suchen();
     }
 
+    /**
+     * Sucht anhand des Textes in der Suchleiste nach Benutzern und füllt die Tabelle mit den Ergebnissen.
+     */
     public void suchen() {
 
         String suchbegriff = searchBar.getText();
@@ -215,6 +348,11 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Navigiert zurück zur Startseite (Lehrer-Menü).
+     * 
+     * @param event Das ActionEvent.
+     */
     public void toStartseite(ActionEvent event) {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -231,55 +369,160 @@ public class ControllerNutzerVerwaltung {
         }
     }
 
+    /**
+     * Wird ausgeführt, wenn ein Nutzer in der Tabelle angeklickt wird.
+     * Füllt die Textfelder mit den Daten des Nutzers und aktualisiert Sperren-Button/Ausleihverlauf.
+     */
     public void selectBenutzer() {
+        errorText.setText("");
+        if (errorTextTimer != null)
+            errorTextTimer.stop();
         if (!bearbeitenAktiv) {
 
             selectedNutzer = nutzerTabelle.getSelectionModel().getSelectedItem();
             if (selectedNutzer != null) {
-                emailFeld.setText(selectedNutzer.getEmail());
+                if (selectedNutzer.getEmail() != null) {
+                    emailFeld.setText(selectedNutzer.getEmail());
+                } else {
+                    emailFeld.clear();
+                }
                 nameFeld.setText(selectedNutzer.getName());
                 vornameFeld.setText(selectedNutzer.getVorname());
 
+                ausleihlimitFeld.setText(String.valueOf(selectedNutzer.getMaxBuecherGleichzeitig()));
+
                 if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
                     rolleAuswahl.setValue("Lehrer");
+                } else if (selectedNutzer.getRolle() != null && selectedNutzer.getRolle().equalsIgnoreCase("helfer")) {
+                    rolleAuswahl.setValue("Helfer");
                 } else {
                     rolleAuswahl.setValue("Schüler");
+                }
+
+                if (selectedNutzer.getGeburtsdatum() != null && !selectedNutzer.getGeburtsdatum().equals("null")
+                        && !selectedNutzer.getGeburtsdatum().isEmpty()) {
+                    try {
+                        geburtsdatumPicker.setValue(LocalDate.parse(selectedNutzer.getGeburtsdatum()));
+                    } catch (Exception e) {
+                        geburtsdatumPicker.setValue(null);
+                    }
+                } else {
+                    geburtsdatumPicker.setValue(null);
                 }
 
                 bearbeitenButton.setDisable(false);
                 if (!selectedNutzer.isFreigeschaltet()) {
                     entfernenButton.setText("freigeben");
                     if (selectedNutzer.getGesperrtVon() == 0) {
-                        statusText.setText("Status: automatisch gesperrt");
+                        statusText.setText("automatisch gesperrt");
                     } else {
                         statusText.setText(
-                                "Status: gesperrt von " + model.getBenutzerName(selectedNutzer.getGesperrtVon()));
+                                "gesperrt von " + model.getBenutzerName(selectedNutzer.getGesperrtVon()));
                     }
                 } else {
                     entfernenButton.setText("sperren");
                     statusText.setText("");
                 }
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 loadVerlaufTabelle();
+            }
+
+        }
+    }
+
+    /**
+     * Überprüft, ob bei Lehrern/Helfern eine E-Mail fehlt, bzw. warnt Schüler ohne E-Mail.
+     */
+    public void checkEmailWarnung() {
+        if (neuAktiv || bearbeitenAktiv) {
+            String rolle = rolleAuswahl.getValue();
+            if ("Schüler".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText("Schüler ohne Emailadresse können sich nicht im Schülerportal anmelden");
+                } else {
+                    errorText.setText("");
+                }
+            } else if ("Lehrer".equals(rolle) || "Helfer".equals(rolle)) {
+                if (emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText(rolle + " benötigen eine Email-Adresse");
+                } else {
+                    errorText.setText("");
+                }
+            } else {
+                errorText.setText("");
             }
         }
     }
 
+    /**
+     * Behandelt Klicks auf den "bearbeiten" oder "speichern" Button.
+     * Wechselt in den Editier-Modus oder speichert die geänderten Benutzerdaten.
+     * 
+     * @param event Das ActionEvent.
+     */
     public void bearbeiten(ActionEvent event) {
         if (selectedNutzer == null && !neuAktiv) {
             return;
         }
         if (bearbeitenAktiv) {
-            if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()) {
-                errorText.setText("Bitte füllen Sie Name, Vorname und E-Mail aus!");
+            boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
+            if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
+                    || (isStaff && emailFeld.getText().trim().isEmpty())) {
+                errorText.setFill(Color.RED);
+                errorText.setText(
+                        isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
+                                : "Bitte füllen Sie Name und Vorname aus!");
                 return;
             }
-            if (model.emailVorhanden(emailFeld.getText(), selectedNutzer.getId())) {
-                errorText.setText("Diese E-Mail ist bereits vergeben!");
-                return;
+            String eingegebeneEmail = emailFeld.getText().trim();
+            if (!eingegebeneEmail.isEmpty()) {
+                boolean gehoertBearbeitetemNutzer = selectedNutzer.getEmail() != null
+                        && selectedNutzer.getEmail().trim().equalsIgnoreCase(eingegebeneEmail);
+
+                if (!gehoertBearbeitetemNutzer && model.emailVorhanden(eingegebeneEmail, selectedNutzer.getId())) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("Diese E-Mail ist bereits vergeben!");
+                    return;
+                }
             }
-            if (!passwortFeld.getText().isEmpty() && passwortFeld.getText().length() < 8) {
-                errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
+            String gebDatumText = geburtsdatumPicker.getEditor().getText();
+            if (gebDatumText != null && !gebDatumText.trim().isEmpty()) {
+                try {
+                    LocalDate parsedDate = geburtsdatumPicker.getConverter().fromString(gebDatumText);
+                    if (parsedDate == null || parsedDate.isAfter(LocalDate.now().minusYears(5))) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("ungültiges Geburtsdatum!");
+                        return;
+                    }
+                    geburtsdatumPicker.setValue(parsedDate);
+                } catch (Exception e) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("ungültiges Geburtsdatum!");
+                    return;
+                }
+            } else {
+                geburtsdatumPicker.setValue(null);
+            }
+            int ausleihlimit = 0;
+            if (!ausleihlimitFeld.getText().trim().isEmpty()) {
+                try {
+                    ausleihlimit = Integer.parseInt(ausleihlimitFeld.getText().trim());
+                    if (ausleihlimit <= 0) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("Ungültiges Ausleihlimit!");
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("Ungültiges Ausleihlimit!");
+                    return;
+                }
+            } else {
+                errorText.setFill(Color.RED);
+                errorText.setText("Ungültiges Ausleihlimit!");
                 return;
             }
 
@@ -288,62 +531,141 @@ public class ControllerNutzerVerwaltung {
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
+            ausleihlimitFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
 
             entfernenButton.setDisable(false);
+            loeschenButton.setDisable(false);
 
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
                 rolle = "lehrer";
+            } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                rolle = "helfer";
             }
-            model.benutzerBearbeiten(selectedNutzer.getId(), rolle, emailFeld.getText(), nameFeld.getText(),
-                    vornameFeld.getText());
+            String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
 
-            if (!passwortFeld.getText().equals("")) {
-                model.passwortAendern(selectedNutzer.getId(), passwortFeld.getText());
-            }
+            boolean isNeueEmail = selectedNutzer.getEmail() == null || selectedNutzer.getEmail().isEmpty();
+            boolean isJetztEmail = !emailFeld.getText().trim().isEmpty();
+
+            int savedId = selectedNutzer.getId();
+            model.benutzerBearbeiten(savedId, rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                    vornameFeld.getText(), gebDatum, ausleihlimit);
+
             suchen();
+
+            for (Benutzer b : nutzerTabelle.getItems()) {
+                if (b.getId() == savedId) {
+                    nutzerTabelle.getSelectionModel().select(b);
+                    break;
+                }
+            }
+            selectBenutzer();
+
+            if (isNeueEmail && isJetztEmail) {
+                model.initialesPasswortSenden(emailFeld.getText().trim());
+                errorText.setFill(Color.GREEN);
+                errorText.setText("Anmeldedaten per E-Mail verschickt");
+                errorTextTimer.playFromStart();
+            } else {
+                errorText.setText("");
+                errorTextTimer.stop();
+            }
 
         } else {
             if (neuAktiv) {
-                if (emailFeld.getText().isEmpty() || nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
-                        || passwortFeld.getText().isEmpty()) {
-                    errorText.setText("Bitte füllen Sie alle Felder aus!");
+                boolean isStaff = "Lehrer".equals(rolleAuswahl.getValue()) || "Helfer".equals(rolleAuswahl.getValue());
+                if (nameFeld.getText().isEmpty() || vornameFeld.getText().isEmpty()
+                        || (isStaff && emailFeld.getText().trim().isEmpty())) {
+                    errorText.setFill(Color.RED);
+                    errorText.setText(isStaff ? (rolleAuswahl.getValue() + " benötigen eine Email-Adresse")
+                            : "Bitte füllen Sie Name und Vorname aus!");
                     return;
                 }
-                if (model.emailVorhanden(emailFeld.getText(), -1)) {
+                if (!emailFeld.getText().trim().isEmpty() && model.emailVorhanden(emailFeld.getText().trim(), -1)) {
+                    errorText.setFill(Color.RED);
                     errorText.setText("Diese E-Mail ist bereits vergeben!");
                     return;
                 }
-                if (passwortFeld.getText().length() < 8) {
-                    errorText.setText("Das Passwort muss mindestens 8 Zeichen lang sein!");
+                String gebDatumTextNeu = geburtsdatumPicker.getEditor().getText();
+                if (gebDatumTextNeu != null && !gebDatumTextNeu.trim().isEmpty()) {
+                    try {
+                        LocalDate parsedDate = geburtsdatumPicker.getConverter().fromString(gebDatumTextNeu);
+                        if (parsedDate == null || parsedDate.isAfter(LocalDate.now().minusYears(5))) {
+                            errorText.setFill(Color.RED);
+                            errorText.setText("ungültiges Geburtsdatum!");
+                            return;
+                        }
+                        geburtsdatumPicker.setValue(parsedDate);
+                    } catch (Exception e) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("ungültiges Geburtsdatum!");
+                        return;
+                    }
+                } else {
+                    geburtsdatumPicker.setValue(null);
+                }
+
+                int ausleihlimit = 0;
+                if (!ausleihlimitFeld.getText().trim().isEmpty()) {
+                    try {
+                        ausleihlimit = Integer.parseInt(ausleihlimitFeld.getText().trim());
+                        if (ausleihlimit <= 0) {
+                            errorText.setFill(Color.RED);
+                            errorText.setText("Ungültiges Ausleihlimit!");
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        errorText.setFill(Color.RED);
+                        errorText.setText("Ungültiges Ausleihlimit!");
+                        return;
+                    }
+                } else {
+                    errorText.setFill(Color.RED);
+                    errorText.setText("Ungültiges Ausleihlimit!");
                     return;
                 }
 
                 String rolle = "schueler";
                 if ("Lehrer".equals(rolleAuswahl.getValue())) {
                     rolle = "lehrer";
+                } else if ("Helfer".equals(rolleAuswahl.getValue())) {
+                    rolle = "helfer";
                 }
-                model.neuerBenutzer(rolle, passwortFeld.getText(), emailFeld.getText(), nameFeld.getText(),
-                        vornameFeld.getText());
+                String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
+                model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                        vornameFeld.getText(), gebDatum, ausleihlimit);
                 suchen();
+                if (!emailFeld.getText().trim().isEmpty()) {
+                    errorText.setFill(Color.GREEN);
+                    errorText.setText("Anmeldedaten per E-Mail verschickt");
+                    errorTextTimer.playFromStart();
+                } else {
+                    errorText.setText("");
+                    errorTextTimer.stop();
+                }
                 neuAktiv = false;
                 bearbeitenButton.setText("bearbeiten");
                 emailFeld.setEditable(false);
                 nameFeld.setEditable(false);
                 vornameFeld.setEditable(false);
-                passwortFeld.setEditable(false);
+                if (ausleihlimitFeld != null) {
+                    ausleihlimitFeld.setEditable(false);
+                    ausleihlimitFeld.clear();
+                }
                 rolleAuswahl.setDisable(true);
+                geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
                 neuButton.setText("neu");
                 entfernenButton.setDisable(false);
+                loeschenButton.setDisable(false);
                 emailFeld.clear();
                 nameFeld.clear();
                 vornameFeld.clear();
-                passwortFeld.clear();
+                geburtsdatumPicker.setValue(null);
 
             } else {
                 bearbeitenAktiv = true;
@@ -351,15 +673,23 @@ public class ControllerNutzerVerwaltung {
                 emailFeld.setEditable(true);
                 nameFeld.setEditable(true);
                 vornameFeld.setEditable(true);
-                passwortFeld.setEditable(true);
+                if (ausleihlimitFeld != null) {
+                    ausleihlimitFeld.setEditable(true);
+                }
                 rolleAuswahl.setDisable(false);
+                geburtsdatumPicker.setDisable(false);
                 zurueckButton.setDisable(true);
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
+                loeschenButton.setDisable(true);
+                checkEmailWarnung();
             }
         }
     }
 
+    /**
+     * Sperrt oder entsperrt den aktuell ausgewählten Benutzer.
+     */
     public void sperren() {
         if (selectedNutzer == null) {
             return;
@@ -383,44 +713,120 @@ public class ControllerNutzerVerwaltung {
         selectBenutzer();
     }
 
+    /**
+     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen Nutzers.
+     */
     public void nutzerErstellen() {
+        errorText.setText("");
+        if (errorTextTimer != null)
+            errorTextTimer.stop();
         if (!neuAktiv) {
 
             neuButton.setText("abbrechen");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("speichern");
             bearbeitenButton.setDisable(false);
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
+
+            ausleihlimitFeld.clear();
+            if (model.getStandartAusleihlimit() > 0) {
+                ausleihlimitFeld.setText(String.valueOf(model.getStandartAusleihlimit()));
+            }
+            ausleihlimitFeld.setEditable(true);
+
             rolleAuswahl.setValue("Schüler");
             emailFeld.setEditable(true);
             nameFeld.setEditable(true);
             vornameFeld.setEditable(true);
-            passwortFeld.setEditable(true);
             rolleAuswahl.setDisable(false);
+            geburtsdatumPicker.setDisable(false);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(true);
             neuAktiv = true;
+            checkEmailWarnung();
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
             bearbeitenButton.setText("bearbeiten");
             emailFeld.clear();
             nameFeld.clear();
             vornameFeld.clear();
-            passwortFeld.clear();
+            if (ausleihlimitFeld != null) {
+                ausleihlimitFeld.clear();
+                ausleihlimitFeld.setEditable(false);
+            }
             emailFeld.setEditable(false);
             nameFeld.setEditable(false);
             vornameFeld.setEditable(false);
-            passwortFeld.setEditable(false);
             rolleAuswahl.setDisable(true);
+            geburtsdatumPicker.setDisable(true);
+            geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
         }
     }
 
+    /**
+     * Wechselt zur Szene für den CSV-Import von Benutzern.
+     * 
+     * @param event Das ActionEvent.
+     */
+    public void csvImportieren(ActionEvent event) {
+        try {
+            Stage stage = (Stage) neuButton.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/CSV-import.fxml"));
+            Parent root = loader.load();
+            ControllerCsvImport controller = loader.getController();
+            controller.setModel(model);
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Löscht den aktuell ausgewählten Nutzer nach einer Sicherheitsabfrage.
+     */
+    public void nutzerLoeschen() {
+        if (selectedNutzer == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Nutzer löschen");
+        alert.setHeaderText("Möchten Sie diesen Nutzer wirklich löschen?");
+        alert.setContentText("Nutzer: " + selectedNutzer.getVorname() + " " + selectedNutzer.getName() + " ("
+                + selectedNutzer.getEmail() + ")\n\nDiese Aktion kann nicht rückgängig gemacht werden.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            model.benutzerLoeschen(selectedNutzer.getId());
+            selectedNutzer = null;
+            emailFeld.clear();
+            nameFeld.clear();
+            vornameFeld.clear();
+            if (ausleihlimitFeld != null) {
+                ausleihlimitFeld.clear();
+            }
+            geburtsdatumPicker.setValue(null);
+            statusText.setText("");
+            verlaufTabelle.getItems().clear();
+            bearbeitenButton.setDisable(true);
+            entfernenButton.setDisable(true);
+            loeschenButton.setDisable(true);
+            suchen();
+        }
+    }
+
+    /**
+     * Lädt die Ausleih-Historie des ausgewählten Nutzers und zeigt sie in der Verlaufstabelle an.
+     */
     public void loadVerlaufTabelle() {
         QueryResult result = model.getNutzerVerlauf(selectedNutzer.getId());
         if (result != null) {
@@ -434,11 +840,116 @@ public class ControllerNutzerVerwaltung {
                     String geliehen = data[i][3];
                     String geplRueckgabe = data[i][4];
                     String rueckgabe = data[i][5];
+                    String lehrer = data[i][6];
 
-                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe);
+                    tabelleZeile zeile = new tabelleZeile(isbn, titel, geliehen, geplRueckgabe, rueckgabe,
+                            model.getBenutzerName(Integer.parseInt(lehrer)));
                     verlaufTabelle.getItems().add(zeile);
 
                 }
+            }
+        }
+    }
+
+    /**
+     * Fügt den ausgewählten Nutzer der Liste für den Barcode-/Ausweisdruck hinzu.
+     * 
+     * @param event Das ActionEvent.
+     */
+    public void hinzu(ActionEvent event) {
+        if (selectedNutzer != null) {
+            int anzahl = 4 - schulerList.getItems().size();
+            if (selectedNutzer != null && anzahl > 0) {
+                schulerList.getItems().add(0, selectedNutzer);
+                anzahl = anzahl - 1;
+                hinweisText.setText("Du kannst noch " + anzahl + " Nutzer hinzufügen");
+
+            }
+            if (anzahl == 0) {
+                hinweisText.setText("Bitte drucken");
+            }
+        }
+
+    }
+
+    /**
+     * Druckt (bzw. generiert als PDF) Benutzerausweise mit Code-128 Barcodes
+     * für alle in der Auswahlliste (schulerList) befindlichen Nutzer.
+     * 
+     * @param event Das ActionEvent.
+     */
+    public void druck(ActionEvent event) {
+        if (schulerList.getItems().size() != 0) {
+            try {
+                File temp = new File("eulen/Karten.pdf");
+                PDDocument kart = Loader.loadPDF(temp);
+                PDAcroForm acroForm = kart.getDocumentCatalog().getAcroForm();
+
+                String vorname = null;
+                if (acroForm != null) {
+                    for (int i = 1; i <= schulerList.getItems().size(); i++) {
+                        Benutzer b = schulerList.getItems().get(i - 1);
+                        acroForm.getField("vorname" + i).setValue(b.getVorname());
+                        acroForm.getField("nachname" + i).setValue(b.getName());
+                        acroForm.getField("codeFeld" + i).setValue(String.valueOf(b.getId()));
+                        vorname = b.getVorname();
+
+                        try {
+                            Code128Writer barcodeWriter = new Code128Writer();
+
+                            BitMatrix bitMatrix = barcodeWriter.encode(String.valueOf(b.getId()),
+                                    BarcodeFormat.CODE_128, 300, 100);
+
+                            java.awt.image.BufferedImage barcodeImage = com.google.zxing.client.j2se.MatrixToImageWriter
+                                    .toBufferedImage(bitMatrix);
+
+                            PDField platzhalterFeld = acroForm.getField("code" + i);
+
+                            if (platzhalterFeld != null && platzhalterFeld instanceof PDTerminalField) {
+                                PDRectangle position = ((PDTerminalField) platzhalterFeld).getWidgets().get(0)
+                                        .getRectangle();
+                                PDImageXObject pdImage = org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
+                                        .createFromImage(kart, barcodeImage);
+
+                                try (PDPageContentStream contentStream = new PDPageContentStream(
+                                        kart, kart.getPage(0), PDPageContentStream.AppendMode.APPEND, true, true)) {
+
+                                    contentStream.drawImage(pdImage,
+                                            position.getLowerLeftX(),
+                                            position.getLowerLeftY(),
+                                            position.getWidth(),
+                                            position.getHeight());
+
+                                }
+
+                                platzhalterFeld.setValue("");
+
+                            }
+
+                            acroForm.getFields().remove(platzhalterFeld);
+
+                        } catch (Exception e) {
+
+                        }
+                    }
+                    acroForm.flatten();
+
+                }
+
+                if (vorname != null) {
+                    File pdfDatei = new File("karten/Ausgefuellt_" + vorname + ".pdf");
+                    kart.save(pdfDatei);
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop desktop = Desktop.getDesktop();
+                        desktop.open(pdfDatei);
+                    }
+                }
+
+                kart.close();
+                hinweisText.setText("");
+                schulerList.getItems().clear();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
