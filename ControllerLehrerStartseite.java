@@ -335,7 +335,7 @@ public class ControllerLehrerStartseite {
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
-                if (model.getName() != null && !model.getErfassteSchuelerName().equals("")) {
+                if (!model.getErfassteSchuelerName().isEmpty()) {
                     feedbackText.setText("weiteres Buch scannen");
                     ausleihenButton.setDisable(false);
                     
@@ -344,7 +344,7 @@ public class ControllerLehrerStartseite {
                 }
                 break;
             case 2: {
-                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
+                if (model.getErfassteSchuelerName().isEmpty()){
                     feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen");
                     break;
                 }
@@ -420,7 +420,7 @@ public class ControllerLehrerStartseite {
                 ausleihenButton.setDisable(true);
                 break;
             case 16:
-                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
+                if (model.getErfassteSchuelerName().isEmpty()){
                     feedbackText.setText("Nutzerausweis oder weiters Buch scannen");
                     break;
                 }
@@ -453,8 +453,8 @@ public class ControllerLehrerStartseite {
             
             case 19:
                 feedbackText.setFill(Color.RED);
-                
                 feedbackText.setText("Schüler hat ein Buch bereits ausgeliehen");
+                ausleihenButton.setDisable(true);
                 break;
                 
                 
@@ -610,7 +610,7 @@ public class ControllerLehrerStartseite {
         if (selectedIndex >= 0) {
             model.gescanntesBuchEntfernen(selectedIndex);
             updateGescanntListe();
-            if(model.getKonfliktBuecherNamen().isEmpty()){
+            if(model.getKonfliktBuecherNamen().isEmpty() && !model.getErfassteBuecherNamen().isEmpty() && !model.getErfassteSchuelerName().isEmpty()){
                 ausleihenButton.setDisable(false);
             }
             if (model.getErfassteBuecherNamen().isEmpty()) {
