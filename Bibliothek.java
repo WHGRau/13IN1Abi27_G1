@@ -152,6 +152,7 @@ public class Bibliothek {
         if (isLehrer()) {
             if (erfassteBuecher.isEmpty() || erfassterSchueler == null)
                 return;
+            letzteBuecher.clear();
             for(int i = 0; i < erfassteBuecher.size(); i ++){
                String isbn = erfassteBuecher.get(i);
                 dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = '" + isbn + "'");
@@ -160,7 +161,7 @@ public class Bibliothek {
                 letzterSchueler = erfassterSchueler;
                 if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
                     letzteAktionAusleihen = false;
-                    letzteBuecher.clear();
+                    
                     letzteBuecher.add(isbn);
                     
                     dbConnector
