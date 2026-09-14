@@ -354,9 +354,7 @@ public class Bibliothek {
                 String status = buchResult.getData()[0][0];
                 int da = Integer.parseInt(buchResult.getData()[0][1]);
                 int li = Integer.parseInt(buchResult.getData()[0][2]);
-                if(status.equals("verfuegbar") && li != 0 && erfassterSchueler == null){
-                    return 19;
-                }
+                
                 if (erfassteBuecher.isEmpty()) {
                     if (status.equals("verliehen") || (status.equals("verfuegbar") && li > 0 && bereitsAusgeliehen(code))) {
                         aktuellerModus = "RUECKGABE";
@@ -364,8 +362,13 @@ public class Bibliothek {
                         aktuellerModus = "AUSLEIHE";
                     }
                 } else {
-                    
-                    boolean neuesBuchIstRueckgabe = status.equals("verliehen") || (status.equals("verfuegbar") && li > 0 && bereitsAusgeliehen(code));
+                    boolean neuesBuchIstRueckgabe = false; 
+                    if(erfassterSchueler != null){
+                        neuesBuchIstRueckgabe = status.equals("verliehen") || (status.equals("verfuegbar") && li > 0 && bereitsAusgeliehen(code));
+                    }
+                    else{
+                        neuesBuchIstRueckgabe = status.equals("verliehen") || (status.equals("verfuegbar") && li > 0 );
+                    }
                 
                     if (aktuellerModus.equals("RUECKGABE") && !neuesBuchIstRueckgabe) return 7;
                     if (aktuellerModus.equals("AUSLEIHE") && neuesBuchIstRueckgabe) return 7;
@@ -456,10 +459,13 @@ public class Bibliothek {
                             return 12;
                         }
                         
-                        
                             
                         if(richtigerSchuelerRuckListe()){
                                 return 17;
+                        }
+                        
+                        if(checkBuecherBereitsAusgeliehen().size() > 0){
+                            return 19;
                         }
                         
 
@@ -968,6 +974,23 @@ public class Bibliothek {
             }
         }
         return reserviert;
+    }
+    
+    public ArrayList<String> checkBuecherBereitsAusgeliehen() {
+        ArrayList<String> ausgeliehen = new ArrayList<String>();
+        if (erfassterSchueler == null)
+            return ausgeliehen;
+        for (int i = 0; i < erfassteBuecher.size(); i++) {
+            String isbn = erfassteBuecher.get(i);
+            
+            if (bereitsAusgeliehen(isbn)) {
+                
+                ausgeliehen.add(isbn);
+                    
+                
+            }
+        }
+        return ausgeliehen;
     }
 
     public ArrayList<String> getKonfliktBuecherNamen() {

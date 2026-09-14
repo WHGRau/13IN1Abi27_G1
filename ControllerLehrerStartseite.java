@@ -453,7 +453,8 @@ public class ControllerLehrerStartseite {
             
             case 19:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Schüler muss zuerst gescannt werden, um doppelte Ausgabe zu verhindern");
+                
+                feedbackText.setText("Schüler hat ein Buch bereits ausgeliehen");
                 break;
                 
                 
