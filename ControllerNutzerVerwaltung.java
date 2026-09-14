@@ -317,7 +317,8 @@ public class ControllerNutzerVerwaltung {
                 if (empty || item == null) {
                     setText(null);
                 } else {
-                    setText(item.getEmail());
+                    String name = item.getVorname() + " " + item.getName();
+                    setText(name);
                 }
             }
         });
