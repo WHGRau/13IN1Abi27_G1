@@ -199,7 +199,8 @@ public class Bibliothek {
                     }
                 } 
             }
-            
+            erfassterSchueler = null;
+            erfassteBuecher.clear();
         }
     }
 
