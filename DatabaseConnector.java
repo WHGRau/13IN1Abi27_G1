@@ -59,10 +59,10 @@ public class DatabaseConnector {
     //Altes Ergebnis loeschen
     currentQueryResult = null;
     message = null;
-
+    PreparedStatement statement = null;
     try {
       //Neues Prepared Statement erstellen
-      PreparedStatement statement = connection.prepareStatement(pSQLStatement);
+      statement = connection.prepareStatement(pSQLStatement);
       
       // Werte in die Platzhalter (?) einsetzen
       for (int i = 0; i < params.length; i++) {
@@ -110,19 +110,29 @@ public class DatabaseConnector {
         }
 
         // Statement schließen und Ergebnisobjekt erstellen
-        statement.close();
+        
         currentQueryResult = new QueryResult(resultData, resultColumnNames, resultColumnTypes);
 
       } else { // Fall 2: Es gibt kein Ergebnis.
         // Statement ohne Ergebnisobjekt schliessen
-        statement.close();
+        
       }
 
-    } catch (Exception e) {
+     } catch (Exception e) {
       // Fehlermeldung speichern
       message = e.getMessage();
-    }
-  }
+      }
+      finally {
+        // Statement IMMER schliessen
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (Exception e) {
+                message = e.getMessage();
+            }
+        }
+      }
+     }
 
 
   /**
