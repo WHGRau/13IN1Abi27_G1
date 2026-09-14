@@ -116,10 +116,10 @@
                               </Label>
                               <TableView fx:id="verlaufTabelle" onMouseClicked="#selectBuchAusTabelle" prefHeight="600.0" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn fx:id="verlaufTitelSpalte" prefWidth="250.0" text="Titel" />
-                                  <TableColumn fx:id="verlaufAutorSpalte" prefWidth="150.0" text="Autor" />
-                                  <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="150.0" text="ISBN" />
-                                  <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="100.0" text="geliehen am" />
+                                  <TableColumn fx:id="verlaufTitelSpalte" prefWidth="318.0" text="Titel" />
+                                  <TableColumn fx:id="verlaufAutorSpalte" prefWidth="179.0" text="Autor" />
+                                  <TableColumn fx:id="verlaufIsbnSpalte" prefWidth="121.0" text="ISBN" />
+                                  <TableColumn fx:id="verlaufAusleihdatumSpalte" prefWidth="94.0" text="geliehen am" />
                                 </columns>
                               </TableView>
                            </children>

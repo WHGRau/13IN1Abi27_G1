@@ -108,7 +108,7 @@
                         <TableColumn fx:id="verliehenTabelleMahnungen" prefWidth="129.0" text="manuelle Mahnungen" />
                   </columns>
                 </TableView>
-                <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" prefHeight="53.0" prefWidth="207.0">
+                <TextField fx:id="codeFeld" layoutX="26.0" layoutY="157.0" onAction="#scannen" prefHeight="53.0" prefWidth="207.0">
                    <font>
                       <Font size="20.0" />
                    </font>
@@ -154,11 +154,11 @@
                       <TableColumn fx:id="reserviertTabelleEmail" prefWidth="75.0" text="E-Mail" />
                   </columns>
                 </TableView>
-                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen">
+                <Text layoutX="617.0" layoutY="323.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuelle Reservierungen:">
                      <font>
                         <Font name="Bookman Old Style Bold" size="18.0" />
                      </font></Text>
-                  <Text layoutX="1180.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen">
+                  <Text layoutX="1052.0" layoutY="83.0" strokeType="OUTSIDE" strokeWidth="0.0" text="aktuell Verliehen:">
                      <font>
                         <Font name="Bookman Old Style Bold" size="18.0" />
                      </font></Text>
