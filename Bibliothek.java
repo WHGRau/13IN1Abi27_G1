@@ -1003,6 +1003,14 @@ public class Bibliothek {
                 namen.add(result.getData()[0][0]);
             }
         }
+        konfliktIsbns = checkBuecherBereitsAusgeliehen();
+        for (String isbn : konfliktIsbns) {
+            dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = '" + isbn + "'");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                namen.add(result.getData()[0][0]);
+            }
+        }
         return namen;
     }
 
