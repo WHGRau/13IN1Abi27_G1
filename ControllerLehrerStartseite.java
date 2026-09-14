@@ -217,7 +217,7 @@ public class ControllerLehrerStartseite {
         }
         
         nutzernameText.setText(text);
-        model.resetnurDa();
+        
     }
 
     public void initialize() {
@@ -335,7 +335,7 @@ public class ControllerLehrerStartseite {
         int feedback = model.scannen(code);
         switch (feedback) {
             case 1:
-                if (model.getName() != null && model.getErfassteSchuelerName() != "") {
+                if (model.getName() != null && !model.getErfassteSchuelerName().equals("")) {
                     feedbackText.setText("weiteres Buch scannen");
                     ausleihenButton.setDisable(false);
                     
@@ -344,7 +344,7 @@ public class ControllerLehrerStartseite {
                 }
                 break;
             case 2: {
-                if (model.getName() == null || model.getErfassteSchuelerName() == ""){
+                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
                     feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen scannen");
                     break;
                 }
@@ -352,8 +352,12 @@ public class ControllerLehrerStartseite {
                     if(model.richtigerSchuelerRuckListe()){
                        
                         String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
+                        int tage = model.getTageZuSpaet(code);
                         
+                        if (tage > 0)
+                            msg += " – " + tage + " Tage zu spät!";
                         feedbackText.setText(msg);
+                        
                         zuruecknehmenButton.setDisable(false);
                         break; 
                     }
@@ -416,7 +420,7 @@ public class ControllerLehrerStartseite {
                 ausleihenButton.setDisable(true);
                 break;
             case 16:
-                if (model.getName() == null || model.getErfassteSchuelerName() == ""){
+                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
                     feedbackText.setText("Nutzerausweis oder weiters Buch scannen");
                     break;
                 }
@@ -424,6 +428,10 @@ public class ControllerLehrerStartseite {
                     if(model.richtigerSchuelerRuckListe()){
                         
                         String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
+                        int tage = model.getTageZuSpaet(code);
+                        
+                        if (tage > 0)
+                            msg += " – " + tage + " Tage zu spät!";
                         
                         feedbackText.setText(msg);
                         zuruecknehmenButton.setDisable(false);
@@ -442,6 +450,34 @@ public class ControllerLehrerStartseite {
                     zuruecknehmenButton.setDisable(false);
                 }
                 break;
+            case 18:
+                if (model.getName() == null || model.getErfassteSchuelerName().equals("")){
+                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen scannen");
+                    break;
+                }
+                else{
+                    if(model.richtigerSchuelerRuckListe()){
+                       
+                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
+                        int tage = model.getTageZuSpaet(code);
+                        
+                        if (tage > 0)
+                            msg += " – " + tage + " Tage zu spät!";
+                        feedbackText.setText(msg);
+                        
+                        zuruecknehmenButton.setDisable(false);
+                        break; 
+                    }
+                    else{
+                        feedbackText.setText("falscher Schülerausweis gescannt");
+                        break;
+                    }
+                }
+            case 19:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Schüler muss zuerst gescannt werden, um doppelte Ausgabe zu verhindern");
+                break;
+                
                 
         }
         codeFeld.clear();
@@ -479,7 +515,7 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
         scannenButton.setDisable(false);
-        model.resetnurDa();
+        
     }
 
     public void zurueckgeben() {
@@ -495,11 +531,11 @@ public class ControllerLehrerStartseite {
         updateGescanntListe();
         feedbackZuruecksetzen();
         letzteAktionAnzeigen();
-        model.resetnurDa();
+       
     }
 
     public void ausleihen() {
-        model.resetnurDa();
+        
         try {
             int dauer = Integer.parseInt(ausleihdauerFeld.getText());
             if (dauer >= 1 && dauer <= 200) {
@@ -595,7 +631,9 @@ public class ControllerLehrerStartseite {
         if (selectedIndex >= 0) {
             model.gescanntesBuchEntfernen(selectedIndex);
             updateGescanntListe();
-            
+            if(model.getKonfliktBuecherNamen().isEmpty()){
+                ausleihenButton.setDisable(false);
+            }
             if (model.getErfassteBuecherNamen().isEmpty()) {
                 ausleihenButton.setDisable(true);
                 zuruecknehmenButton.setDisable(true);

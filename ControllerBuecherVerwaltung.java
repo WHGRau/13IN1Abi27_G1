@@ -65,9 +65,7 @@ public class ControllerBuecherVerwaltung {
     @FXML
     private TextArea beschreibungFeld;
 
-    @FXML
-    private Text statusText;
-    
+        
     
     
     
@@ -326,7 +324,7 @@ public class ControllerBuecherVerwaltung {
                     status = "verfügbar";
                 }
                 
-                statusText.setText("aktueller Status: " + status);
+                
                 bearbeitenButton.setDisable(false);
                 
                 
@@ -423,11 +421,11 @@ public class ControllerBuecherVerwaltung {
     
     public void addExemplare(ActionEvent event){
         String isbn = isbnFeld.getText();
-        if(!isbn.equals(null)){
+        if(isbn!=null){
             model.hinzuDA(isbn);
             
             model.updateBuchStatus(isbn);
-            statusText.setText("aktueller Status: " + selectedBuch.getStatus());
+            
         }
         updateExemplareTabelle();
     }
@@ -465,7 +463,7 @@ public class ControllerBuecherVerwaltung {
     
     public void updateExemplareTabelle(){
         exemplareTabelle.getItems().clear();
-        String anzahl = model.getDaRes(selectedBuch.getIsbn());
+        String anzahl = model.getDa(selectedBuch.getIsbn());
         if(anzahl != null){
             
             tabelleZeileEx zeile = new tabelleZeileEx("verfügbar", anzahl, "0");
@@ -481,6 +479,20 @@ public class ControllerBuecherVerwaltung {
                 String id = result.getData()[i][2];
                 
                 tabelleZeileEx zeile = new tabelleZeileEx("verliehen an", nachname + " " + vorname, id);
+                exemplareTabelle.getItems().add(zeile);
+
+            }
+        }
+        result = model.getReserviert(selectedBuch.getIsbn());
+        if (result != null) {
+            
+            for (int i = 0; i < result.getRowCount(); i++) {
+                
+                String nachname = result.getData()[i][0];
+                String vorname = result.getData()[i][1];
+                String id = result.getData()[i][2];
+                
+                tabelleZeileEx zeile = new tabelleZeileEx("reserviert für ", nachname + " " + vorname, id);
                 exemplareTabelle.getItems().add(zeile);
 
             }
