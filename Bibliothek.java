@@ -465,6 +465,20 @@ public class Bibliothek {
         return null;
     }
     /**
+     * Liefert eine Übersicht aller abholbereiten Reservierungen.
+     * 
+     * @return Ein QueryResult mit den Reservierungs-Daten.
+     */
+    public QueryResult getBereiteReservierungen() {
+        if (isLehrer()) {
+            dbConnector.executeStatement(
+                    "SELECT buecher.isbn, buecher.titel, benutzer.nachname, benutzer.vorname, benutzer.email FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.status = 'bereit' ORDER BY reservierungen.reservierung_beginn;");
+            return dbConnector.getCurrentQueryResult();
+        }
+        return null;
+    }
+
+    /**
      * Verarbeitet einen gescannten Barcode (ISBN oder Schüler-ID).
      * 
      * @param code Der gescannte Barcode.
@@ -2187,7 +2201,6 @@ public class Bibliothek {
         }
         return true;
     }
-
 
     /**
      * Erstellt eine Bestandsliste aller Bücher im System als PDF (inklusive Anzahl

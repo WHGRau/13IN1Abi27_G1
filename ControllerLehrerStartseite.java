@@ -32,6 +32,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
@@ -40,7 +41,8 @@ import javafx.scene.shape.Rectangle;
 
 /**
  * Controller für die Lehrer-Startseite (Hauptmenü der Anwendung).
- * Verwaltet Ausleihen, Rückgaben, Scanner-Eingaben, Tabellenübersichten und Navigation.
+ * Verwaltet Ausleihen, Rückgaben, Scanner-Eingaben, Tabellenübersichten und
+ * Navigation.
  */
 public class ControllerLehrerStartseite {
 
@@ -55,7 +57,9 @@ public class ControllerLehrerStartseite {
     private String isbn;
     private long letzteTastenZeit;
     private String isbnNeu;
-    
+    private Scene registeredScannerScene;
+    private Scene registeredScaleScene;
+    private String letzteGueltigeDauer = "28";
     private TranslateTransition currentTransition;
 
     @FXML
@@ -120,7 +124,7 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button scannenButton;
-    
+
     @FXML
     private Button statistiken;
 
@@ -135,16 +139,16 @@ public class ControllerLehrerStartseite {
 
     @FXML
     private Button rueckgaengigButton;
-    
+
     @FXML
     private VBox menuPane;
-    
+
     @FXML
     private Button aufMenu;
-    
-    @FXML 
+
+    @FXML
     private Button zuMenu;
-    
+
     @FXML
     private Button neuesBuch;
 
@@ -176,14 +180,14 @@ public class ControllerLehrerStartseite {
         /**
          * Konstruktor für eine Zeile in der Verliehen-Tabelle.
          * 
-         * @param isbn Die ISBN des Buches.
-         * @param titel Der Titel des Buches.
-         * @param nachname Der Nachname des Entleihers.
-         * @param vorname Der Vorname des Entleihers.
-         * @param email Die E-Mail-Adresse.
+         * @param isbn               Die ISBN des Buches.
+         * @param titel              Der Titel des Buches.
+         * @param nachname           Der Nachname des Entleihers.
+         * @param vorname            Der Vorname des Entleihers.
+         * @param email              Die E-Mail-Adresse.
          * @param geplante_Rueckgabe Das geplante Rückgabedatum.
-         * @param anzahlMahnungen Die Anzahl bisheriger Mahnungen.
-         * @param id Die ID des Verleihvorgangs.
+         * @param anzahlMahnungen    Die Anzahl bisheriger Mahnungen.
+         * @param id                 Die ID des Verleihvorgangs.
          */
         public tabelleZeile(String isbn, String titel, String nachname, String vorname, String email,
                 String geplante_Rueckgabe, int anzahlMahnungen, int id) {
@@ -257,11 +261,11 @@ public class ControllerLehrerStartseite {
         /**
          * Konstruktor für eine Reservierungszeile.
          * 
-         * @param isbn Die ISBN des Buches.
-         * @param titel Der Titel des Buches.
+         * @param isbn     Die ISBN des Buches.
+         * @param titel    Der Titel des Buches.
          * @param nachname Der Nachname des Reservierenden.
-         * @param vorname Der Vorname des Reservierenden.
-         * @param email Die E-Mail-Adresse.
+         * @param vorname  Der Vorname des Reservierenden.
+         * @param email    Die E-Mail-Adresse.
          */
         public tabelleZeileReservierung(String isbn, String titel, String nachname, String vorname, String email) {
             this.isbn = isbn;
@@ -298,7 +302,7 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Setzt das Modell, aktualisiert die Anzeige (Name, Tabellen) 
+     * Setzt das Modell, aktualisiert die Anzeige (Name, Tabellen)
      * und prüft die Rechte des aktuellen Benutzers (Lehrer/Schüler/Helfer).
      * 
      * @param model Die Bibliotheksinstanz.
@@ -333,20 +337,20 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Initialisiert den Controller, setzt Skalierungseinstellungen für das Fenster, 
+     * Initialisiert den Controller, setzt Skalierungseinstellungen für das Fenster,
      * konfiguriert das Seitenmenü und EventListener für den Scanner.
      */
     public void initialize() {
         neuesBuch.setVisible(false);
-        
+
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(menuPane.widthProperty());
         clip.heightProperty().bind(menuPane.heightProperty());
-    
+
         menuPane.setClip(clip);
-        
+
         menuPane.setVisible(false);
-        
+
         verliehenTabelleIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
         verliehenTabelleTitel.setCellValueFactory(new PropertyValueFactory<>("titel"));
         verliehenTabelleName.setCellValueFactory(new PropertyValueFactory<>("nachname"));
@@ -387,53 +391,28 @@ public class ControllerLehrerStartseite {
             }
         });
 
+        letzteGueltigeDauer = ausleihdauerFeld.getText();
+
         Platform.runLater(() -> {
             Scene scene = background.getScene();
             if (scene != null) {
-                final double targetWidth = 1920.0;
-                final double targetHeight = 1080.0;
-
-                Scale scale = new Scale(1, 1, 0, 0);
-                scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
-                scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
-
-                background.getTransforms().clear();
-                background.getTransforms().add(scale);
-
-                background.setPrefWidth(targetWidth);
-                background.setPrefHeight(targetHeight);
-                background.setMaxWidth(targetWidth);
-                background.setMaxHeight(targetHeight);
-
-                StackPane.setAlignment(background, Pos.TOP_LEFT);
-                
-                String dauer = ausleihdauerFeld.getText();
-                
-                scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
-                    long jetzt = System.currentTimeMillis();
-                    if (jetzt - letzteTastenZeit < 100 && event.getCharacter().matches("[0-9]")) {
-                        ausleihdauerFeld.setEditable(false);
-                        String e = ausleihdauerFeld.getText();
-                        if (e != null){
-                            ausleihdauerFeld.setText(dauer);
-                        }
-                    } else {
-                        ausleihdauerFeld.setEditable(true);
-                    }
-                    letzteTastenZeit = jetzt;
-                });
+                setupSceneScaling(scene);
+                registerGlobalScanner(scene);
             }
+        });
 
         background.sceneProperty().addListener((observable, oldScene, newScene) -> {
             if (newScene != null) {
-                registerGlobalScanner(newScene);
+                Platform.runLater(() -> {
+                    setupSceneScaling(newScene);
+                    registerGlobalScanner(newScene);
+                });
             }
-        });
         });
     }
 
     /**
-     * Lädt alle aktuell verliehenen Bücher aus der Datenbank 
+     * Lädt alle aktuell verliehenen Bücher aus der Datenbank
      * und füllt die Verliehen-Tabelle.
      */
     public void loadVerliehenTabelle() {
@@ -462,35 +441,114 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Registriert einen globalen EventFilter auf der Szene,
-     * um Barcode-Scanner-Eingaben (Tastatur-Events + ENTER) systemweit abzufangen.
+     * Konfiguriert die dynamische Skalierung für das Fenster (1920x1080).
+     * 
+     * @param scene Die aktuelle JavaFX-Szene.
+     */
+    private void setupSceneScaling(Scene scene) {
+        if (scene == null || scene == registeredScaleScene) {
+            return;
+        }
+        registeredScaleScene = scene;
+
+        final double targetWidth = 1920.0;
+        final double targetHeight = 1080.0;
+
+        Scale scale = new Scale(1, 1, 0, 0);
+        scale.xProperty().bind(scene.widthProperty().divide(targetWidth));
+        scale.yProperty().bind(scene.heightProperty().divide(targetHeight));
+
+        background.getTransforms().clear();
+        background.getTransforms().add(scale);
+
+        background.setPrefWidth(targetWidth);
+        background.setPrefHeight(targetHeight);
+        background.setMaxWidth(targetWidth);
+        background.setMaxHeight(targetHeight);
+
+        StackPane.setAlignment(background, Pos.TOP_LEFT);
+    }
+
+    /**
+     * Registriert EventFilter auf der Szene, um Barcode-Scanner-Eingaben
+     * anhand der Eingabegeschwindigkeit (unter 100ms zwischen Tasten) systemweit
+     * abzufangen.
      * 
      * @param scene Die aktuelle JavaFX-Szene.
      */
     public void registerGlobalScanner(javafx.scene.Scene scene) {
+        if (scene == null || scene == registeredScannerScene) {
+            return;
+        }
+        registeredScannerScene = scene;
+
+        // KEY_TYPED fängt die eingegebenen Zeichen ab und puffert sie bei schneller
+        // Folge (Scanner)
+        scene.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            long jetzt = System.currentTimeMillis();
+            String zeichen = event.getCharacter();
+
+            if (zeichen == null || zeichen.isEmpty() || zeichen.equals("\r") || zeichen.equals("\n")) {
+                return;
+            }
+
+            // Wenn zwischen zwei Zeichen mehr als 100ms liegen, tippt ein Mensch ->
+            // Scannerpuffer leeren
+            if (jetzt - letzteTastenZeit > 100) {
+                isbnbuild.setLength(0);
+                if (ausleihdauerFeld != null && ausleihdauerFeld.isFocused()) {
+                    letzteGueltigeDauer = ausleihdauerFeld.getText();
+                }
+            }
+
+            // Gültige Ziffern für Barcode puffern
+            if (zeichen.matches("[0-9]")) {
+                isbnbuild.append(zeichen);
+            }
+
+            // Scanner-Erkennung: Schnelle Eingabe (< 100ms)
+            // Wenn ausleihdauerFeld fokussiert ist, Text wiederherstellen und Event
+            // konsumieren
+            if (jetzt - letzteTastenZeit < 100) {
+                if (ausleihdauerFeld != null && ausleihdauerFeld.isFocused()) {
+                    ausleihdauerFeld.setText(letzteGueltigeDauer);
+                    event.consume();
+                }
+            }
+
+            letzteTastenZeit = jetzt;
+        });
+
+        // KEY_PRESSED fängt das abschließende ENTER des Scanners oder manuelles ENTER
+        // im Code-Feld ab
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            String character = event.getText();
-            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+            if (event.getCode() == KeyCode.ENTER) {
+                long jetzt = System.currentTimeMillis();
                 String gescanntISBN = isbnbuild.toString().trim();
 
-                if (!gescanntISBN.isEmpty()) {
-                    // fertige ISBN ist in ge...
+                // Schnelle Folge zum ENTER (< 250ms) und gepufferter Barcode vorhanden ->
+                // Scanner!
+                if (jetzt - letzteTastenZeit < 250 && !gescanntISBN.isEmpty()) {
                     isbn = gescanntISBN;
                     isbnbuild.setLength(0);
                     scannen();
+                    event.consume();
+                } else if (codeFeld != null && codeFeld.isFocused() && !codeFeld.getText().trim().isEmpty()) {
+                    // Manuelle Eingabe im Code-Feld per ENTER bestätigen
+                    isbnbuild.setLength(0);
+                    scannen();
+                    event.consume();
                 }
-                event.consume();
-            } else {
-                isbnbuild.append(character);
             }
         });
     }
 
     /**
-     * Lädt alle reservierten Bücher aus der Datenbank und füllt die Reserviert-Tabelle.
+     * Lädt alle reservierten Bücher aus der Datenbank und füllt die
+     * Reserviert-Tabelle.
      */
     public void loadReserviertTabelle() {
-        QueryResult result = model.getAlleReservierungen();
+        QueryResult result = model.getBereiteReservierungen();
         if (result != null) {
             reserviertTabelle.getItems().clear();
             String[][] data = result.getData();
@@ -675,7 +733,7 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Aktualisiert die Liste der aktuell im Ausleih-/Rückgabevorgang 
+     * Aktualisiert die Liste der aktuell im Ausleih-/Rückgabevorgang
      * gepufferten bzw. gescannten Bücher (Konflikte rot markiert).
      */
     private void updateGescanntListe() {
@@ -704,7 +762,7 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Bricht den aktuellen Scan-/Ausleih-/Rückgabevorgang ab 
+     * Bricht den aktuellen Scan-/Ausleih-/Rückgabevorgang ab
      * und leert die entsprechenden Listen im Modell.
      */
     public void abbrechen() {
@@ -837,7 +895,7 @@ public class ControllerLehrerStartseite {
             }
         }
     }
-    
+
     /**
      * Wechselt zur Szene "Statistiken".
      * 
@@ -867,7 +925,7 @@ public class ControllerLehrerStartseite {
      * @param event Das ActionEvent.
      */
     public void toEinstellungen(ActionEvent event) {
-        if(model.isLehrer()){
+        if (model.isLehrer()) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/Einstellungen.fxml"));
@@ -940,10 +998,10 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Zeigt in der Liste die zuletzt ausgeführte Aktion (Ausleihe/Rückgabe) 
+     * Zeigt in der Liste die zuletzt ausgeführte Aktion (Ausleihe/Rückgabe)
      * mitsamt betroffenen Büchern und Schülern an.
      */
-    public void letzteAktionAnzeigen(){
+    public void letzteAktionAnzeigen() {
         neuesBuch.setVisible(false);
         ArrayList<String> liste = new ArrayList<>();
         liste.add("Letzte Aktion: ");
@@ -972,15 +1030,15 @@ public class ControllerLehrerStartseite {
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
     }
-    
+
     /**
      * Öffnet das Seitenmenü.
      * 
      * @param event Das ActionEvent.
      */
-    public void openmenu(ActionEvent event){
-        if (menuPane.getTranslateX() == 0) { 
-            menuPane.setTranslateX(-200); 
+    public void openmenu(ActionEvent event) {
+        if (menuPane.getTranslateX() == 0) {
+            menuPane.setTranslateX(-200);
         }
         if (currentTransition != null) {
             currentTransition.stop();
@@ -995,13 +1053,13 @@ public class ControllerLehrerStartseite {
         currentTransition.play();
         zuMenu.setDisable(false);
     }
-    
+
     /**
      * Schließt das Seitenmenü.
      * 
      * @param event Das ActionEvent.
      */
-    public void closemenu(ActionEvent event){
+    public void closemenu(ActionEvent event) {
         if (currentTransition != null) {
             currentTransition.stop();
         }
@@ -1017,7 +1075,8 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Fügt dem Entleiher des ausgewählten Buches (in der Verliehen-Tabelle) eine Mahnung hinzu 
+     * Fügt dem Entleiher des ausgewählten Buches (in der Verliehen-Tabelle) eine
+     * Mahnung hinzu
      * (nur für Lehrer möglich).
      */
     public void mahnungHinzufuegen() {
@@ -1031,26 +1090,25 @@ public class ControllerLehrerStartseite {
     }
 
     /**
-     * Öffnet ein Popup-Fenster, um ein neues Buch hinzuzufügen, 
+     * Öffnet ein Popup-Fenster, um ein neues Buch hinzuzufügen,
      * falls ein unbekannter Barcode gescannt wurde.
      * 
      * @param event Das ActionEvent.
      */
-    public void openPopUp(ActionEvent event){
+    public void openPopUp(ActionEvent event) {
         try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/PopUpNeu.fxml"));
-                Parent root = loader.load();
-                ControllerPopUpNeu popupController = loader.getController();
-                popupController.setISBN(isbnNeu, model);
-                Stage stage = new Stage();
-                stage.setTitle("Neues Buch");
-                stage.setScene(new Scene(root));
-                stage.showAndWait();
-                feedbackText.setText("");
-                neuesBuch.setVisible(false);
-            }
-        catch (IOException e) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/PopUpNeu.fxml"));
+            Parent root = loader.load();
+            ControllerPopUpNeu popupController = loader.getController();
+            popupController.setISBN(isbnNeu, model);
+            Stage stage = new Stage();
+            stage.setTitle("Neues Buch");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+            feedbackText.setText("");
+            neuesBuch.setVisible(false);
+        } catch (IOException e) {
             e.printStackTrace();
-            }
+        }
     }
 }
