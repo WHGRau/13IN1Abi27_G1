@@ -59,7 +59,7 @@ public class ControllerEinstellungen {
     @FXML
     private CheckBox sperrenAktivierenCheckBox;
     @FXML
-    private DatePicker sperrenResetFeld;
+    private TextField sperrenResetMonateFeld;
     @FXML
     private ChoiceBox<String> buechersucheDatenbankChoiceBox;
     @FXML
@@ -166,10 +166,9 @@ public class ControllerEinstellungen {
             else
             sperrenVerspaetungFeld.setText("14");
             
-        String resetDatumStr = model.getEinstellung("sperren_reset_datum");
-        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty())
-            sperrenResetFeld.setValue(LocalDate.parse(resetDatumStr));
-        
+        String resetMonate = model.getEinstellung("sperren_zuruecksetzen_monate");
+        if (resetMonate != null)
+            sperrenResetMonateFeld.setText(resetMonate);
 
 
         buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
@@ -189,7 +188,7 @@ public class ControllerEinstellungen {
         reservierungMaxAnzahlFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
 
         sperrenVerspaetungFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
-        sperrenResetFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
+        sperrenResetMonateFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
 
         buechersucheDatenbankChoiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             buechersucheApiKeyFeld.setDisable("Open Library".equals(newVal));
@@ -231,8 +230,7 @@ public class ControllerEinstellungen {
 
         model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
         model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());
-        String resetDatum = sperrenResetFeld.getValue() != null ? sperrenResetFeld.getValue().toString().trim(): "";
-        model.setEinstellung("sperren_reset_datum", resetDatum);
+        model.setEinstellung("sperren_zuruecksetzen_monate", sperrenResetMonateFeld.getText().trim());
 
         String dbSelection = buechersucheDatenbankChoiceBox.getValue();
         if (dbSelection != null)

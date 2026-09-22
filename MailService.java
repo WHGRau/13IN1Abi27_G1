@@ -14,6 +14,7 @@ import javax.mail.internet.MimeMessage;
 public class MailService {
 
     private Bibliothek model;
+    private static final java.util.concurrent.ExecutorService emailExecutor = java.util.concurrent.Executors.newFixedThreadPool(3);
 
     /**
      * Erstellt einen neuen MailService und verknüpft ihn mit dem Bibliotheks-Model.
@@ -77,17 +78,57 @@ public class MailService {
             message.setSubject(betreff);
             message.setText(nachricht);
 
-            // Using thread so it doesn't freeze the UI
-            new Thread(() -> {
+            // Using thread pool so it doesn't freeze the UI
+            emailExecutor.submit(() -> {
                 try {
                     Transport.send(message);
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
-            }).start();
+            });
 
         } catch (MessagingException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean sendeEmailSync(String empfaengerEmail, String betreff, String nachricht) {
+        if (!isConfigured()) {
+            return false;
+        }
+
+        final String username = model.getEinstellung("email_adresse");
+        final String password = model.getEinstellung("email_passwort");
+        String smtpServer = model.getEinstellung("smtp_server");
+        String smtpPort = model.getEinstellung("smtp_port");
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", smtpServer);
+        props.put("mail.smtp.port", smtpPort);
+
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO,
+                    InternetAddress.parse(empfaengerEmail));
+            message.setSubject(betreff);
+            message.setText(nachricht);
+
+            Transport.send(message);
+            return true;
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -154,6 +195,30 @@ public class MailService {
 
         nachricht += "\n\nViele Grüße,\nDeine Schulbibliothek";
         sendeEmail(empfaengerEmail, betreff, nachricht);
+    }
+
+    public boolean sendeMahnungMailSync(String empfaengerEmail, String nutzerName, String buchTitel, String typ,
+            String rueckgabeDatum) {
+        String betreff = "";
+        String nachricht = "Hallo " + nutzerName + ",\n\n";
+
+        if (typ.equals("2_Tage_vorher")) {
+            betreff = "Erinnerung: Buchrückgabe bald fällig";
+            nachricht += "wir möchten dich daran erinnern, dass du das Buch \"" + buchTitel
+                    + "\" am " + rueckgabeDatum + " zurückgeben musst.\n" +
+                    "Bitte denke daran, es rechtzeitig in der Bibliothek abzugeben.";
+        } else if (typ.equals("Stichtag")) {
+            betreff = "Buchrückgabe heute fällig!";
+            nachricht += "du musst das Buch \"" + buchTitel + "\" in der Bibliothek zurückgeben!\n" +
+                    "Bitte erledige das schnellstmöglich.";
+        } else if (typ.equals("1_Woche_danach")) {
+            betreff = "Buchrückgabe überfällig!";
+            nachricht += "du hast das Buch \"" + buchTitel + "\" leider nicht rechtzeitig zurückgegeben.\n" +
+                    "Bitte bringe das Buch umgehend in die Bibliothek.";
+        }
+
+        nachricht += "\n\nViele Grüße,\nDeine Schulbibliothek";
+        return sendeEmailSync(empfaengerEmail, betreff, nachricht);
     }
 
     /**

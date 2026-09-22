@@ -123,11 +123,13 @@ public class ControllerPopUpNeu
                 errorText.setText("Diese ISBN existiert bereits!");
                 return;
             }
-            model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
-                            jahr, beschreibungFeld.getText(), alterFeld.getText());
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        
-            stage.close();        
+            if (model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
+                            jahr, beschreibungFeld.getText(), alterFeld.getText())) {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.close();        
+            } else {
+                errorText.setText("Fehler beim Speichern in der Datenbank!");
+            }
         } catch (NumberFormatException e) {
             errorText.setText("Fehler: Jahr muss eine Zahl sein");
             e.printStackTrace();

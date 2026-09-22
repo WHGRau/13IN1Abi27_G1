@@ -185,22 +185,17 @@
                                     <Font size="18.0" />
                                  </font>
                               </Button>
-                              <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="190.0" GridPane.rowIndex="1">
+                              <Label fx:id="errorText" textFill="RED" wrapText="true" prefWidth="200.0" maxWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.valignment="TOP">
                                  <font>
-                                    <Font size="16.0" />
+                                    <Font size="15.0" />
                                  </font>
-                              </Text>
+                              </Label>
                               <TableView fx:id="exemplareTabelle" prefHeight="132.0" prefWidth="158.0" GridPane.columnIndex="1" GridPane.rowSpan="3">
                                 <columns>
                                   <TableColumn fx:id="artSpalte" minWidth="0.0" prefWidth="85.0" text="Status" />
                                   <TableColumn fx:id="nameSpalte" prefWidth="250.0" />
                                 </columns>
                               </TableView>
-                              <Text fx:id="fehlerStatus" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="170.0" GridPane.columnIndex="2">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Text>
                            </children>
                         </GridPane>
                      </children>

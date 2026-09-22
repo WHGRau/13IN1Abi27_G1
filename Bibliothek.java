@@ -35,6 +35,9 @@ public class Bibliothek {
     private ArrayList<String> letzteBuecher = new ArrayList<>();
     private int letzterSchueler;
     private boolean letzteAktionAusleihen;
+    private ArrayList<Integer> letzteErfuellteBereiteReservierungen = new ArrayList<>();
+    private ArrayList<Integer> letzteErfuellteWartendeReservierungen = new ArrayList<>();
+    private ArrayList<Integer> letzteAktivierteReservierungen = new ArrayList<>();
     private String aktuellerModus = "LEER";
     private Random random = new Random();
 
@@ -44,9 +47,15 @@ public class Bibliothek {
      */
     public Bibliothek() {
         dbVerbinden();
-        reservierungenAktualisieren();
-        erinnerungenPruefenUndVersenden();
-        lateDaysAktualisieren();
+        new Thread(() -> {
+            try {
+                reservierungenAktualisieren();
+                erinnerungenPruefenUndVersenden();
+                lateDaysAktualisieren();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
 
@@ -68,10 +77,11 @@ public class Bibliothek {
                 String titel = result2Tage.getData()[i][3];
                 String datum = result2Tage.getData()[i][5];
                 if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    mailService.sendeMahnungMail(email, vorname, titel, "2_Tage_vorher", datum);
+                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "2_Tage_vorher", datum);
+                    if (success) {
+                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?", ausleihId);
+                    }
                 }
-                dbConnector
-                        .executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?", ausleihId);
             }
         }
 
@@ -88,10 +98,11 @@ public class Bibliothek {
                 String titel = resultStichtag.getData()[i][3];
                 String datum = resultStichtag.getData()[i][5];
                 if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    mailService.sendeMahnungMail(email, vorname, titel, "Stichtag", datum);
+                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "Stichtag", datum);
+                    if (success) {
+                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = ?", ausleihId);
+                    }
                 }
-                dbConnector
-                        .executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = ?", ausleihId);
             }
         }
 
@@ -108,10 +119,11 @@ public class Bibliothek {
                 String titel = result1Woche.getData()[i][3];
                 String datum = result1Woche.getData()[i][5];
                 if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    mailService.sendeMahnungMail(email, vorname, titel, "1_Woche_danach", datum);
+                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "1_Woche_danach", datum);
+                    if (success) {
+                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = ?", ausleihId);
+                    }
                 }
-                dbConnector.executeStatement(
-                        "UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = ?", ausleihId);
             }
         }
     }
@@ -179,47 +191,74 @@ public class Bibliothek {
      * 
      * @param ausleihZeitTage Die Ausleihdauer in Tagen.
      */
-    public void buchLeihen(int ausleihZeitTage) {
+    public boolean buchLeihen(int ausleihZeitTage) {
         if (isLehrer()) {
             if (erfassteBuecher.isEmpty() || erfassterSchueler == null)
-                return;
-            letzteAktionAusleihen = true;
+                return false;
+            
+            dbConnector.beginTransaction();
+            try {
+                letzteAktionAusleihen = true;
             letzteBuecher.clear();
+            letzteErfuellteBereiteReservierungen.clear();
+            letzteErfuellteWartendeReservierungen.clear();
             letzterSchueler = erfassterSchueler;
             for (int i = 0; i < erfassteBuecher.size(); i++) {
-                letzteBuecher.add(erfassteBuecher.get(i));
-                dbConnector.executeStatement("SELECT status, anzahlLiehen FROM buecher WHERE isbn = ?", erfassteBuecher.get(i));
+                String isbn = erfassteBuecher.get(i);
+                letzteBuecher.add(isbn);
+                dbConnector.executeStatement("SELECT anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", isbn);
                 QueryResult result = dbConnector.getCurrentQueryResult();
                 if (result != null && result.getRowCount() > 0) {
-                    if (result.getData()[0][0].equals("verfuegbar") || result.getData()[0][0].equals("reserviert")) {
-                        String sql = "INSERT INTO ausleihen (schueler_id, isbn, ausleihdatum, geplante_rueckgabe, lehrerId) "
-                                + "VALUES (?, ?, CURRENT_DATE(), CURRENT_DATE() + INTERVAL ? DAY, ?)";
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    
+                    // Prüfen, ob eine abholbereite Reservierung für diesen Schüler vorliegt
+                    dbConnector.executeStatement("SELECT id FROM reservierungen WHERE schueler_id = ? AND isbn = ? AND status = 'bereit' ORDER BY id DESC LIMIT 1", erfassterSchueler, isbn);
+                    QueryResult resBereit = dbConnector.getCurrentQueryResult();
+                    boolean hatBereit = (resBereit != null && resBereit.getRowCount() > 0);
 
-                        dbConnector.executeStatement(sql, erfassterSchueler, erfassteBuecher.get(i), ausleihZeitTage, angemeldet);
-                        hinzuLI(erfassteBuecher.get(i));
+                    if (hatBereit) {
+                        String sql = "INSERT INTO ausleihen (schueler_id, isbn, ausleihdatum, geplante_rueckgabe, lehrerId) "
+                                + "VALUES (?, ?, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY), ?)";
+                        dbConnector.executeStatement(sql, erfassterSchueler, isbn, ausleihZeitTage, angemeldet);
+                        hinzuLI(isbn);
                         
-                        dbConnector.executeStatement("SELECT id, status FROM reservierungen WHERE schueler_id = ? AND isbn = ? AND (status = 'bereit' OR status = 'wartend') ORDER BY id DESC LIMIT 1", erfassterSchueler, erfassteBuecher.get(i));
-                        QueryResult res = dbConnector.getCurrentQueryResult();
-                        if (res != null && res.getRowCount() > 0) {
-                            String resId = res.getData()[0][0];
-                            String resStatus = res.getData()[0][1];
-                            dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgeschlossen' WHERE id = ?", resId);
-                            if (resStatus.equals("bereit")) {
-                                loeschRE(erfassteBuecher.get(i));
-                            } else {
-                                loeschDA(erfassteBuecher.get(i));
-                            }
-                        } else {
-                            loeschDA(erfassteBuecher.get(i));
+                        String resId = resBereit.getData()[0][0];
+                        dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgeschlossen' WHERE id = ?", resId);
+                        loeschRE(isbn);
+                        letzteErfuellteBereiteReservierungen.add(Integer.parseInt(resId));
+                        updateBuchStatus(isbn);
+                    } else if (da > 0) {
+                        String sql = "INSERT INTO ausleihen (schueler_id, isbn, ausleihdatum, geplante_rueckgabe, lehrerId) "
+                                + "VALUES (?, ?, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY), ?)";
+                        dbConnector.executeStatement(sql, erfassterSchueler, isbn, ausleihZeitTage, angemeldet);
+                        hinzuLI(isbn);
+                        loeschDA(isbn);
+                        
+                        // Falls der Schüler noch auf der Warteliste stand, diese Reservierung ebenfalls abschließen
+                        dbConnector.executeStatement("SELECT id FROM reservierungen WHERE schueler_id = ? AND isbn = ? AND status = 'wartend' ORDER BY id DESC LIMIT 1", erfassterSchueler, isbn);
+                        QueryResult resWartend = dbConnector.getCurrentQueryResult();
+                        if (resWartend != null && resWartend.getRowCount() > 0) {
+                            String wartendId = resWartend.getData()[0][0];
+                            dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgeschlossen' WHERE id = ?", wartendId);
+                            letzteErfuellteWartendeReservierungen.add(Integer.parseInt(wartendId));
                         }
-                        updateBuchStatus(erfassteBuecher.get(i));
+                        updateBuchStatus(isbn);
                     }
                 }
             }
+            dbConnector.commit();
             erfassterSchueler = null;
             erfassteBuecher.clear();
             aktuellerModus = "LEER";
+            
+            return true;
+            } catch (Exception e) {
+                dbConnector.rollback();
+                e.printStackTrace();
+                return false;
+            }
         }
+        return false;
     }
 
     /**
@@ -227,83 +266,60 @@ public class Bibliothek {
      * Prüft, ob das Buch für jemanden reserviert war, und informiert diesen per
      * Mail.
      */
-    public void buchRueckgabe() {
+    public boolean buchRueckgabe() {
         if (isLehrer()) {
             if (erfassteBuecher.isEmpty() || erfassterSchueler == null)
-                return;
+                return false;
+            
+            dbConnector.beginTransaction();
+            try {
+                letzteAktionAusleihen = false;
+            letzterSchueler = erfassterSchueler;
             letzteBuecher.clear();
+            letzteAktivierteReservierungen.clear();
+
             for (int i = 0; i < erfassteBuecher.size(); i++) {
                 String isbn = erfassteBuecher.get(i);
                 dbConnector.executeStatement("SELECT anzahlLiehen FROM buecher WHERE isbn = ?", isbn);
                 QueryResult result = dbConnector.getCurrentQueryResult();
-                letzterSchueler = erfassterSchueler;
                 if (result != null && result.getRowCount() > 0 && !result.getData()[0][0].equals("0")) {
-                    letzteAktionAusleihen = false;
                     letzteBuecher.add(isbn);
 
-                    int verspaetung = getTageZuSpaet(isbn, letzterSchueler);
-                    if (verspaetung > 0 && "1".equals(getEinstellung("sperren_aktiv"))) {
-                        dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = tage_spaet + ? WHERE id = ?",
-                                verspaetung, letzterSchueler);
-                        String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
-                        int sperrungTage = 14;
-                        if (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) {
-                            try {
-                                sperrungTage = Integer.parseInt(sperrungTageStr.trim());
-                            } catch (NumberFormatException ignored) {
-                            }
-                        }
-                        dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", letzterSchueler);
-                        QueryResult tRes = dbConnector.getCurrentQueryResult();
-                        if (tRes != null && tRes.getRowCount() > 0) {
-                            try {
-                                int curLate = Integer.parseInt(tRes.getData()[0][0]);
-                                if (curLate > sperrungTage && !isGesperrt(letzterSchueler)) {
-                                    sperren(letzterSchueler, true);
-                                }
-                            } catch (NumberFormatException ignored) {
-                            }
-                        }
-                    }
-
-                    dbConnector.executeStatement(
-                            "UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ?",
-                            isbn, letzterSchueler);
-
-                    dbConnector.executeStatement(
-                            "SELECT status FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
-                    QueryResult resResult = dbConnector.getCurrentQueryResult();
-
-                    if (resResult != null && resResult.getRowCount() > 0) {
-                        hinzuRE(isbn);
-                        loeschLI(isbn);
-                        updateBuchStatus(isbn);
-
-                        updateReservierung(isbn);
-
-                        // Email senden an den wartenden Schüler
+                    dbConnector.executeStatement("SELECT id FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ? LIMIT 1", isbn, letzterSchueler);
+                    QueryResult ausleiheRes = dbConnector.getCurrentQueryResult();
+                    if (ausleiheRes != null && ausleiheRes.getRowCount() > 0) {
+                        // Keine manuelle Sperrprüfung mehr hier (läuft zentral über lateDaysAktualisieren)
+    
                         dbConnector.executeStatement(
-                                "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = ? AND reservierungen.status = 'bereit'",
-                                isbn);
-                        QueryResult mailResult = dbConnector.getCurrentQueryResult();
-                        if (mailResult != null && mailResult.getRowCount() > 0) {
-                            String empfaengerEmail = mailResult.getData()[0][0];
-                            String vorname = mailResult.getData()[0][1];
-                            String titel = mailResult.getData()[0][2];
-                            MailService mailService = new MailService(this);
-                            mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+                                "UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = ? AND ruckgabe_datum IS NULL AND schueler_id = ? ORDER BY ausleihdatum ASC LIMIT 1",
+                                isbn, letzterSchueler);
+    
+                        Integer aktivierteResId = naechsteWartendeReservierungBereitstellen(isbn);
+                        if (aktivierteResId != null) {
+                            letzteAktivierteReservierungen.add(aktivierteResId);
+                            hinzuRE(isbn);
+                            loeschLI(isbn);
+                            updateBuchStatus(isbn);
+                        } else {
+                            loeschLI(isbn);
+                            hinzuDA(isbn);
+                            updateBuchStatus(isbn);
                         }
-                    } else {
-                        loeschLI(isbn);
-                        hinzuDA(isbn);
-                        updateBuchStatus(isbn);
                     }
                 }
             }
+            dbConnector.commit();
             erfassterSchueler = null;
             erfassteBuecher.clear();
             aktuellerModus = "LEER";
+            return true;
+            } catch(Exception e) {
+                dbConnector.rollback();
+                e.printStackTrace();
+                return false;
+            }
         }
+        return false;
     }
 
     /**
@@ -316,20 +332,27 @@ public class Bibliothek {
      * @param beschreibung Eine Beschreibung.
      * @param alter        Die Altersbeschränkung in Jahren.
      */
-    public void buchHinzufuegen(String isbn, String titel, String autor, Integer jahr, String beschreibung,
+    public boolean buchHinzufuegen(String isbn, String titel, String autor, Integer jahr, String beschreibung,
             String alter) {
         if (isLehrer()) {
-            String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : null;
-            String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : null;
-
-            String sql = "INSERT INTO buecher (isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung, anzahlDa, anzahlLiehen, anzahlRes)"
-                    + " VALUES(?, ?, ?, ?, ?, 'verfuegbar', ?, 1, 0, 0)";
-            dbConnector.executeStatement(sql, isbn, titel, autor, jahrValue, beschreibung, alterValue);
+            try {
+                String jahrValue = (jahr != null && jahr > 0) ? String.valueOf(jahr) : null;
+                String alterValue = (alter != null && !alter.trim().isEmpty()) ? alter.trim() : null;
+    
+                String sql = "INSERT INTO buecher (isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung, anzahlDa, anzahlLiehen, anzahlRes)"
+                        + " VALUES(?, ?, ?, ?, ?, 'verfuegbar', ?, 1, 0, 0)";
+                dbConnector.executeStatement(sql, isbn, titel, autor, jahrValue, beschreibung, alterValue);
+                return true;
+            } catch(Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
+        return false;
     }
 
-    public void buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
-        buchHinzufuegen(isbn, titel, autor, Integer.valueOf(jahr), beschreibung, null);
+    public boolean buchHinzufuegen(String isbn, String titel, String autor, int jahr, String beschreibung) {
+        return buchHinzufuegen(isbn, titel, autor, Integer.valueOf(jahr), beschreibung, null);
     }
 
     /**
@@ -339,23 +362,39 @@ public class Bibliothek {
      */
     public void buchLoeschen(String isbn) {
         if (isLehrer()) {
-            dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = ?", isbn);
-            QueryResult result = dbConnector.getCurrentQueryResult();
-
-            if (result != null && result.getRowCount() > 0) {
-                if (maxRes(isbn)) {
-                    neusteResAbsagen(isbn);
-                    dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = ?", isbn);
-                    result = dbConnector.getCurrentQueryResult();
-                    if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("0")) {
-                        loeschRE(isbn);
-                    } else {
-                        loeschDA(isbn);
+            dbConnector.beginTransaction();
+            try {
+                dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = ?", isbn);
+                QueryResult result = dbConnector.getCurrentQueryResult();
+    
+                if (result != null && result.getRowCount() > 0) {
+                    if (maxRes(isbn)) {
+                        neusteResAbsagen(isbn);
                     }
-                } else {
-                    loeschDA(isbn);
+                    
+                    dbConnector.executeStatement("SELECT anzahlDa, anzahlRes, anzahlLiehen FROM buecher WHERE isbn = ?", isbn);
+                    result = dbConnector.getCurrentQueryResult();
+                    if (result != null && result.getRowCount() > 0) {
+                        int da = Integer.parseInt(result.getData()[0][0]);
+                        int re = Integer.parseInt(result.getData()[0][1]);
+                        int li = Integer.parseInt(result.getData()[0][2]);
+                        
+                        if (da > 0) {
+                            loeschDA(isbn);
+                        } else if (re > 0) {
+                            dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgesagt' WHERE isbn = ? AND status = 'bereit' ORDER BY id DESC LIMIT 1", isbn);
+                            loeschRE(isbn);
+                        } else if (li > 0) {
+                            dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = CURRENT_DATE() WHERE isbn = ? AND ruckgabe_datum IS NULL ORDER BY ausleihdatum ASC LIMIT 1", isbn);
+                            loeschLI(isbn);
+                        }
+                    }
+                    updateBuchStatus(isbn);
                 }
-                updateBuchStatus(isbn);
+                dbConnector.commit();
+            } catch (Exception e) {
+                dbConnector.rollback();
+                e.printStackTrace();
             }
         }
     }
@@ -408,20 +447,42 @@ public class Bibliothek {
      * @return Eine Liste von Buch-Objekten, die den Suchkriterien entsprechen.
      */
     public ArrayList<Buch> buecherSuchen(String pS) {
-        if (pS == null)
-            pS = "";
-        String suchbegriff = "%" + pS + "%";
-        if (isLehrer()) {
+        if (pS == null) pS = "";
+        pS = pS.trim();
 
-            dbConnector.executeStatement(
-                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE "
-                            + "(titel LIKE ? OR isbn LIKE ? OR autor LIKE ?)",
-                    suchbegriff, suchbegriff, suchbegriff);
+        ArrayList<String> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher"
+        );
+
+        if (pS.isEmpty()) {
+            if (!isLehrer()) {
+                sql.append(" WHERE status NOT LIKE 'entfernt'");
+            }
         } else {
-            dbConnector.executeStatement(
-                    "SELECT isbn, titel, autor, erscheinungsjahr, beschreibung, status, altersbeschraenkung FROM buecher WHERE (titel LIKE ?"
-                            + " OR isbn LIKE ? OR autor LIKE ?) AND status NOT LIKE 'entfernt'",
-                    suchbegriff, suchbegriff, suchbegriff);
+            String[] terms = pS.split("\\s+");
+            sql.append(" WHERE ");
+
+            for (int i = 0; i < terms.length; i++) {
+                if (i > 0) {
+                    sql.append(" AND ");
+                }
+                sql.append("(titel LIKE ? OR isbn LIKE ? OR autor LIKE ?)");
+                String pattern = "%" + terms[i] + "%";
+                params.add(pattern);
+                params.add(pattern);
+                params.add(pattern);
+            }
+
+            if (!isLehrer()) {
+                sql.append(" AND status NOT LIKE 'entfernt'");
+            }
+        }
+
+        if (params.isEmpty()) {
+            dbConnector.executeStatement(sql.toString());
+        } else {
+            dbConnector.executeStatement(sql.toString(), params.toArray());
         }
 
         QueryResult result = dbConnector.getCurrentQueryResult();
@@ -429,9 +490,11 @@ public class Bibliothek {
 
         if (result != null) {
             for (int i = 0; i < result.getRowCount(); i++) {
-                buecher.add(new Buch(result.getData()[i][0], result.getData()[i][1], result.getData()[i][2],
-                        result.getData()[i][3], result.getData()[i][4], result.getData()[i][5],
-                        result.getData()[i][6]));
+                buecher.add(new Buch(
+                    result.getData()[i][0], result.getData()[i][1], result.getData()[i][2],
+                    result.getData()[i][3], result.getData()[i][4], result.getData()[i][5],
+                    result.getData()[i][6]
+                ));
             }
         }
         return buecher;
@@ -492,7 +555,7 @@ public class Bibliothek {
         // 4: Buch ist nicht verfügbar
         // 5: Buch kann zurückgegeben werden und ist reserviert
         // 6: Schueler erfasst
-        // 7: Buch berits verliehen (ausleihen und zurück geben nicht gleichzeitig)
+        // 7: Ausleihe und Rückgabe können nicht gleichzeitig durchgeführt werden
         // 8: Code ist kein Buch oder Schüler
         // 9: Maximale Anzahl Bücher
         // 10: schueler gesperrt
@@ -503,7 +566,11 @@ public class Bibliothek {
         // 15: Ueberschreitung der maximalen Buecheranzahl pro Schueler
         // 16: Buch kann zuruckgegeben und ausgeliehen werden
         // 17: Schuler furs zuruckgeben
-        // 19: Schueler muss gescannt werden, um doppelte ausgabe verhindern zu koennen
+        // 19: Schueler hat dieses Buch bereits ausgeliehen
+        // 20: Kein Exemplar verfügbar (alle verliehen)
+        // 21: Buch ist nicht verliehen (kann nicht zurückgegeben werden)
+        // 22: Buch wurde von diesem Schüler nicht ausgeliehen
+        // 23: Buch bereits in der Liste
 
         if (isLehrer()) {
             dbConnector.executeStatement("SELECT status, anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", code);
@@ -513,153 +580,271 @@ public class Bibliothek {
                 String status = buchResult.getData()[0][0];
                 int da = Integer.parseInt(buchResult.getData()[0][1]);
                 int li = Integer.parseInt(buchResult.getData()[0][2]);
-                
-                if (erfassteBuecher.isEmpty()) {
-                    if (status.equals("verliehen") || (status.equals("verfuegbar") && li > 0 && bereitsAusgeliehen(code))) {
-                        aktuellerModus = "RUECKGABE";
-                    } else {
-                        aktuellerModus = "AUSLEIHE";
-                    }
-                } else {
-                    if (aktuellerModus.equals("RUECKGABE")) {
-                        if (li == 0 && !status.equals("verliehen")) {
-                            return 7;
-                        }
-                        if (erfassterSchueler != null && !bereitsAusgeliehen(code)) {
-                            return 7;
-                        }
-                    } else if (aktuellerModus.equals("AUSLEIHE")) {
-                        if (status.equals("verliehen") || (da == 0 && !status.equals("reserviert"))) {
-                            return 7;
-                        }
-                    }
+                int re = Integer.parseInt(buchResult.getData()[0][3]);
+
+                if ("entfernt".equals(status) || (da == 0 && li == 0 && re == 0)) {
+                    return 4;
                 }
 
-                switch (status) {
-                    case "verfuegbar":
-                        if (buecherAnzahlUeberschritten()) {
+                if (erfassteBuecher.contains(code)) {
+                    return 23;
+                }
+
+                if (erfassteBuecher.size() >= 10 && !"RUECKGABE".equals(aktuellerModus)) {
+                    return 9;
+                }
+
+                // Fall 1: Schülerausweis wurde BEREITS gescannt
+                if (erfassterSchueler != null) {
+                    boolean studentHatAusgeliehen = bereitsAusgeliehen(code, erfassterSchueler);
+
+                    if (studentHatAusgeliehen) {
+                        // Schüler hat dieses Buch aktuell ausgeliehen -> Rückgabe
+                        if ("AUSLEIHE".equals(aktuellerModus)) {
+                            return 7; // Ausleihe und Rückgabe können nicht gleichzeitig durchgeführt werden!
+                        }
+                        aktuellerModus = "RUECKGABE";
+                        erfassteBuecher.add(code);
+
+                        dbConnector.executeStatement("SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", code);
+                        QueryResult waitRes = dbConnector.getCurrentQueryResult();
+                        if (waitRes != null && waitRes.getRowCount() > 0 && Integer.parseInt(waitRes.getData()[0][0]) > 0) {
+                            return 5;
+                        }
+                        return 2;
+                    } else {
+                        // Schüler hat dieses Buch NICHT ausgeliehen -> Ausleihe
+                        if ("RUECKGABE".equals(aktuellerModus)) {
+                            boolean kannGeliehenWerden = (da > 0 || hatBereiteReservierung(code, erfassterSchueler));
+                            if (kannGeliehenWerden) {
+                                return 7; // Ausleihe und Rückgabe können nicht gleichzeitig durchgeführt werden!
+                            } else {
+                                return 22; // Dieses Buch wurde von diesem Schüler nicht ausgeliehen!
+                            }
+                        }
+
+                        // Wenn Schüler gesperrt ist, darf er nicht ausleihen!
+                        if (isGesperrt(erfassterSchueler)) {
+                            return 10; // Schüler gesperrt! Ausleihe nicht möglich.
+                        }
+
+                        boolean hatEigeneReservierung = hatBereiteReservierung(code, erfassterSchueler);
+                        if (!hatEigeneReservierung) {
+                            if (da == 0) {
+                                if (re > 0) {
+                                    return 3; // Für anderen Schüler reserviert
+                                } else if (li > 0) {
+                                    return 20; // Alle verliehen
+                                } else {
+                                    return 4;
+                                }
+                            }
+                        }
+
+                        // Altersprüfung nur bei Ausleihe
+                        dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", code);
+                        QueryResult alterRes = dbConnector.getCurrentQueryResult();
+                        if (alterRes != null && alterRes.getRowCount() > 0 && alterRes.getData()[0][0] != null) {
+                            try {
+                                int ab = Integer.parseInt(alterRes.getData()[0][0]);
+                                if (ab > 0 && getNutzerAlter(erfassterSchueler) < ab) {
+                                    return 14;
+                                }
+                            } catch (NumberFormatException ignored) {}
+                        }
+
+                        // Limitprüfung nur bei Ausleihe
+                        if (buecherAnzahlUeberschritten(1)) {
                             return 15;
                         }
 
-                        dbConnector.executeStatement(
-                                "SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", code);
+                        aktuellerModus = "AUSLEIHE";
+                        erfassteBuecher.add(code);
+                        if (hatEigeneReservierung) {
+                            return 18; // Bereitgestelltes reserviertes Buch für diesen Schüler erfasst!
+                        }
+                        return 1;
+                    }
+                } else {
+                    // Fall 2: Schülerausweis noch NICHT gescannt (Bücher zuerst)
+                    boolean kannAusgeliehenWerden = (da > 0 || re > 0);
+                    boolean kannZurueckgegebenWerden = (li > 0);
+
+                    if ("RUECKGABE".equals(aktuellerModus)) {
+                        if (!kannZurueckgegebenWerden) {
+                            return 21;
+                        }
+                        erfassteBuecher.add(code);
+
+                        dbConnector.executeStatement("SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", code);
+                        QueryResult waitRes = dbConnector.getCurrentQueryResult();
+                        if (waitRes != null && waitRes.getRowCount() > 0 && Integer.parseInt(waitRes.getData()[0][0]) > 0) {
+                            return 5;
+                        }
+                        return 2;
+                    } else if ("AUSLEIHE".equals(aktuellerModus)) {
+                        if (!kannAusgeliehenWerden) {
+                            return 20;
+                        }
+
+                        dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", code);
                         QueryResult alterRes = dbConnector.getCurrentQueryResult();
                         if (alterRes != null && alterRes.getRowCount() > 0 && alterRes.getData()[0][0] != null) {
                             try {
                                 int ab = Integer.parseInt(alterRes.getData()[0][0]);
                                 if (ab > 0) {
-                                    if (erfassterSchueler == null) {
-                                        if (!erfassteBuecher.contains(code)) {
-                                            erfassteBuecher.add(code);
-                                        }
-                                        return 13;
-                                    } else {
-                                        if (getNutzerAlter(erfassterSchueler) < ab) {
-                                            return 14;
-                                        }
-                                    }
+                                    erfassteBuecher.add(code);
+                                    return 13;
                                 }
-                            } catch (NumberFormatException e) {
-                            }
+                            } catch (NumberFormatException ignored) {}
                         }
 
-                        if (erfassteBuecher.size() >= 10) {
-                            return 9;
-                        } else {
-                            if (!erfassteBuecher.contains(code)) {
-                                erfassteBuecher.add(code);
+                        erfassteBuecher.add(code);
+                        if (da == 0 && re > 0) {
+                            return 11;
+                        }
+                        return 1;
+                    } else {
+                        // Modus noch offen
+                        if (kannZurueckgegebenWerden && !kannAusgeliehenWerden) {
+                            aktuellerModus = "RUECKGABE";
+                            erfassteBuecher.add(code);
+
+                            dbConnector.executeStatement("SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", code);
+                            QueryResult waitRes = dbConnector.getCurrentQueryResult();
+                            if (waitRes != null && waitRes.getRowCount() > 0 && Integer.parseInt(waitRes.getData()[0][0]) > 0) {
+                                return 5;
                             }
-                            if (li > 0) {
-                                if (bereitsAusgeliehen(code)) {
-                                    return 2;
-                                }
-                                if (erfassterSchueler == null) {
-                                    return 16;
-                                }
+                            return 2;
+                        } else if (kannAusgeliehenWerden && !kannZurueckgegebenWerden) {
+                            aktuellerModus = "AUSLEIHE";
+
+                            dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", code);
+                            QueryResult alterRes = dbConnector.getCurrentQueryResult();
+                            if (alterRes != null && alterRes.getRowCount() > 0 && alterRes.getData()[0][0] != null) {
+                                try {
+                                    int ab = Integer.parseInt(alterRes.getData()[0][0]);
+                                    if (ab > 0) {
+                                        erfassteBuecher.add(code);
+                                        return 13;
+                                    }
+                                } catch (NumberFormatException ignored) {}
+                            }
+
+                            erfassteBuecher.add(code);
+                            if (da == 0 && re > 0) {
+                                return 11;
                             }
                             return 1;
-                        }
-                    case "verliehen":
-                        dbConnector.executeStatement(
-                                "SELECT status FROM reservierungen WHERE isbn = ? AND status = 'wartend'", code);
-                        if (!erfassteBuecher.contains(code)) {
-                            erfassteBuecher.add(code);
-                        }
-                        if (dbConnector.getCurrentQueryResult() != null
-                                && dbConnector.getCurrentQueryResult().getRowCount() > 0) {
-                            return 5;
                         } else {
-                            return 2;
-                        }
-                    case "reserviert":
-                        dbConnector.executeStatement(
-                                "SELECT schueler_id FROM reservierungen WHERE isbn = ? AND status = 'bereit'", code);
-                        if (dbConnector.getCurrentQueryResult() != null
-                                && dbConnector.getCurrentQueryResult().getRowCount() > 0) {
-                            if (erfassterSchueler == null) {
-                                if (!erfassteBuecher.contains(code)) {
-                                    erfassteBuecher.add(code);
-                                }
-                                return 11;
-                            } else {
-                                for (int i = 0; i < dbConnector.getCurrentQueryResult().getRowCount(); i++) {
-                                    int resSchuelerId = Integer
-                                            .parseInt(dbConnector.getCurrentQueryResult().getData()[i][0]);
-                                    if (erfassterSchueler == resSchuelerId) {
-                                        if (buecherAnzahlUeberschritten()) {
-                                            return 15;
-                                        }
-                                        if (!erfassteBuecher.contains(code)) {
-                                            erfassteBuecher.add(code);
-                                        }
-                                        return 1;
+                            // Mehrere Exemplare: li > 0 UND da > 0 (kann Ausleihe oder Rückgabe sein)
+                            dbConnector.executeStatement("SELECT altersbeschraenkung FROM buecher WHERE isbn = ?", code);
+                            QueryResult alterRes = dbConnector.getCurrentQueryResult();
+                            if (alterRes != null && alterRes.getRowCount() > 0 && alterRes.getData()[0][0] != null) {
+                                try {
+                                    int ab = Integer.parseInt(alterRes.getData()[0][0]);
+                                    if (ab > 0) {
+                                        erfassteBuecher.add(code);
+                                        return 13;
                                     }
-                                }
-                                return 3;
+                                } catch (NumberFormatException ignored) {}
                             }
+
+                            erfassteBuecher.add(code);
+                            return 16;
                         }
-                        break;
-                    case "entfernt":
-                        return 4;
-                    default:
-                        break;
+                    }
                 }
             }
 
+            // Prüfen, ob es ein Schüler-Barcode ist
             try {
                 int schuelerId = Integer.parseInt(code);
-                dbConnector.executeStatement("SELECT id FROM benutzer WHERE id = ?", schuelerId);
+                dbConnector.executeStatement("SELECT id, freigeschaltet FROM benutzer WHERE id = ?", schuelerId);
                 QueryResult schuelerResult = dbConnector.getCurrentQueryResult();
 
                 if (schuelerResult != null && schuelerResult.getRowCount() > 0) {
-                    dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", schuelerId);
-                    if (dbConnector.getCurrentQueryResult().getData()[0][0].equals("1")) {
-                        erfassterSchueler = schuelerId;
-                        if (checkBuecherReserviert().size() > 0) {
-                            return 12;
+                    boolean istFreigeschaltet = "1".equals(schuelerResult.getData()[0][1]);
+                    erfassterSchueler = schuelerId;
+
+                    if (!erfassteBuecher.isEmpty()) {
+                        int ausgeliehenVonSchuelerCount = 0;
+                        for (String bIsbn : erfassteBuecher) {
+                            if (bereitsAusgeliehen(bIsbn, erfassterSchueler)) {
+                                ausgeliehenVonSchuelerCount++;
+                            }
                         }
-                        if (!erfassteBuecher.isEmpty() && richtigerSchuelerRuckListe()) {
+
+                        if (ausgeliehenVonSchuelerCount == erfassteBuecher.size()) {
+                            // Alle gescannten Bücher sind von diesem Schüler ausgeliehen -> Eindeutige Rückgabe (auch bei Sperre erlaubt!)
                             aktuellerModus = "RUECKGABE";
                             return 17;
-                        }
-                        if (checkBuecherBereitsAusgeliehen().size() > 0) {
-                            return 19;
-                        }
-                        if (checkBuecherAlter().size() > 0) {
-                            return 14;
-                        }
-                        if (buecherAnzahlUeberschritten()) {
-                            return 15;
-                        }
+                        } else if (ausgeliehenVonSchuelerCount > 0) {
+                            // Schüler hat einige Bücher geliehen, aber nicht alle im Puffer
+                            // Die Aktion des Schülers ist eine Rückgabe seiner Bücher. Die fremden Bücher sind Konflikte.
+                            aktuellerModus = "RUECKGABE";
 
-                        return 6;
-                    } else {
-                        return 10;
+                            boolean hatVerfuegbaresNichtGeliehenesBuch = false;
+                            for (String bIsbn : erfassteBuecher) {
+                                if (!bereitsAusgeliehen(bIsbn, erfassterSchueler)) {
+                                    dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = ?", bIsbn);
+                                    QueryResult daRes = dbConnector.getCurrentQueryResult();
+                                    if (daRes != null && daRes.getRowCount() > 0 && Integer.parseInt(daRes.getData()[0][0]) > 0) {
+                                        hatVerfuegbaresNichtGeliehenesBuch = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (hatVerfuegbaresNichtGeliehenesBuch) {
+                                return 7; // Ausleihe und Rückgabe nicht gleichzeitig
+                            } else {
+                                return 22; // Fremde Bücher nicht von diesem Schüler entliehen
+                            }
+                        } else {
+                            // Keines der Bücher ist von diesem Schüler ausgeliehen (ausgeliehenVonSchuelerCount == 0)
+                            // Prüfen, ob eine Rückgabe vorliegt (z. B. Modus war RUECKGABE oder Bücher haben da == 0)
+                            boolean enthaeltNichtAusleihbaresBuch = false;
+                            for (String bIsbn : erfassteBuecher) {
+                                if (!hatBereiteReservierung(bIsbn, erfassterSchueler)) {
+                                    dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = ?", bIsbn);
+                                    QueryResult daRes = dbConnector.getCurrentQueryResult();
+                                    if (daRes == null || daRes.getRowCount() == 0 || Integer.parseInt(daRes.getData()[0][0]) == 0) {
+                                        enthaeltNichtAusleihbaresBuch = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if ("RUECKGABE".equals(aktuellerModus) || enthaeltNichtAusleihbaresBuch) {
+                                // Es handelte sich um eine Rückgabe, aber der falsche Schüler wurde gescannt!
+                                aktuellerModus = "RUECKGABE";
+                                return 22; // Dieses Buch wurde von diesem Schüler nicht ausgeliehen!
+                            }
+
+                            // Eindeutige Ausleihe: Alle Bücher sind im Regal vorhanden und Schüler hat keines davon
+                            if (!istFreigeschaltet) {
+                                return 10; // Schüler gesperrt! Ausleihe nicht möglich.
+                            }
+
+                            aktuellerModus = "AUSLEIHE";
+
+                            if (checkBuecherReserviert().size() > 0) {
+                                return (erfassteBuecher.size() == 1) ? 3 : 12;
+                            }
+                            if (checkBuecherAlter().size() > 0) {
+                                return 14;
+                            }
+                            if (buecherAnzahlUeberschritten()) {
+                                return 15;
+                            }
+                            return 6;
+                        }
                     }
-                }
-            } catch (NumberFormatException e) {
 
-            }
+                    return 6;
+                }
+            } catch (NumberFormatException ignored) {}
 
             return 8;
         }
@@ -685,8 +870,69 @@ public class Bibliothek {
             erfassteBuecher.remove(index);
             if (erfassteBuecher.isEmpty()) {
                 aktuellerModus = "LEER";
+            } else if (erfassterSchueler != null) {
+                boolean hatAusgeliehenes = false;
+                boolean alleKoennenAusgeliehenWerden = true;
+                for (String isbn : erfassteBuecher) {
+                    if (bereitsAusgeliehen(isbn, erfassterSchueler)) {
+                        hatAusgeliehenes = true;
+                    }
+                    if (!hatBereiteReservierung(isbn, erfassterSchueler)) {
+                        dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = ?", isbn);
+                        QueryResult daRes = dbConnector.getCurrentQueryResult();
+                        if (daRes == null || daRes.getRowCount() == 0 || Integer.parseInt(daRes.getData()[0][0]) == 0) {
+                            alleKoennenAusgeliehenWerden = false;
+                        }
+                    }
+                }
+                if (hatAusgeliehenes) {
+                    aktuellerModus = "RUECKGABE";
+                } else if (alleKoennenAusgeliehenWerden && !"RUECKGABE".equals(aktuellerModus)) {
+                    aktuellerModus = "AUSLEIHE";
+                } else {
+                    aktuellerModus = "RUECKGABE";
+                }
+            } else {
+                // Schüler noch nicht erfasst: Modus anhand der verbleibenden Bücher bestimmen
+                boolean hatReineAusleihe = false;
+                boolean hatReineRueckgabe = false;
+                for (String isbn : erfassteBuecher) {
+                    dbConnector.executeStatement("SELECT anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", isbn);
+                    QueryResult res = dbConnector.getCurrentQueryResult();
+                    if (res != null && res.getRowCount() > 0) {
+                        int da = Integer.parseInt(res.getData()[0][0]);
+                        int li = Integer.parseInt(res.getData()[0][1]);
+                        int re = Integer.parseInt(res.getData()[0][2]);
+                        if ((da > 0 || re > 0) && li == 0) {
+                            hatReineAusleihe = true;
+                        } else if (li > 0 && da == 0 && re == 0) {
+                            hatReineRueckgabe = true;
+                        }
+                    }
+                }
+                if (hatReineAusleihe && !hatReineRueckgabe) {
+                    aktuellerModus = "AUSLEIHE";
+                } else if (hatReineRueckgabe && !hatReineAusleihe) {
+                    aktuellerModus = "RUECKGABE";
+                } else {
+                    aktuellerModus = "LEER";
+                }
             }
         }
+    }
+
+    /**
+     * @return Der aktuelle Arbeitsmodus ("LEER", "AUSLEIHE", "RUECKGABE").
+     */
+    public String getAktuellerModus() {
+        return aktuellerModus;
+    }
+
+    /**
+     * @return Die ID des aktuell erfassten Schülers (oder null).
+     */
+    public Integer getErfassterSchueler() {
+        return erfassterSchueler;
     }
 
     /**
@@ -757,6 +1003,25 @@ public class Bibliothek {
             }
         }
         return 0;
+    }
+
+    /**
+     * Ermittelt die maximale Verspätung in Tagen unter den aktuell erfassten Büchern
+     * für den aktuell erfassten Schüler.
+     * 
+     * @return Die maximale Anzahl an Tagen (0 wenn keine Verspätung vorliegt).
+     */
+    public int getMaxTageZuSpaetErfasst() {
+        int max = 0;
+        if (erfassterSchueler != null) {
+            for (String isbn : erfassteBuecher) {
+                int t = getTageZuSpaet(isbn, erfassterSchueler);
+                if (t > max) {
+                    max = t;
+                }
+            }
+        }
+        return max;
     }
 
     /**
@@ -839,15 +1104,19 @@ public class Bibliothek {
      */
     public String getVerleihSchuelerName(String isbn) {
         dbConnector.executeStatement(
-                "SELECT schueler_id FROM ausleihen WHERE isbn = ? AND ruckgabe_datum IS NULL", isbn);
+                "SELECT benutzer.vorname, benutzer.nachname FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id WHERE ausleihen.isbn = ? AND ausleihen.ruckgabe_datum IS NULL ORDER BY ausleihen.ausleihdatum ASC", isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
-            String schuelerId = result.getData()[0][0];
-            dbConnector.executeStatement("SELECT vorname, nachname FROM benutzer WHERE id = ?", schuelerId);
-            result = dbConnector.getCurrentQueryResult();
-            if (result != null && result.getRowCount() > 0) {
-                return result.getData()[0][0] + " " + result.getData()[0][1];
+            ArrayList<String> namen = new ArrayList<>();
+            for (int i = 0; i < result.getRowCount(); i++) {
+                String vorname = result.getData()[i][0] != null ? result.getData()[i][0] : "";
+                String nachname = result.getData()[i][1] != null ? result.getData()[i][1] : "";
+                String n = (vorname + " " + nachname).trim();
+                if (!n.isEmpty() && !namen.contains(n)) {
+                    namen.add(n);
+                }
             }
+            return String.join(", ", namen);
         }
         return "";
     }
@@ -976,29 +1245,20 @@ public class Bibliothek {
     public void reservieren(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", angemeldet);
-            if (dbConnector.getCurrentQueryResult().getData()[0][0].equals("0")) {
+            QueryResult freiRes = dbConnector.getCurrentQueryResult();
+            if (freiRes == null || freiRes.getRowCount() == 0 || "0".equals(freiRes.getData()[0][0])) {
                 return;
             }
             if (reservierungMoeglich(isbn)) {
-                dbConnector.executeStatement("SELECT status FROM buecher WHERE isbn = ?", isbn);
+                dbConnector.executeStatement("SELECT anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", isbn);
                 QueryResult result = dbConnector.getCurrentQueryResult();
                 if (result != null && result.getRowCount() > 0) {
-                    String status = result.getData()[0][0];
+                    int da = Integer.parseInt(result.getData()[0][0]);
+                    int li = Integer.parseInt(result.getData()[0][1]);
+                    int re = Integer.parseInt(result.getData()[0][2]);
+                    int existieren = da + li + re;
 
-                    if (status.equals("verliehen")) {
-                        dbConnector.executeStatement(
-                                "SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
-                        QueryResult resResult = dbConnector.getCurrentQueryResult();
-                        
-                        int reserviert = Integer.parseInt(resResult.getData()[0][0]);
-                        dbConnector.executeStatement("SELECT anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", isbn);
-                        QueryResult verfug = dbConnector.getCurrentQueryResult();
-                        int existieren = Integer.parseInt(verfug.getData()[0][0]) + Integer.parseInt(verfug.getData()[0][1]) + Integer.parseInt(verfug.getData()[0][2]);
-                        if (reserviert < existieren) {
-                            dbConnector.executeStatement(
-                                    "INSERT INTO reservierungen (isbn, schueler_id, status, reservierung_beginn, reservierung_ende) VALUES (?, ?, 'wartend', CURRENT_DATE(), NULL)", isbn, angemeldet);
-                        }
-                    } else if (status.equals("verfuegbar")) {
+                    if (da > 0) {
                         hinzuRE(isbn);
                         loeschDA(isbn);
                         updateBuchStatus(isbn);
@@ -1006,6 +1266,15 @@ public class Bibliothek {
                         int dauer = getReservierungDauer();
                         dbConnector.executeStatement(
                                 "INSERT INTO reservierungen (isbn, schueler_id, status, reservierung_beginn, reservierung_ende) VALUES (?, ?, 'bereit', CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY))", isbn, angemeldet, dauer);
+                    } else {
+                        dbConnector.executeStatement(
+                                "SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
+                        QueryResult resResult = dbConnector.getCurrentQueryResult();
+                        int wartend = (resResult != null && resResult.getRowCount() > 0) ? Integer.parseInt(resResult.getData()[0][0]) : 0;
+                        if (wartend < existieren) {
+                            dbConnector.executeStatement(
+                                    "INSERT INTO reservierungen (isbn, schueler_id, status, reservierung_beginn, reservierung_ende) VALUES (?, ?, 'wartend', CURRENT_DATE(), NULL)", isbn, angemeldet);
+                        }
                     }
                 }
             }
@@ -1108,17 +1377,42 @@ public class Bibliothek {
                     return false;
                 }
             }
-            dbConnector.executeStatement("SELECT status, anzahlLiehen FROM buecher WHERE isbn = ?", isbn);
+
+            // Schüler darf das Buch nicht reservieren, wenn er es aktuell ausgeliehen hat
+            if (buchGeliehen(isbn)) {
+                return false;
+            }
+
+            // Schüler darf das Buch nicht reservieren, wenn er es bereits reserviert hat
+            if (selbstReserviert(isbn)) {
+                return false;
+            }
+
+            dbConnector.executeStatement("SELECT status, anzahlDa, anzahlLiehen, anzahlRes FROM buecher WHERE isbn = ?", isbn);
             QueryResult result = dbConnector.getCurrentQueryResult();
-            if (result != null && result.getRowCount() > 0
-                    && (result.getData()[0][0].equals("verfuegbar") || result.getData()[0][0].equals("verliehen"))) {
-                int verliehen = Integer.parseInt(result.getData()[0][1]);
+            if (result != null && result.getRowCount() > 0 && !"entfernt".equals(result.getData()[0][0])) {
+                int da = Integer.parseInt(result.getData()[0][1]);
+                int li = Integer.parseInt(result.getData()[0][2]);
+                int re = Integer.parseInt(result.getData()[0][3]);
+                int existieren = da + li + re;
+                if (existieren == 0) {
+                    return false;
+                }
+
+                // Wenn ein Exemplar auf dem Regal ist, kann es sofort reserviert werden
+                if (da > 0) {
+                    return true;
+                }
+
+                // Keine freien Exemplare im Regal: Warteliste prüfen
                 dbConnector.executeStatement(
                         "SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'wartend'", isbn);
                 QueryResult wartendResult = dbConnector.getCurrentQueryResult();
-                int wartend = Integer.parseInt(wartendResult.getData()[0][0]);
-                
-                if (wartend < verliehen || (verliehen == 0 && wartend == 0)) {
+                int wartend = (wartendResult != null && wartendResult.getRowCount() > 0)
+                        ? Integer.parseInt(wartendResult.getData()[0][0])
+                        : 0;
+
+                if (wartend < existieren) {
                     return true;
                 }
             }
@@ -1134,18 +1428,22 @@ public class Bibliothek {
     public void reservierungStornieren(String isbn) {
         if (angemeldet != null) {
             dbConnector.executeStatement("SELECT id, status FROM reservierungen WHERE isbn = ?"
-                    + " AND (status = 'wartend' OR status = 'bereit') AND schueler_id = ?", isbn, angemeldet);
+                    + " AND (status = 'wartend' OR status = 'bereit') AND schueler_id = ? LIMIT 1", isbn, angemeldet);
             QueryResult result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
-                if (result.getData()[0][1].equals("bereit")) {
-                    hinzuDA(isbn);
-                    loeschRE(isbn);
-                    updateBuchStatus(isbn);
-                } else {
-                    updateBuchStatus(isbn);
-                }
+                String resId = result.getData()[0][0];
+                String resStatus = result.getData()[0][1];
                 dbConnector.executeStatement(
-                        "UPDATE reservierungen SET status = 'abgesagt' WHERE id = ?", result.getData()[0][0]);
+                        "UPDATE reservierungen SET status = 'abgesagt' WHERE id = ?", resId);
+
+                if ("bereit".equals(resStatus)) {
+                    Integer naechsteResId = naechsteWartendeReservierungBereitstellen(isbn);
+                    if (naechsteResId == null) {
+                        hinzuDA(isbn);
+                        loeschRE(isbn);
+                    }
+                }
+                updateBuchStatus(isbn);
             }
         }
     }
@@ -1213,6 +1511,12 @@ public class Bibliothek {
     public void neuerBenutzer(String pRolle, String pEmail, String pNn, String pVn, String pGeburtsdatum,
             int pMaxBuecher) {
         if (isLehrer()) {
+            if (pMaxBuecher <= 0) {
+                pMaxBuecher = getStandartAusleihlimit();
+                if (pMaxBuecher <= 0) {
+                    pMaxBuecher = 3;
+                }
+            }
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
             String gebDatumSql = (pGeburtsdatum == null || pGeburtsdatum.isEmpty()) ? null
                     : pGeburtsdatum;
@@ -1240,7 +1544,8 @@ public class Bibliothek {
         if (!isLehrer())
             return importierteNutzer;
 
-        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(csvDatei))) {
+        try (java.io.BufferedReader br = java.nio.file.Files.newBufferedReader(csvDatei.toPath(),
+                java.nio.charset.StandardCharsets.UTF_8)) {
             String zeile;
             boolean ersteZeile = true;
 
@@ -1393,8 +1698,9 @@ public class Bibliothek {
             if (result != null) {
                 dbConnector.executeStatement(
                         "UPDATE benutzer SET freigeschaltet = 1, gesperrt_von = NULL WHERE id = ?", pID);
-                dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE id = ?", pID);
-
+                // Um die dynamisch berechneten Verspätungstage auf 0 zu setzen (historisch),
+                // setzen wir für alle bereits zurückgegebenen verspäteten Bücher das geplante Rückgabedatum auf das tatsächliche.
+                dbConnector.executeStatement("UPDATE ausleihen SET geplante_rueckgabe = ruckgabe_datum WHERE schueler_id = ? AND ruckgabe_datum IS NOT NULL AND ruckgabe_datum > geplante_rueckgabe", pID);
             }
         }
     }
@@ -1536,8 +1842,11 @@ public class Bibliothek {
                 String id = result.getData()[i][0];
                 String buchIsbn = result.getData()[i][1];
                 dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgelaufen' WHERE id = ?", id);
-                hinzuDA(buchIsbn);
-                loeschRE(buchIsbn);
+                Integer naechsteResId = naechsteWartendeReservierungBereitstellen(buchIsbn);
+                if (naechsteResId == null) {
+                    hinzuDA(buchIsbn);
+                    loeschRE(buchIsbn);
+                }
                 updateBuchStatus(buchIsbn);
             }
         }
@@ -1550,14 +1859,20 @@ public class Bibliothek {
      */
     public String getreserviertSchuelerName(String isbn) {
         dbConnector.executeStatement(
-                "SELECT benutzer.nachname, benutzer.vorname FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id WHERE reservierungen.isbn ="
-                        + "? AND reservierungen.status = 'bereit';",
+                "SELECT benutzer.nachname, benutzer.vorname FROM reservierungen INNER JOIN benutzer ON reservierungen.schueler_id = benutzer.id WHERE reservierungen.isbn = ? AND reservierungen.status = 'bereit' ORDER BY reservierungen.reservierung_beginn ASC;",
                 isbn);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
-            String nachname = result.getData()[0][0] != null ? result.getData()[0][0] : "";
-            String vorname = result.getData()[0][1] != null ? result.getData()[0][1] : "";
-            return (vorname + " " + nachname).trim();
+            ArrayList<String> namen = new ArrayList<>();
+            for (int i = 0; i < result.getRowCount(); i++) {
+                String nachname = result.getData()[i][0] != null ? result.getData()[i][0] : "";
+                String vorname = result.getData()[i][1] != null ? result.getData()[i][1] : "";
+                String n = (vorname + " " + nachname).trim();
+                if (!n.isEmpty() && !namen.contains(n)) {
+                    namen.add(n);
+                }
+            }
+            return String.join(", ", namen);
         }
         return "";
     }
@@ -1574,20 +1889,13 @@ public class Bibliothek {
             return reserviert;
         for (int i = 0; i < erfassteBuecher.size(); i++) {
             String isbn = erfassteBuecher.get(i);
-            dbConnector.executeStatement("SELECT reservierungen.schueler_id, buecher.anzahlDa FROM reservierungen INNER JOIN buecher ON buecher.isbn = reservierungen.isbn WHERE reservierungen.isbn = ? AND reservierungen.status = 'bereit'", isbn);
-            QueryResult result = dbConnector.getCurrentQueryResult();
-            if (result != null && result.getRowCount() > 0) {
-                int da = Integer.parseInt(result.getData()[0][1]);
-                if (da == 0) {
-                    boolean foundMatchingRes = false;
-                    for (int r = 0; r < result.getRowCount(); r++) {
-                        int resSchuelerId = Integer.parseInt(result.getData()[r][0]);
-                        if (resSchuelerId == erfassterSchueler) {
-                            foundMatchingRes = true;
-                            break;
-                        }
-                    }
-                    if (!foundMatchingRes) {
+            dbConnector.executeStatement("SELECT anzahlDa, anzahlRes FROM buecher WHERE isbn = ?", isbn);
+            QueryResult bResult = dbConnector.getCurrentQueryResult();
+            if (bResult != null && bResult.getRowCount() > 0) {
+                int da = Integer.parseInt(bResult.getData()[0][0]);
+                int re = Integer.parseInt(bResult.getData()[0][1]);
+                if (da == 0 && re > 0) {
+                    if (!hatBereiteReservierung(isbn, erfassterSchueler)) {
                         reserviert.add(isbn);
                     }
                 }
@@ -1650,22 +1958,49 @@ public class Bibliothek {
      */
     public ArrayList<String> getKonfliktBuecherNamen() {
         ArrayList<String> namen = new ArrayList<String>();
+        if (erfassterSchueler == null) {
+            return namen;
+        }
+
         ArrayList<String> konfliktIsbns = new ArrayList<String>();
-        for (String isbn : checkBuecherReserviert()) {
-            if (!konfliktIsbns.contains(isbn)) {
-                konfliktIsbns.add(isbn);
+
+        if ("RUECKGABE".equals(aktuellerModus)) {
+            // Bei einer Rückgabe ist jedes Buch ein Konflikt, das NICHT von diesem Schüler ausgeliehen wurde
+            for (String isbn : erfassteBuecher) {
+                if (!bereitsAusgeliehen(isbn, erfassterSchueler)) {
+                    konfliktIsbns.add(isbn);
+                }
+            }
+        } else {
+            // Bei Ausleihe oder noch offenem Modus:
+            for (String isbn : checkBuecherReserviert()) {
+                if (!konfliktIsbns.contains(isbn)) {
+                    konfliktIsbns.add(isbn);
+                }
+            }
+            for (String isbn : checkBuecherAlter()) {
+                if (!konfliktIsbns.contains(isbn)) {
+                    konfliktIsbns.add(isbn);
+                }
+            }
+            for (String isbn : checkBuecherBereitsAusgeliehen()) {
+                if (!konfliktIsbns.contains(isbn)) {
+                    konfliktIsbns.add(isbn);
+                }
+            }
+            for (String isbn : erfassteBuecher) {
+                if (!bereitsAusgeliehen(isbn, erfassterSchueler) && !hatBereiteReservierung(isbn, erfassterSchueler)) {
+                    dbConnector.executeStatement("SELECT anzahlDa FROM buecher WHERE isbn = ?", isbn);
+                    QueryResult daRes = dbConnector.getCurrentQueryResult();
+                    if (daRes == null || daRes.getRowCount() == 0 || Integer.parseInt(daRes.getData()[0][0]) == 0) {
+                        if (!konfliktIsbns.contains(isbn)) {
+                            konfliktIsbns.add(isbn);
+                        }
+                    }
+                }
             }
         }
-        for (String isbn : checkBuecherAlter()) {
-            if (!konfliktIsbns.contains(isbn)) {
-                konfliktIsbns.add(isbn);
-            }
-        }
-        for (String isbn : checkBuecherBereitsAusgeliehen()) {
-            if (!konfliktIsbns.contains(isbn)) {
-                konfliktIsbns.add(isbn);
-            }
-        }
+
         for (String isbn : konfliktIsbns) {
             dbConnector.executeStatement("SELECT titel FROM buecher WHERE isbn = ?", isbn);
             QueryResult result = dbConnector.getCurrentQueryResult();
@@ -1716,69 +2051,63 @@ public class Bibliothek {
      * @return Eine nach Relevanz sortierte Liste der gefundenen Benutzer.
      */
     public ArrayList<Benutzer> nutzerSuchen(String pS) {
-        if (pS == null) {
-            pS = "";
-        }
+        if (pS == null) pS = "";
         pS = pS.trim();
-        String[] terms = pS.split("\\s+");
 
-        String whereClause = "";
         ArrayList<String> params = new ArrayList<>();
-        if (pS.isEmpty()) {
-            whereClause = "1=1";
-        } else {
+        StringBuilder sql = new StringBuilder(
+            "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer"
+        );
+
+        String[] terms = pS.isEmpty() ? new String[0] : pS.split("\\s+");
+
+        if (!pS.isEmpty()) {
+            sql.append(" WHERE ");
             for (int i = 0; i < terms.length; i++) {
                 if (i > 0) {
-                    whereClause += " OR ";
+                    sql.append(" OR ");
                 }
-                whereClause += "(nachname LIKE ? "
-                        + "OR vorname LIKE ? "
-                        + "OR email LIKE ?)";
-
-                String suchbegriff = "%" + terms[i] + "%";
-
-                params.add(suchbegriff);
-                params.add(suchbegriff);
-                params.add(suchbegriff);
+                sql.append("(nachname LIKE ? OR vorname LIKE ? OR email LIKE ? OR CONCAT(vorname, ' ', nachname) LIKE ?)");
+                String pattern = "%" + terms[i] + "%";
+                params.add(pattern);
+                params.add(pattern);
+                params.add(pattern);
+                params.add(pattern);
             }
         }
 
-        dbConnector.executeStatement(
-                "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig FROM benutzer WHERE "
-                        + whereClause,
-                params.toArray());
+        if (params.isEmpty()) {
+            dbConnector.executeStatement(sql.toString());
+        } else {
+            dbConnector.executeStatement(sql.toString(), params.toArray());
+        }
 
         QueryResult result = dbConnector.getCurrentQueryResult();
         ArrayList<Benutzer> nutzerListe = new ArrayList<>();
 
         if (result != null) {
             for (int i = 0; i < result.getRowCount(); i++) {
-                boolean freigeschaltet = result.getData()[i][6].equals("1");
-                int gesperrtVon = (result.getData()[i][7] != null && !result.getData()[i][7].equalsIgnoreCase("null")
-                        && !result.getData()[i][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[i][7]) : 0;
-                String geburtsdatum = (result.getData()[i].length > 8 && result.getData()[i][8] != null
-                        && !result.getData()[i][8].equalsIgnoreCase("null")) ? result.getData()[i][8] : null;
-
+                boolean freigeschaltet = "1".equals(result.getData()[i][6]);
+                int gesperrtVon = (result.getData()[i][7] != null && !result.getData()[i][7].equalsIgnoreCase("null") && !result.getData()[i][7].trim().isEmpty()) 
+                        ? Integer.parseInt(result.getData()[i][7]) : 0;
+                String geburtsdatum = (result.getData()[i].length > 8 && result.getData()[i][8] != null && !result.getData()[i][8].equalsIgnoreCase("null")) 
+                        ? result.getData()[i][8] : null;
                 int maxBuecher = Integer.parseInt(result.getData()[i][9]);
 
-                Benutzer b = new Benutzer(result.getData()[i][5], result.getData()[i][4],
-                        result.getData()[i][3], result.getData()[i][1], result.getData()[i][2],
-                        Integer.parseInt(result.getData()[i][0]), freigeschaltet, gesperrtVon, geburtsdatum,
-                        maxBuecher);
-                nutzerListe.add(b);
+                nutzerListe.add(new Benutzer(
+                    result.getData()[i][5], result.getData()[i][4],
+                    result.getData()[i][3], result.getData()[i][1], result.getData()[i][2],
+                    Integer.parseInt(result.getData()[i][0]), freigeschaltet, gesperrtVon, geburtsdatum,
+                    maxBuecher
+                ));
             }
 
-            for (int i = 0; i < nutzerListe.size() - 1; i++) {
-                for (int j = 0; j < nutzerListe.size() - i - 1; j++) {
-                    int score1 = berechneTreffer(nutzerListe.get(j), terms, pS);
-                    int score2 = berechneTreffer(nutzerListe.get(j + 1), terms, pS);
-
-                    if (score1 < score2) {
-                        Benutzer temp = nutzerListe.get(j);
-                        nutzerListe.set(j, nutzerListe.get(j + 1));
-                        nutzerListe.set(j + 1, temp);
-                    }
-                }
+            if (!pS.isEmpty()) {
+                final String finalSearch = pS;
+                nutzerListe.sort((b1, b2) -> Integer.compare(
+                    berechneTreffer(b2, terms, finalSearch),
+                    berechneTreffer(b1, terms, finalSearch)
+                ));
             }
         }
         return nutzerListe;
@@ -1813,86 +2142,55 @@ public class Bibliothek {
     }
 
     public void lateDaysAktualisieren() {
-        String resetDatumStr = getEinstellung("sperren_reset_datum");
-        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty()) {
-            try {
-                LocalDate resetDatum = LocalDate.parse(resetDatumStr.trim());
-                if (!resetDatum.isAfter(LocalDate.now())) {
-                    dbConnector.executeStatement("UPDATE benutzer SET tage_spaet = 0 WHERE tage_spaet > 0");
-
-                    LocalDate naechstesReset = resetDatum.plusYears(1);
-                    while (!naechstesReset.isAfter(LocalDate.now())) {
-                        naechstesReset = naechstesReset.plusYears(1);
-                    }
-                    setEinstellung("sperren_reset_datum", naechstesReset.toString());
+        new Thread(() -> {
+            synchronized (dbConnector) {
+                if (!"1".equals(getEinstellung("sperren_aktiv"))) {
+                    return;
                 }
-            } catch (Exception ignored) {
-            }
-        }
-        if ("1".equals(getEinstellung("sperren_aktiv"))) {
-            String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
-            int sperrungTage = 14;
-            if (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) {
-                try {
-                    sperrungTage = Integer.parseInt(sperrungTageStr.trim());
-                } catch (NumberFormatException ignored) {
-                }
-            }
 
-            dbConnector.executeStatement(
-                    "SELECT schueler_id, DATEDIFF(CURRENT_DATE(), geplante_rueckgabe) FROM ausleihen WHERE geplante_rueckgabe < CURRENT_DATE() AND ruckgabe_datum IS NULL ORDER BY schueler_id");
-            QueryResult result = dbConnector.getCurrentQueryResult();
-            int sumDaysLate = 0;
-            int lastStudent = -1;
-            int lateDays;
-            if (result != null && result.getRowCount() > 0) {
-                for (int i = 0; i < result.getRowCount(); i++) {
-                    int schuelerID = Integer.parseInt(result.getData()[i][0]);
-                    int buchLateDays = 0;
+                String sperrungTageStr = getEinstellung("sperren_verspaetung_tage");
+                int sperrungTage = 14;
+                if (sperrungTageStr != null && !sperrungTageStr.trim().isEmpty()) {
                     try {
-                        buchLateDays = Integer.parseInt(result.getData()[i][1]);
+                        sperrungTage = Integer.parseInt(sperrungTageStr.trim());
                     } catch (NumberFormatException ignored) {
                     }
-                    if (buchLateDays < 0) {
-                        buchLateDays = 0;
-                    }
-
-                    if (schuelerID == lastStudent) {
-                        sumDaysLate += buchLateDays;
-                    } else {
-                        if (lastStudent != -1) {
-                            dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", lastStudent);
-                            QueryResult lateRes = dbConnector.getCurrentQueryResult();
-                            if (lateRes != null && lateRes.getRowCount() > 0) {
-                                try {
-                                    lateDays = Integer.parseInt(lateRes.getData()[0][0]);
-                                    if (lateDays + sumDaysLate > sperrungTage && !isGesperrt(lastStudent)) {
-                                        sperren(lastStudent, true);
-                                    }
-                                } catch (NumberFormatException ignored) {
-                                }
-                            }
-                        }
-                        sumDaysLate = buchLateDays;
-                    }
-
-                    lastStudent = schuelerID;
                 }
-                if (lastStudent != -1) {
-                    dbConnector.executeStatement("SELECT tage_spaet FROM benutzer WHERE id = ?", lastStudent);
-                    QueryResult lateRes = dbConnector.getCurrentQueryResult();
-                    if (lateRes != null && lateRes.getRowCount() > 0) {
-                        try {
-                            lateDays = Integer.parseInt(lateRes.getData()[0][0]);
-                            if (lateDays + sumDaysLate > sperrungTage && !isGesperrt(lastStudent)) {
-                                sperren(lastStudent, true);
+                
+                String resetMonateStr = getEinstellung("sperren_zuruecksetzen_monate");
+                int resetMonate = 6;
+                if (resetMonateStr != null && !resetMonateStr.trim().isEmpty()) {
+                    try {
+                        resetMonate = Integer.parseInt(resetMonateStr.trim());
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+
+                try {
+                    String query = "SELECT schueler_id, SUM(DATEDIFF(IFNULL(ruckgabe_datum, CURRENT_DATE()), geplante_rueckgabe)) as total_late " +
+                                   "FROM ausleihen " +
+                                   "WHERE IFNULL(ruckgabe_datum, CURRENT_DATE()) > geplante_rueckgabe " +
+                                   "AND IFNULL(ruckgabe_datum, CURRENT_DATE()) >= DATE_SUB(CURRENT_DATE(), INTERVAL ? MONTH) " +
+                                   "GROUP BY schueler_id";
+                    
+                    dbConnector.executeStatement(query, resetMonate);
+                    QueryResult result = dbConnector.getCurrentQueryResult();
+                    
+                    if (result != null && result.getRowCount() > 0) {
+                        for (int i = 0; i < result.getRowCount(); i++) {
+                            int schuelerID = Integer.parseInt(result.getData()[i][0]);
+                            int totalLate = Integer.parseInt(result.getData()[i][1]);
+                            
+                            if (totalLate > sperrungTage && !isGesperrt(schuelerID)) {
+                                sperren(schuelerID, true);
                             }
-                        } catch (NumberFormatException ignored) {
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        }
+        }).start();
     }
 
     /**
@@ -1924,10 +2222,15 @@ public class Bibliothek {
      * @return Der Name des Schülers, der an der letzten Aktion beteiligt war.
      */
     public String getLetzterSchuelerName() {
-        dbConnector.executeStatement("SELECT nachname, vorname FROM benutzer WHERE id = " + letzterSchueler);
+        if (letzterSchueler <= 0) {
+            return "";
+        }
+        dbConnector.executeStatement("SELECT nachname, vorname FROM benutzer WHERE id = ?", letzterSchueler);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
-            return result.getData()[0][0] + " " + result.getData()[0][1];
+            String nachname = result.getData()[0][0] != null ? result.getData()[0][0] : "";
+            String vorname = result.getData()[0][1] != null ? result.getData()[0][1] : "";
+            return (vorname + " " + nachname).trim();
         }
         return "";
     }
@@ -1937,60 +2240,137 @@ public class Bibliothek {
      * rückgängig.
      */
     public void letzteAktionZuruecknehmen() {
+        if (letzteBuecher.isEmpty() || letzterSchueler <= 0) {
+            return;
+        }
         if (letzteAktionAusleihen) {
             for (String isbn : letzteBuecher) {
-                dbConnector.executeStatement("DELETE FROM ausleihen WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NULL", isbn, letzterSchueler);
+                dbConnector.executeStatement("DELETE FROM ausleihen WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NULL ORDER BY id DESC LIMIT 1", isbn, letzterSchueler);
                         
-                dbConnector.executeStatement("SELECT id FROM reservierungen WHERE isbn = ? AND schueler_id = ? AND status = 'abgeschlossen' ORDER BY id DESC LIMIT 1", isbn, letzterSchueler);
-                QueryResult resCheck = dbConnector.getCurrentQueryResult();
-                if (resCheck != null && resCheck.getRowCount() > 0) {
-                    dbConnector.executeStatement("UPDATE reservierungen SET status = 'bereit' WHERE id = ?", resCheck.getData()[0][0]);
-                    hinzuRE(isbn);
-                    loeschLI(isbn);
-                } else {
+                // Prüfen, ob für dieses Buch bei der Ausleihe eine bereite Reservierung abgeschlossen wurde
+                boolean warBereiteReservierung = false;
+                for (int resId : letzteErfuellteBereiteReservierungen) {
+                    dbConnector.executeStatement("SELECT id, status FROM reservierungen WHERE id = ? AND isbn = ? AND schueler_id = ?", resId, isbn, letzterSchueler);
+                    QueryResult rCheck = dbConnector.getCurrentQueryResult();
+                    if (rCheck != null && rCheck.getRowCount() > 0) {
+                        dbConnector.executeStatement("UPDATE reservierungen SET status = 'bereit' WHERE id = ?", resId);
+                        hinzuRE(isbn);
+                        loeschLI(isbn);
+                        warBereiteReservierung = true;
+                        break;
+                    }
+                }
+                if (!warBereiteReservierung) {
+                    // Prüfen, ob eine wartende Reservierung abgeschlossen wurde
+                    for (int resId : letzteErfuellteWartendeReservierungen) {
+                        dbConnector.executeStatement("SELECT id, status FROM reservierungen WHERE id = ? AND isbn = ? AND schueler_id = ?", resId, isbn, letzterSchueler);
+                        QueryResult rCheck = dbConnector.getCurrentQueryResult();
+                        if (rCheck != null && rCheck.getRowCount() > 0) {
+                            dbConnector.executeStatement("UPDATE reservierungen SET status = 'wartend' WHERE id = ?", resId);
+                            break;
+                        }
+                    }
                     hinzuDA(isbn);
                     loeschLI(isbn);
                 }
                 updateBuchStatus(isbn);
             }
+            letzteBuecher.clear();
+            letzteErfuellteBereiteReservierungen.clear();
+            letzteErfuellteWartendeReservierungen.clear();
             erfassterSchueler = null;
             erfassteBuecher.clear();
             aktuellerModus = "LEER";
         } else {
             for (String isbn : letzteBuecher) {
-                dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = NULL WHERE isbn = ? AND schueler_id = ? ORDER BY ausleihdatum DESC LIMIT 1", isbn, letzterSchueler);
+                dbConnector.executeStatement("UPDATE ausleihen SET ruckgabe_datum = NULL WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NOT NULL ORDER BY id DESC LIMIT 1", isbn, letzterSchueler);
+
+                // Kein manuelles Anpassen oder Entsperren mehr hier (Entsperren passiert nicht automatisch)
                         
                 hinzuLI(isbn);
-                dbConnector.executeStatement("SELECT COUNT(id) FROM reservierungen WHERE isbn = ? AND status = 'bereit'", isbn);
-                QueryResult result = dbConnector.getCurrentQueryResult();
-                if (result != null && result.getRowCount() > 0) {
-                    dbConnector.executeStatement("SELECT anzahlRes FROM buecher WHERE isbn = ?", isbn);
-                    QueryResult res = dbConnector.getCurrentQueryResult();
-                    int reserviert = Integer.parseInt(res.getData()[0][0]);
-                    int reservierungen = Integer.parseInt(result.getData()[0][0]);
-                    if (reservierungen == reserviert) {
+
+                // Wurde bei der Rückgabe dieses Buches eine Reservierung bereitgestellt?
+                boolean resBereitgestellt = false;
+                for (int resId : letzteAktivierteReservierungen) {
+                    dbConnector.executeStatement("SELECT id FROM reservierungen WHERE id = ? AND isbn = ? AND status = 'bereit'", resId, isbn);
+                    QueryResult aCheck = dbConnector.getCurrentQueryResult();
+                    if (aCheck != null && aCheck.getRowCount() > 0) {
+                        dbConnector.executeStatement("UPDATE reservierungen SET status = 'wartend', reservierung_ende = NULL WHERE id = ?", resId);
                         loeschRE(isbn);
-                        int dauer = getReservierungDauer();
-                        dbConnector.executeStatement("SELECT id FROM reservierungen WHERE isbn = ? AND status = 'bereit' ORDER BY reservierung_beginn ASC", isbn);
-                        result = dbConnector.getCurrentQueryResult();
-                        
-                        if (result != null && result.getRowCount() > 0) {
-                            dbConnector.executeStatement(
-                                    "UPDATE reservierungen SET status = 'wartend', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) WHERE id = ?",
-                                    dauer, result.getData()[0][0]);
-                        }
-                    } else {
-                        loeschDA(isbn);
+                        resBereitgestellt = true;
+                        break;
                     }
-                } else {
+                }
+                if (!resBereitgestellt) {
                     loeschDA(isbn);
                 }
                     
                 updateBuchStatus(isbn);
             }
+            letzteBuecher.clear();
+            letzteAktivierteReservierungen.clear();
             erfassterSchueler = null;
             erfassteBuecher.clear();
             aktuellerModus = "LEER";
+            
+            lateDaysAktualisieren();
+        }
+    }
+
+    /**
+     * Aktiviert die älteste wartende Reservierung für das angegebene Buch (setzt auf 'bereit'
+     * und versendet eine Benachrichtigungs-Mail), falls eine Warteliste vorhanden ist.
+     * 
+     * @param isbn Die ISBN des Buches.
+     * @return Die ID der aktivierten Reservierung oder null, falls keine wartende Reservierung vorlag.
+     */
+    public Integer naechsteWartendeReservierungBereitstellen(String isbn) {
+        int dauer = getReservierungDauer();
+        dbConnector.executeStatement(
+                "SELECT id, schueler_id FROM reservierungen WHERE isbn = ? AND status = 'wartend' ORDER BY reservierung_beginn ASC, id ASC LIMIT 1", isbn);
+        QueryResult resResult = dbConnector.getCurrentQueryResult();
+
+        if (resResult != null && resResult.getRowCount() > 0) {
+            String wartendeResId = resResult.getData()[0][0];
+            String reserviererId = resResult.getData()[0][1];
+
+            dbConnector.executeStatement(
+                    "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) WHERE id = ?",
+                    dauer, wartendeResId);
+
+            // Email senden an den Schüler, dessen Reservierung bereitgestellt wurde
+            dbConnector.executeStatement(
+                    "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM benutzer, buecher WHERE benutzer.id = ? AND buecher.isbn = ?",
+                    reserviererId, isbn);
+            QueryResult mailResult = dbConnector.getCurrentQueryResult();
+            if (mailResult != null && mailResult.getRowCount() > 0) {
+                String empfaengerEmail = mailResult.getData()[0][0];
+                String vorname = mailResult.getData()[0][1];
+                String titel = mailResult.getData()[0][2];
+                MailService mailService = new MailService(this);
+                mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+            }
+            return Integer.parseInt(wartendeResId);
+        }
+        return null;
+    }
+
+    /**
+     * Fügt ein weiteres Exemplar für ein bereits existierendes Buch hinzu.
+     * Falls wartende Reservierungen existieren, wird das neue Exemplar sofort
+     * für den nächsten Schüler bereitgestellt.
+     * 
+     * @param isbn Die ISBN des Buches.
+     */
+    public void exemplarHinzufuegen(String isbn) {
+        if (isLehrer()) {
+            Integer naechsteResId = naechsteWartendeReservierungBereitstellen(isbn);
+            if (naechsteResId != null) {
+                hinzuRE(isbn);
+            } else {
+                hinzuDA(isbn);
+            }
+            updateBuchStatus(isbn);
         }
     }
     public void updateBuchStatus(String isbn){
@@ -2176,30 +2556,35 @@ public class Bibliothek {
         return false;
     }
     
-    public boolean richtigerSchuelerRuckListe(){
-        if (erfassteBuecher.isEmpty()) {
+    public boolean richtigerSchuelerRuckListe() {
+        if (erfassterSchueler == null || erfassteBuecher.isEmpty()) {
             return false;
         }
-        for(int i= 0; i< erfassteBuecher.size(); i++){
-            dbConnector.executeStatement("SELECT id FROM ausleihen WHERE schueler_id ='"+erfassterSchueler+"' AND isbn='"+erfassteBuecher.get(i)+"'AND ruckgabe_datum IS NULL");
-            QueryResult result = dbConnector.getCurrentQueryResult();
-            if(result == null || result.getRowCount() == 0){
+        for (int i = 0; i < erfassteBuecher.size(); i++) {
+            if (!bereitsAusgeliehen(erfassteBuecher.get(i), erfassterSchueler)) {
                 return false;
             }
         }
         return true;
     }
     
+    public boolean bereitsAusgeliehen(String isbn, int schuelerId) {
+        dbConnector.executeStatement("SELECT id FROM ausleihen WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NULL", isbn, schuelerId);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        return result != null && result.getRowCount() > 0;
+    }
+
     public boolean bereitsAusgeliehen(String isbn) {
         if (erfassterSchueler == null) {
             return false;
         }
-        dbConnector.executeStatement("SELECT id FROM ausleihen WHERE isbn = ? AND schueler_id = ? AND ruckgabe_datum IS NULL", isbn, erfassterSchueler);
+        return bereitsAusgeliehen(isbn, erfassterSchueler);
+    }
+
+    public boolean hatBereiteReservierung(String isbn, int schuelerId) {
+        dbConnector.executeStatement("SELECT id FROM reservierungen WHERE isbn = ? AND schueler_id = ? AND status = 'bereit'", isbn, schuelerId);
         QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result == null || result.getRowCount() == 0) {
-            return false;
-        }
-        return true;
+        return result != null && result.getRowCount() > 0;
     }
 
     /**
@@ -2401,7 +2786,7 @@ public class Bibliothek {
      * 
      * @return True, wenn das Limit überschritten wird, sonst false.
      */
-    public boolean buecherAnzahlUeberschritten() {
+    public boolean buecherAnzahlUeberschritten(int zusaetzlicheBuecher) {
         if (erfassterSchueler == null) {
             return false;
         }
@@ -2416,12 +2801,22 @@ public class Bibliothek {
 
             if (maxResult != null && maxResult.getRowCount() > 0 && maxResult.getData()[0][0] != null) {
                 int max = Integer.parseInt(maxResult.getData()[0][0]);
-                if (count + erfassteBuecher.size() >= max) {
+                if (max <= 0) {
+                    max = getStandartAusleihlimit();
+                    if (max <= 0) {
+                        max = 3;
+                    }
+                }
+                if (count + erfassteBuecher.size() + zusaetzlicheBuecher > max) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    public boolean buecherAnzahlUeberschritten() {
+        return buecherAnzahlUeberschritten(0);
     }
 
     /**
@@ -2485,13 +2880,19 @@ public class Bibliothek {
     }
 
     public boolean isGesperrt(int id) {
-
         dbConnector.executeStatement("SELECT freigeschaltet FROM benutzer WHERE id = ?", id);
         QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result != null && result.getRowCount() > 0 && result.getData()[0][0].equals("0")) {
+        if (result != null && result.getRowCount() > 0 && "0".equals(result.getData()[0][0])) {
             return true;
         }
         return false;
+    }
+
+    public boolean isErfassterSchuelerGesperrt() {
+        if (erfassterSchueler == null) {
+            return false;
+        }
+        return isGesperrt(erfassterSchueler);
     }
 
 }

@@ -40,7 +40,7 @@ public class DatabaseConnector {
       Class.forName("com.mysql.jdbc.Driver");
 
       // Verbindung herstellen
-      connection = DriverManager.getConnection("jdbc:mysql://" + pIP + ":" + pPort + "/" + pDatabase, pUsername,
+      connection = DriverManager.getConnection("jdbc:mysql://" + pIP + ":" + pPort + "/" + pDatabase + "?autoReconnect=true", pUsername,
           pPassword);
 
     } catch (Exception e) {
@@ -55,11 +55,17 @@ public class DatabaseConnector {
    * liefert, so kann dieses Ergebnis anschließend mit der Methode getCurrentQueryResult 
    * abgerufen werden.
    */
-  public void executeStatement(String pSQLStatement, Object... params){  
+  public boolean executeStatement(String pSQLStatement, Object... params){  
     //Altes Ergebnis loeschen
     currentQueryResult = null;
     message = null;
     PreparedStatement statement = null;
+    
+    if (connection == null) {
+        message = "Keine Datenbankverbindung vorhanden.";
+        throw new RuntimeException(message);
+    }
+    
     try {
       //Neues Prepared Statement erstellen
       statement = connection.prepareStatement(pSQLStatement);
@@ -117,10 +123,13 @@ public class DatabaseConnector {
         // Statement ohne Ergebnisobjekt schliessen
         
       }
+      return true;
 
      } catch (Exception e) {
       // Fehlermeldung speichern
       message = e.getMessage();
+      e.printStackTrace();
+      throw new RuntimeException("DB Error: " + message, e);
       }
       finally {
         // Statement IMMER schliessen
@@ -162,10 +171,60 @@ public class DatabaseConnector {
    */
   public void close() {
     try {
-      connection.close();
+      if (connection != null) connection.close();
     } catch (Exception e) {
       message = e.getMessage();
     }
+  }
+
+  /**
+   * Startet eine Datenbanktransaktion (Auto-Commit aus).
+   */
+  public boolean beginTransaction() {
+      try {
+          if (connection != null) {
+              connection.setAutoCommit(false);
+              return true;
+          }
+      } catch (SQLException e) {
+          message = e.getMessage();
+          e.printStackTrace();
+      }
+      return false;
+  }
+
+  /**
+   * Bestätigt die laufende Transaktion.
+   */
+  public boolean commit() {
+      try {
+          if (connection != null) {
+              connection.commit();
+              connection.setAutoCommit(true);
+              return true;
+          }
+      } catch (SQLException e) {
+          message = e.getMessage();
+          e.printStackTrace();
+      }
+      return false;
+  }
+
+  /**
+   * Macht die laufende Transaktion rückgängig.
+   */
+  public boolean rollback() {
+      try {
+          if (connection != null) {
+              connection.rollback();
+              connection.setAutoCommit(true);
+              return true;
+          }
+      } catch (SQLException e) {
+          message = e.getMessage();
+          e.printStackTrace();
+      }
+      return false;
   }
 
 }
