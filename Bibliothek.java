@@ -19,6 +19,9 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import java.io.IOException;
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Properties;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -28,6 +31,13 @@ import java.time.format.DateTimeFormatter;
  */
 public class Bibliothek {
     private DatabaseConnector dbConnector;
+    private String dbIp = "localhost";
+    private int dbPort = 3306;
+    private String dbName = "Bibliothek";
+    private String dbUser = "root";
+    private String dbPassword = "";
+    private static final String DB_CONFIG_FILE = "db_config.properties";
+
     private ArrayList<String> erfassteBuecher = new ArrayList<>();
     private Integer erfassterSchueler;
     private Integer angemeldet = null;
@@ -46,12 +56,15 @@ public class Bibliothek {
      * aktualisiert abgelaufene Reservierungen und prüft/versendet Mahnungen.
      */
     public Bibliothek() {
+        loadDbConfig();
         dbVerbinden();
         new Thread(() -> {
             try {
-                reservierungenAktualisieren();
-                erinnerungenPruefenUndVersenden();
-                lateDaysAktualisieren();
+                if (dbConnector != null && dbConnector.isConnected()) {
+                    reservierungenAktualisieren();
+                    erinnerungenPruefenUndVersenden();
+                    lateDaysAktualisieren();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -153,10 +166,153 @@ public class Bibliothek {
     }
 
     /**
-     * Stellt die Verbindung zur lokalen MySQL-Datenbank her.
+     * Lädt die Datenbank-Konfiguration aus der lokalen Konfigurationsdatei (db_config.properties).
+     * Falls die Datei nicht existiert, wird sie mit Standardwerten angelegt.
+     */
+    public void loadDbConfig() {
+        File configFile = new File(DB_CONFIG_FILE);
+        if (configFile.exists()) {
+            Properties props = new Properties();
+            try (FileInputStream in = new FileInputStream(configFile)) {
+                props.load(in);
+                dbIp = props.getProperty("db.ip", props.getProperty("db.host", "localhost"));
+                try {
+                    dbPort = Integer.parseInt(props.getProperty("db.port", "3306"));
+                } catch (NumberFormatException e) {
+                    dbPort = 3306;
+                }
+                dbName = props.getProperty("db.name", props.getProperty("db.database", "Bibliothek"));
+                dbUser = props.getProperty("db.user", props.getProperty("db.username", "root"));
+                dbPassword = props.getProperty("db.password", "");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            saveDbConfigFile(dbIp, dbPort, dbName, dbUser, dbPassword);
+        }
+    }
+
+    /**
+     * Speichert die Datenbank-Konfiguration in der lokalen Konfigurationsdatei.
+     */
+    private void saveDbConfigFile(String ip, int port, String name, String user, String password) {
+        Properties props = new Properties();
+        props.setProperty("db.ip", ip != null ? ip : "localhost");
+        props.setProperty("db.port", String.valueOf(port));
+        props.setProperty("db.name", name != null ? name : "Bibliothek");
+        props.setProperty("db.user", user != null ? user : "root");
+        props.setProperty("db.password", password != null ? password : "");
+
+        try (FileOutputStream out = new FileOutputStream(DB_CONFIG_FILE)) {
+            props.store(out, "Bibliothek Datenbank-Konfiguration");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Stellt die Verbindung zur MySQL-Datenbank mit den aktuell konfigurierten Parametern her.
      */
     private void dbVerbinden() {
-        dbConnector = new DatabaseConnector("localhost", 3306, "Bibliothek", "root", "");
+        if (dbConnector != null) {
+            try {
+                dbConnector.close();
+            } catch (Exception ignored) {}
+        }
+        dbConnector = new DatabaseConnector(dbIp, dbPort, dbName, dbUser, dbPassword);
+    }
+
+    /**
+     * Aktualisiert die Datenbankkonfiguration und speichert sie in der Datei ab.
+     */
+    public void saveDbConfig(String ip, int port, String name, String user, String password) {
+        this.dbIp = (ip != null && !ip.trim().isEmpty()) ? ip.trim() : "localhost";
+        this.dbPort = port > 0 ? port : 3306;
+        this.dbName = (name != null && !name.trim().isEmpty()) ? name.trim() : "Bibliothek";
+        this.dbUser = (user != null && !user.trim().isEmpty()) ? user.trim() : "root";
+        this.dbPassword = password != null ? password : "";
+
+        saveDbConfigFile(this.dbIp, this.dbPort, this.dbName, this.dbUser, this.dbPassword);
+
+        try {
+            if (dbConnector != null && dbConnector.isConnected()) {
+                setEinstellung("db_ip", this.dbIp);
+                setEinstellung("db_port", String.valueOf(this.dbPort));
+                setEinstellung("db_name", this.dbName);
+                setEinstellung("db_user", this.dbUser);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Schließt die alte Verbindung und stellt eine neue Verbindung mit den angegebenen Parametern her.
+     * 
+     * @return true, falls die Verbindung erfolgreich hergestellt wurde.
+     */
+    public boolean dbNeuVerbinden(String ip, int port, String name, String user, String password) {
+        this.dbIp = (ip != null && !ip.trim().isEmpty()) ? ip.trim() : "localhost";
+        this.dbPort = port > 0 ? port : 3306;
+        this.dbName = (name != null && !name.trim().isEmpty()) ? name.trim() : "Bibliothek";
+        this.dbUser = (user != null && !user.trim().isEmpty()) ? user.trim() : "root";
+        this.dbPassword = password != null ? password : "";
+
+        dbVerbinden();
+        return dbConnector != null && dbConnector.isConnected();
+    }
+
+    /**
+     * Testet eine Datenbankverbindung mit den übergebenen Parametern, ohne die aktive Verbindung zu verändern.
+     * 
+     * @return null bei Erfolg, andernfalls eine Fehlermeldung als String.
+     */
+    public String testDbVerbindung(String ip, int port, String name, String user, String password) {
+        DatabaseConnector testConnector = null;
+        try {
+            testConnector = new DatabaseConnector(ip, port, name, user, password);
+            if (testConnector.isConnected()) {
+                testConnector.executeStatement("SELECT 1");
+                return null;
+            } else {
+                String err = testConnector.getErrorMessage();
+                return (err != null && !err.trim().isEmpty()) ? err : "Verbindung konnte nicht hergestellt werden.";
+            }
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            if (msg != null && msg.startsWith("DB Error: ")) {
+                msg = msg.substring(10);
+            }
+            return (msg != null && !msg.trim().isEmpty()) ? msg : e.toString();
+        } finally {
+            if (testConnector != null) {
+                try {
+                    testConnector.close();
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    public String getDbIp() {
+        return dbIp;
+    }
+
+    public int getDbPort() {
+        return dbPort;
+    }
+
+    public String getDbName() {
+        return dbName;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public String getDbPassword() {
+        return dbPassword;
+    }
+
+    public DatabaseConnector getDbConnector() {
+        return dbConnector;
     }
 
     /**

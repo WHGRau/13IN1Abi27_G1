@@ -200,6 +200,50 @@
                            </GridPane>
                         </VBox>
 
+                        <!-- Datenbank Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Datenbank">
+                              <font><Font name="System Bold" size="26.0" /></font>
+                           </Text>
+                           <GridPane hgap="30" vgap="20">
+                              <columnConstraints>
+                                 <ColumnConstraints minWidth="250" />
+                                 <ColumnConstraints hgrow="ALWAYS" />
+                              </columnConstraints>
+                              <children>
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Server / IP-Adresse:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                 <TextField fx:id="dbIpFeld" prefHeight="40" promptText="z. B. localhost oder 192.168.1.100" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Port:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                 <TextField fx:id="dbPortFeld" prefHeight="40" promptText="Standard: 3306" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Datenbankname:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                 <TextField fx:id="dbNameFeld" prefHeight="40" promptText="Standard: Bibliothek" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Benutzername:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                 <TextField fx:id="dbBenutzerFeld" prefHeight="40" promptText="Standard: root" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                 
+                                 <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Passwort:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                                 <PasswordField fx:id="dbPasswortFeld" prefHeight="40" promptText="Datenbank-Passwort" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                              </children>
+                              <rowConstraints>
+                                 <RowConstraints />
+                                 <RowConstraints />
+                                 <RowConstraints />
+                                 <RowConstraints />
+                                 <RowConstraints />
+                              </rowConstraints>
+                           </GridPane>
+                           <HBox alignment="CENTER_LEFT" spacing="20">
+                              <children>
+                                 <Button fx:id="dbVerbindungTestenButton" mnemonicParsing="false" onAction="#dbVerbindungTesten" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;" text="Verbindung testen">
+                                    <font><Font name="System Bold" size="16.0" /></font>
+                                 </Button>
+                                 <Label fx:id="dbStatusLabel" wrapText="true" style="-fx-font-size: 16px;" />
+                              </children>
+                           </HBox>
+                        </VBox>
+
                      </children>
                   </VBox>
                </content>

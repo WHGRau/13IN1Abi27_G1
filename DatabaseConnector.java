@@ -40,8 +40,8 @@ public class DatabaseConnector {
       Class.forName("com.mysql.jdbc.Driver");
 
       // Verbindung herstellen
-      connection = DriverManager.getConnection("jdbc:mysql://" + pIP + ":" + pPort + "/" + pDatabase + "?autoReconnect=true", pUsername,
-          pPassword);
+      connection = DriverManager.getConnection("jdbc:mysql://" + pIP + ":" + pPort + "/" + pDatabase + "?autoReconnect=true&connectTimeout=3000&socketTimeout=3000", pUsername,
+          pPassword == null ? "" : pPassword);
 
     } catch (Exception e) {
       message = e.getMessage();
@@ -174,6 +174,19 @@ public class DatabaseConnector {
       if (connection != null) connection.close();
     } catch (Exception e) {
       message = e.getMessage();
+    }
+  }
+
+  /**
+   * Prüft, ob aktuell eine aktive Datenbankverbindung besteht.
+   * 
+   * @return true, falls die Verbindung aktiv und nicht geschlossen ist, sonst false.
+   */
+  public boolean isConnected() {
+    try {
+      return connection != null && !connection.isClosed();
+    } catch (Exception e) {
+      return false;
     }
   }
 
