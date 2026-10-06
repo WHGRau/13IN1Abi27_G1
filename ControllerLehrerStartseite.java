@@ -589,38 +589,34 @@ public class ControllerLehrerStartseite {
 
         switch (feedback) {
             case 1:
+                feedbackText.setFill(Color.BLACK);
                 if (!model.getErfassteSchuelerName().isEmpty()) {
-                    feedbackText.setText("weiteres Buch scannen");
-                    ausleihenButton.setDisable(false);
-                    
+                    feedbackText.setText("Ausleihe: Weiteres Buch scannen oder Ausleihe abschließen.");
                 } else {
-                    feedbackText.setText("weiteres Buch oder Nutzerausweis scannen");
+                    feedbackText.setText("Weiteres Buch oder Schülerausweis scannen");
                 }
                 break;
             case 2: {
-                if (model.getErfassteSchuelerName().isEmpty()){
-                    feedbackText.setText("Rückgabe: bitte Nutzerausweis oder weiteres Buch scannen");
-                    break;
-                }
-                else{
-                    if(model.richtigerSchuelerRuckListe()){
-                       
-                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
+                feedbackText.setFill(Color.BLACK);
+                if (model.getErfassteSchuelerName().isEmpty()) {
+                    feedbackText.setText("Rückgabe: Bitte Schülerausweis oder weiteres Buch scannen");
+                } else {
+                    if (model.richtigerSchuelerRuckListe()) {
+                        String msg = "Rückgabe: Buch erfasst";
                         int tage = model.getTageZuSpaet(code);
-                        
-                        if (tage > 0)
-                            msg += " – " + tage + " Tage zu spät!";
+                        if (tage > 0) {
+                            msg += " – " + tage + " Tage zu spät! Weiteres Buch scannen oder Rückgabe abschließen.";
+                            feedbackText.setFill(Color.RED);
+                        } else {
+                            msg += ". Weiteres Buch scannen oder Rückgabe abschließen.";
+                        }
                         feedbackText.setText(msg);
-                        
-                        zuruecknehmenButton.setDisable(false);
-                        break; 
-                    }
-                    else{
-                        feedbackText.setText("falscher Schülerausweis gescannt");
-                        break;
+                    } else {
+                        feedbackText.setFill(Color.RED);
+                        feedbackText.setText("Dieses Buch wurde von diesem Schüler nicht ausgeliehen!");
                     }
                 }
-                
+                break;
             }
             case 3:
                 feedbackText.setFill(Color.RED);
@@ -628,27 +624,42 @@ public class ControllerLehrerStartseite {
                 break;
             case 4:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Buch kann nicht verliehen werden!");
+                feedbackText.setText("Buch kann nicht verliehen werden (im System als entfernt markiert)!");
                 break;
             case 5: {
-                int tage = model.getTageZuSpaet(code);
                 String msg = "Buch erfasst und bereits für nächsten Schüler reserviert";
-                if (tage > 0)
-                    msg += " – " + tage + " Tage zu spät!";
+                if (model.getErfassteSchuelerName().isEmpty()) {
+                    msg += ". Bitte Schülerausweis oder weiteres Buch scannen.";
+                    feedbackText.setFill(Color.BLACK);
+                } else {
+                    int tage = model.getTageZuSpaet(code);
+                    if (tage > 0) {
+                        msg += " – " + tage + " Tage zu spät! Weiteres Buch scannen oder Rückgabe abschließen.";
+                        feedbackText.setFill(Color.RED);
+                    } else {
+                        msg += ". Weiteres Buch scannen oder Rückgabe abschließen.";
+                        feedbackText.setFill(Color.BLACK);
+                    }
+                }
                 feedbackText.setText(msg);
-                zuruecknehmenButton.setDisable(false);
                 break;
             }
             case 6:
-                feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst");
-                if (model.getErfassteBuecherNamen().size() > 0) {
-                    ausleihenButton.setDisable(false);
+                feedbackText.setFill(Color.BLACK);
+                if (model.getErfassteBuecherNamen().isEmpty()) {
+                    if (model.isErfassterSchuelerGesperrt()) {
+                        feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst (gesperrt – nur Rückgabe möglich). Buch scannen.");
+                    } else {
+                        feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst. Buch scannen.");
+                    }
+                } else {
+                    feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst. Weiteres Buch scannen oder Ausleihe abschließen.");
                 }
                 break;
             case 7:
                 feedbackText.setFill(Color.RED);
                 feedbackText.setText(
-                        "Buch bereits verliehen, bitte erst Ausleihvorgang abschließen und danach zurücknehmen");
+                        "Ausleihe und Rückgabe können nicht gleichzeitig durchgeführt werden! Bitte Vorgänge getrennt abschließen.");
                 break;
             case 8:
                 feedbackText.setFill(Color.RED);
@@ -661,75 +672,103 @@ public class ControllerLehrerStartseite {
                 break;
             case 10:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Schüler gesperrt! Verleih nicht möglich");
+                feedbackText.setText("Schüler gesperrt! Ausleihe nicht möglich.");
                 break;
             case 11:
                 feedbackText.setFill(Color.RED);
                 feedbackText.setText("Buch ist reserviert für " + model.getreserviertSchuelerName(code)
-                        + ", zum Prüfen Schüler scannen");
+                        + ", zum Prüfen Schülerausweis scannen.");
                 break;
             case 12:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Bücher für andere Schüler reserviert");
-                scannenButton.setDisable(true);
-                ausleihenButton.setDisable(true);
+                feedbackText.setText("Enthält für andere Schüler reservierte Bücher!");
                 break;
             case 13:
                 int ab = model.getBuchAltersbeschraenkung(code);
                 feedbackText.setFill(Color.RED);
                 feedbackText
-                        .setText("Buch hat eine Altersbeschränkung von " + ab + " Jahren. Zum Prüfen Schüler scannen.");
+                        .setText("Buch hat eine Altersbeschränkung von " + ab + " Jahren. Zum Prüfen Schülerausweis scannen.");
                 break;
             case 14:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Schüler zu jung oder kein Geburtsdatum hinterlegt");
-                scannenButton.setDisable(true);
-                ausleihenButton.setDisable(true);
+                feedbackText.setText("Schüler zu jung oder kein Geburtsdatum hinterlegt!");
                 break;
             case 15:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Maximale Anzahl gleichzeitiger Bücher überschritten");
-                scannenButton.setDisable(true);
-                ausleihenButton.setDisable(true);
+                feedbackText.setText("Maximale Anzahl gleichzeitiger Bücher überschritten!");
                 break;
             case 16:
-                if (model.getErfassteSchuelerName().isEmpty()){
-                    feedbackText.setText("Nutzerausweis oder weiteres Buch scannen");
-                    break;
+                feedbackText.setFill(Color.BLACK);
+                feedbackText.setText("Buch erfasst. Schülerausweis oder weiteres Buch scannen (Ausleihe oder Rückgabe).");
+                break;
+            case 17: {
+                int maxTage = model.getMaxTageZuSpaetErfasst();
+                if (maxTage > 0) {
+                    feedbackText.setFill(Color.RED);
+                    feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst (Rückgabe bereit – " + maxTage + " Tage zu spät!). Weiteres Buch scannen oder Rückgabe abschließen.");
+                } else {
+                    feedbackText.setFill(Color.BLACK);
+                    feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst (Rückgabe: Weiteres Buch scannen oder Rückgabe abschließen).");
                 }
-                else{
-                    if(model.richtigerSchuelerRuckListe()){
-                        String msg = "Rückgabe: (weiteres Buch scannen möglich) Buch erfasst";
-                        int tage = model.getTageZuSpaet(code);
-                        if (tage > 0)
-                            msg += " – " + tage + " Tage zu spät!";
-                        feedbackText.setText(msg);
-                        zuruecknehmenButton.setDisable(false);
-                        break; 
-                    }
-                    else{
-                        feedbackText.setText("weiteres Buch scannen");
-                        ausleihenButton.setDisable(false);
-                        break;
-                    }
-                }
-            case 17:
-                feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst");
-                if (model.getErfassteBuecherNamen().size() > 0) {
-                    zuruecknehmenButton.setDisable(false);
-                }
+                break;
+            }
+            case 18:
+                feedbackText.setFill(Color.BLACK);
+                feedbackText.setText("Reserviertes Buch für " + model.getErfassteSchuelerName() + " erfasst. Weiteres Buch scannen oder Ausleihe abschließen.");
                 break;
             case 19:
                 feedbackText.setFill(Color.RED);
-                feedbackText.setText("Schüler hat ein Buch bereits ausgeliehen");
-                ausleihenButton.setDisable(true);
+                feedbackText.setText("Schüler hat dieses Buch bereits ausgeliehen!");
                 break;
-        }
-        if (model.abbrechenMoeglich()) {
-            abbrechenButton.setDisable(false);
+            case 20:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Kein Exemplar verfügbar! Alle Exemplare dieses Buches sind derzeit verliehen.");
+                break;
+            case 21:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Dieses Buch ist derzeit nicht verliehen und kann nicht zurückgegeben werden.");
+                break;
+            case 22:
+                feedbackText.setFill(Color.RED);
+                if (model.getErfassteBuecherNamen().size() > 1) {
+                    feedbackText.setText("Enthält Bücher, die von diesem Schüler nicht ausgeliehen wurden!");
+                } else {
+                    feedbackText.setText("Dieses Buch wurde von diesem Schüler nicht ausgeliehen!");
+                }
+                break;
+            case 23:
+                feedbackText.setFill(Color.RED);
+                feedbackText.setText("Dieses Buch wurde bereits in die Liste aufgenommen!");
+                break;
         }
         codeFeld.clear();
         updateGescanntListe();
+        updateButtonStates();
+    }
+
+    /**
+     * Aktualisiert den Aktivierungszustand der Buttons deterministisch basierend auf dem Modellzustand.
+     */
+    private void updateButtonStates() {
+        boolean hasSchueler = model.getErfassteSchuelerName() != null && !model.getErfassteSchuelerName().isEmpty();
+        boolean hasBuecher = model.getErfassteBuecherNamen() != null && !model.getErfassteBuecherNamen().isEmpty();
+        boolean hasKonflikte = model.getKonfliktBuecherNamen() != null && !model.getKonfliktBuecherNamen().isEmpty();
+        String modus = model.getAktuellerModus();
+
+        if (!hasSchueler || !hasBuecher) {
+            ausleihenButton.setDisable(true);
+            zuruecknehmenButton.setDisable(true);
+        } else if ("RUECKGABE".equals(modus)) {
+            ausleihenButton.setDisable(true);
+            zuruecknehmenButton.setDisable(!model.richtigerSchuelerRuckListe() || hasKonflikte);
+        } else if ("AUSLEIHE".equals(modus)) {
+            zuruecknehmenButton.setDisable(true);
+            ausleihenButton.setDisable(hasKonflikte || model.buecherAnzahlUeberschritten() || model.isErfassterSchuelerGesperrt());
+        } else {
+            ausleihenButton.setDisable(true);
+            zuruecknehmenButton.setDisable(true);
+        }
+        abbrechenButton.setDisable(!model.abbrechenMoeglich());
     }
 
     /**
@@ -766,15 +805,13 @@ public class ControllerLehrerStartseite {
      * und leert die entsprechenden Listen im Modell.
      */
     public void abbrechen() {
-        ausleihenButton.setDisable(true);
-        zuruecknehmenButton.setDisable(true);
         model.abbrechen();
         ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Buch scannen");
         updateGescanntListe();
         scannenButton.setDisable(false);
-        abbrechenButton.setDisable(true);
+        updateButtonStates();
     }
 
     /**
@@ -783,18 +820,21 @@ public class ControllerLehrerStartseite {
      */
     public void zurueckgeben() {
         rueckgaengigButton.setDisable(false);
-        model.buchRueckgabe();
-        model.abbrechen();
-        ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
-        ausleihenButton.setDisable(true);
-        zuruecknehmenButton.setDisable(true);
-        feedbackText.setText("Buch erfolgreich zurückgegeben.");
-        loadVerliehenTabelle();
-        loadReserviertTabelle();
-        updateGescanntListe();
-        feedbackZuruecksetzen();
-        letzteAktionAnzeigen();
-       
+        if (model.buchRueckgabe()) {
+            model.abbrechen();
+            ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
+            updateButtonStates();
+            feedbackText.setFill(Color.BLACK);
+            feedbackText.setText("Buch erfolgreich zurückgegeben.");
+            loadVerliehenTabelle();
+            loadReserviertTabelle();
+            updateGescanntListe();
+            feedbackZuruecksetzen();
+            letzteAktionAnzeigen();
+        } else {
+            feedbackText.setFill(Color.RED);
+            feedbackText.setText("Datenbankfehler bei der Rückgabe!");
+        }
     }
 
     /**
@@ -802,27 +842,31 @@ public class ControllerLehrerStartseite {
      * im Model durch und aktualisiert anschließend die Anzeige.
      */
     public void ausleihen() {
-        
         try {
             int dauer = Integer.parseInt(ausleihdauerFeld.getText());
             if (dauer >= 1 && dauer <= 200) {
-                model.buchLeihen(dauer);
-                model.abbrechen();
-                ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
-                ausleihenButton.setDisable(true);
-                zuruecknehmenButton.setDisable(true);
-                feedbackText.setText("Bücher erfolgreich verliehen.");
-                loadVerliehenTabelle();
-                loadReserviertTabelle();
-                updateGescanntListe();
-                feedbackZuruecksetzen();
-                letzteAktionAnzeigen();
-                rueckgaengigButton.setDisable(false);
+                if (model.buchLeihen(dauer)) {
+                    model.abbrechen();
+                    ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
+                    updateButtonStates();
+                    feedbackText.setFill(Color.BLACK);
+                    feedbackText.setText("Bücher erfolgreich verliehen.");
+                    loadVerliehenTabelle();
+                    loadReserviertTabelle();
+                    updateGescanntListe();
+                    feedbackZuruecksetzen();
+                    letzteAktionAnzeigen();
+                    rueckgaengigButton.setDisable(false);
+                } else {
+                    feedbackText.setFill(Color.RED);
+                    feedbackText.setText("Datenbankfehler bei der Ausleihe!");
+                }
             } else {
                 feedbackText.setFill(Color.RED);
                 feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
             }
         } catch (NumberFormatException e) {
+            feedbackText.setFill(Color.RED);
             feedbackText.setText("Bitte eine gültige Dauer (1-200 Tage) eingeben!");
         }
     }
@@ -972,28 +1016,58 @@ public class ControllerLehrerStartseite {
      */
     public void gescanntesBuchEntfernen() {
         int selectedIndex = gescanntListe.getSelectionModel().getSelectedIndex();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && selectedIndex < model.getErfassteBuecherNamen().size()) {
             model.gescanntesBuchEntfernen(selectedIndex);
             updateGescanntListe();
-            if(model.getKonfliktBuecherNamen().isEmpty() && !model.getErfassteBuecherNamen().isEmpty() && !model.getErfassteSchuelerName().isEmpty()){
-                ausleihenButton.setDisable(false);
-            }
-            if (model.getErfassteBuecherNamen().isEmpty()) {
-                ausleihenButton.setDisable(true);
-                zuruecknehmenButton.setDisable(true);
-                scannenButton.setDisable(false);
+            scannenButton.setDisable(false);
+
+            boolean hasSchueler = model.getErfassteSchuelerName() != null && !model.getErfassteSchuelerName().isEmpty();
+            boolean hasBuecher = !model.getErfassteBuecherNamen().isEmpty();
+            boolean hasKonflikte = !model.getKonfliktBuecherNamen().isEmpty();
+
+            if (!hasBuecher) {
                 feedbackText.setFill(Color.BLACK);
-                feedbackText.setText("Buch scannen");
-            } else if (model.getKonfliktBuecherNamen().isEmpty()) {
-                scannenButton.setDisable(false);
-                feedbackText.setFill(Color.BLACK);
-                if (model.getErfassteSchuelerName() != null && !model.getErfassteSchuelerName().isEmpty()) {
-                    ausleihenButton.setDisable(false);
-                    feedbackText.setText("weiteres Buch scannen");
+                if (hasSchueler) {
+                    if (model.isErfassterSchuelerGesperrt()) {
+                        feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst (gesperrt – nur Rückgabe möglich). Buch scannen.");
+                    } else {
+                        feedbackText.setText("Schüler " + model.getErfassteSchuelerName() + " erfasst. Buch scannen.");
+                    }
                 } else {
-                    feedbackText.setText("weiteres Buch oder Nutzerausweis scannen");
+                    feedbackText.setText("Buch scannen");
                 }
+            } else if (hasSchueler) {
+                if ("RUECKGABE".equals(model.getAktuellerModus()) || model.richtigerSchuelerRuckListe()) {
+                    if (hasKonflikte) {
+                        feedbackText.setFill(Color.RED);
+                        feedbackText.setText("Konflikt vorhanden! Bitte markiertes Buch entfernen.");
+                    } else {
+                        int maxTage = model.getMaxTageZuSpaetErfasst();
+                        if (maxTage > 0) {
+                            feedbackText.setFill(Color.RED);
+                            feedbackText.setText("Rückgabe: " + maxTage + " Tage zu spät! Weiteres Buch scannen oder Rückgabe abschließen.");
+                        } else {
+                            feedbackText.setFill(Color.BLACK);
+                            feedbackText.setText("Rückgabe: Weiteres Buch scannen oder Rückgabe abschließen");
+                        }
+                    }
+                } else {
+                    if (hasKonflikte) {
+                        feedbackText.setFill(Color.RED);
+                        feedbackText.setText("Konflikt vorhanden! Bitte markiertes Buch entfernen.");
+                    } else if (model.buecherAnzahlUeberschritten()) {
+                        feedbackText.setFill(Color.RED);
+                        feedbackText.setText("Maximale Anzahl gleichzeitiger Bücher überschritten!");
+                    } else {
+                        feedbackText.setFill(Color.BLACK);
+                        feedbackText.setText("Ausleihe: Weiteres Buch scannen oder Ausleihe abschließen");
+                    }
+                }
+            } else {
+                feedbackText.setFill(Color.BLACK);
+                feedbackText.setText("Weiteres Buch oder Schülerausweis scannen");
             }
+            updateButtonStates();
         }
     }
 
@@ -1024,11 +1098,11 @@ public class ControllerLehrerStartseite {
         loadReserviertTabelle();
         updateGescanntListe();
         feedbackZuruecksetzen();
-        letzteAktionAnzeigen();
         rueckgaengigButton.setDisable(true);
         feedbackText.setFill(Color.BLACK);
         feedbackText.setText("Letzte Aktion erfolgreich zurückgenommen.");
         gescanntListe.getItems().clear();
+        updateButtonStates();
     }
 
     /**

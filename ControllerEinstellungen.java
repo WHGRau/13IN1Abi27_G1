@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
@@ -26,6 +27,21 @@ import javafx.scene.transform.Scale;
  * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration, Mahnungseinstellungen und APIs.
  */
 public class ControllerEinstellungen {
+
+    @FXML
+    private TextField dbIpFeld;
+    @FXML
+    private TextField dbPortFeld;
+    @FXML
+    private TextField dbNameFeld;
+    @FXML
+    private TextField dbBenutzerFeld;
+    @FXML
+    private PasswordField dbPasswortFeld;
+    @FXML
+    private Button dbVerbindungTestenButton;
+    @FXML
+    private Label dbStatusLabel;
 
     @FXML
     private TextField emailFeld;
@@ -59,7 +75,7 @@ public class ControllerEinstellungen {
     @FXML
     private CheckBox sperrenAktivierenCheckBox;
     @FXML
-    private DatePicker sperrenResetFeld;
+    private TextField sperrenResetMonateFeld;
     @FXML
     private ChoiceBox<String> buechersucheDatenbankChoiceBox;
     @FXML
@@ -108,93 +124,172 @@ public class ControllerEinstellungen {
     public void setModel(Bibliothek model) {
         this.model = model;
 
-        String email = model.getEinstellung("email_adresse");
-        if (email != null)
-            emailFeld.setText(email);
-
-        String passwort = model.getEinstellung("email_passwort");
-        if (passwort != null)
-            passwortFeld.setText(passwort);
-
-        String server = model.getEinstellung("smtp_server");
-        if (server != null)
-            serverFeld.setText(server);
-
-        String port = model.getEinstellung("smtp_port");
-        if (port != null)
-            portFeld.setText(port);
-
-        String ausleihDauer = model.getEinstellung("ausleih_dauer_tage");
-        if (ausleihDauer != null && !ausleihDauer.isEmpty())
-            ausleihDauerFeld.setText(ausleihDauer);
-        else
-            ausleihDauerFeld.setText("28");
-
-        String ausleihlimit = model.getEinstellung("ausleihlimit_standart");
-        if (ausleihlimit != null)
-            nutzerAusleihlimitFeld.setText(ausleihlimit);
-
-        String resAktiv = model.getEinstellung("reservierungen_aktiv");
-        if (resAktiv != null)
-            reservierungenAktivierenCheckBox.setSelected(resAktiv.equals("1"));
-
-        String resAbholzeit = model.getEinstellung("reservierung_dauer_tage");
-        if (resAbholzeit != null && !resAbholzeit.isEmpty())
-            reservierungAbholzeitFeld.setText(resAbholzeit);
-        else
-            reservierungAbholzeitFeld.setText("14");
-
-        String resSperrzeit = model.getEinstellung("reservierung_sperre_tage");
-        if (resSperrzeit != null && !resSperrzeit.isEmpty())
-            reservierungSperrzeitFeld.setText(resSperrzeit);
-        else
-            reservierungSperrzeitFeld.setText("7");
-
-        String resMaxAnzahl = model.getEinstellung("reservierung_max_anzahl");
-        if (resMaxAnzahl != null && !resMaxAnzahl.isEmpty())
-            reservierungMaxAnzahlFeld.setText(resMaxAnzahl);
-        else
-            reservierungMaxAnzahlFeld.setText("5");
-
-        String sperrenAktiv = model.getEinstellung("sperren_aktiv");
-        if (sperrenAktiv != null)
-            sperrenAktivierenCheckBox.setSelected(sperrenAktiv.equals("1"));
-
-        String sperrenVerspaetung = model.getEinstellung("sperren_verspaetung_tage");
-        if (sperrenVerspaetung != null)
-            sperrenVerspaetungFeld.setText(sperrenVerspaetung);
-            else
-            sperrenVerspaetungFeld.setText("14");
-            
-        String resetDatumStr = model.getEinstellung("sperren_reset_datum");
-        if (resetDatumStr != null && !resetDatumStr.trim().isEmpty())
-            sperrenResetFeld.setValue(LocalDate.parse(resetDatumStr));
-        
-
-
-        buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
-        String buecherDb = model.getEinstellung("buechersuche_datenbank");
-        if (buecherDb != null && !buecherDb.isEmpty()) {
-            buechersucheDatenbankChoiceBox.setValue(buecherDb);
-        } else {
-            buechersucheDatenbankChoiceBox.setValue("Open Library");
+        if (model != null) {
+            if (dbIpFeld != null)
+                dbIpFeld.setText(model.getDbIp());
+            if (dbPortFeld != null)
+                dbPortFeld.setText(String.valueOf(model.getDbPort()));
+            if (dbNameFeld != null)
+                dbNameFeld.setText(model.getDbName());
+            if (dbBenutzerFeld != null)
+                dbBenutzerFeld.setText(model.getDbUser());
+            if (dbPasswortFeld != null)
+                dbPasswortFeld.setText(model.getDbPassword());
         }
 
-        String apiKey = model.getEinstellung("buechersuche_api_key");
-        if (apiKey != null)
-            buechersucheApiKeyFeld.setText(apiKey);
+        buechersucheDatenbankChoiceBox.getItems().clear();
+        buechersucheDatenbankChoiceBox.getItems().addAll("Open Library", "Google Books");
+        buechersucheDatenbankChoiceBox.setValue("Open Library");
+
+        if (model != null && model.getDbConnector() != null && model.getDbConnector().isConnected()) {
+            try {
+                String email = model.getEinstellung("email_adresse");
+                if (email != null)
+                    emailFeld.setText(email);
+
+                String passwort = model.getEinstellung("email_passwort");
+                if (passwort != null)
+                    passwortFeld.setText(passwort);
+
+                String server = model.getEinstellung("smtp_server");
+                if (server != null)
+                    serverFeld.setText(server);
+
+                String port = model.getEinstellung("smtp_port");
+                if (port != null)
+                    portFeld.setText(port);
+
+                String ausleihDauer = model.getEinstellung("ausleih_dauer_tage");
+                if (ausleihDauer != null && !ausleihDauer.isEmpty())
+                    ausleihDauerFeld.setText(ausleihDauer);
+                else
+                    ausleihDauerFeld.setText("28");
+
+                String ausleihlimit = model.getEinstellung("ausleihlimit_standart");
+                if (ausleihlimit != null)
+                    nutzerAusleihlimitFeld.setText(ausleihlimit);
+
+                String resAktiv = model.getEinstellung("reservierungen_aktiv");
+                if (resAktiv != null)
+                    reservierungenAktivierenCheckBox.setSelected(resAktiv.equals("1"));
+
+                String resAbholzeit = model.getEinstellung("reservierung_dauer_tage");
+                if (resAbholzeit != null && !resAbholzeit.isEmpty())
+                    reservierungAbholzeitFeld.setText(resAbholzeit);
+                else
+                    reservierungAbholzeitFeld.setText("14");
+
+                String resSperrzeit = model.getEinstellung("reservierung_sperre_tage");
+                if (resSperrzeit != null && !resSperrzeit.isEmpty())
+                    reservierungSperrzeitFeld.setText(resSperrzeit);
+                else
+                    reservierungSperrzeitFeld.setText("7");
+
+                String resMaxAnzahl = model.getEinstellung("reservierung_max_anzahl");
+                if (resMaxAnzahl != null && !resMaxAnzahl.isEmpty())
+                    reservierungMaxAnzahlFeld.setText(resMaxAnzahl);
+                else
+                    reservierungMaxAnzahlFeld.setText("5");
+
+                String sperrenAktiv = model.getEinstellung("sperren_aktiv");
+                if (sperrenAktiv != null)
+                    sperrenAktivierenCheckBox.setSelected(sperrenAktiv.equals("1"));
+
+                String sperrenVerspaetung = model.getEinstellung("sperren_verspaetung_tage");
+                if (sperrenVerspaetung != null)
+                    sperrenVerspaetungFeld.setText(sperrenVerspaetung);
+                else
+                    sperrenVerspaetungFeld.setText("14");
+                    
+                String resetMonate = model.getEinstellung("sperren_zuruecksetzen_monate");
+                if (resetMonate != null)
+                    sperrenResetMonateFeld.setText(resetMonate);
+
+                String buecherDb = model.getEinstellung("buechersuche_datenbank");
+                if (buecherDb != null && !buecherDb.isEmpty()) {
+                    buechersucheDatenbankChoiceBox.setValue(buecherDb);
+                }
+
+                String apiKey = model.getEinstellung("buechersuche_api_key");
+                if (apiKey != null)
+                    buechersucheApiKeyFeld.setText(apiKey);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         reservierungAbholzeitFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
         reservierungSperrzeitFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
         reservierungMaxAnzahlFeld.disableProperty().bind(reservierungenAktivierenCheckBox.selectedProperty().not());
 
         sperrenVerspaetungFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
-        sperrenResetFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
+        sperrenResetMonateFeld.disableProperty().bind(sperrenAktivierenCheckBox.selectedProperty().not());
 
         buechersucheDatenbankChoiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             buechersucheApiKeyFeld.setDisable("Open Library".equals(newVal));
         });
         buechersucheApiKeyFeld.setDisable("Open Library".equals(buechersucheDatenbankChoiceBox.getValue()));
+    }
+
+    /**
+     * Testet die eingegebene Datenbankverbindung in einem separaten Thread.
+     * Zeigt das Ergebnis über dbStatusLabel an.
+     * 
+     * @param event Das ActionEvent.
+     */
+    @FXML
+    public void dbVerbindungTesten(ActionEvent event) {
+        String ip = dbIpFeld.getText().trim();
+        String portStr = dbPortFeld.getText().trim();
+        String name = dbNameFeld.getText().trim();
+        String user = dbBenutzerFeld.getText().trim();
+        String pass = dbPasswortFeld.getText();
+
+        int port = 3306;
+        if (!portStr.isEmpty()) {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException e) {
+                dbStatusLabel.setTextFill(Color.web("#d32626"));
+                dbStatusLabel.setText("Ungültiger Port (muss eine Zahl sein).");
+                return;
+            }
+        }
+
+        if (ip.isEmpty()) ip = "localhost";
+        if (name.isEmpty()) name = "Bibliothek";
+        if (user.isEmpty()) user = "root";
+
+        dbStatusLabel.setTextFill(Color.web("#555555"));
+        dbStatusLabel.setText("Verbindung wird getestet...");
+        dbVerbindungTestenButton.setDisable(true);
+
+        final String finalIp = ip;
+        final int finalPort = port;
+        final String finalName = name;
+        final String finalUser = user;
+        final String finalPass = pass;
+
+        new Thread(() -> {
+            String fehler = null;
+            if (model != null) {
+                fehler = model.testDbVerbindung(finalIp, finalPort, finalName, finalUser, finalPass);
+            } else {
+                fehler = "Kein Model initialisiert.";
+            }
+
+            final String resultFehler = fehler;
+            Platform.runLater(() -> {
+                dbVerbindungTestenButton.setDisable(false);
+                if (resultFehler == null) {
+                    dbStatusLabel.setTextFill(Color.web("#2e7d32"));
+                    dbStatusLabel.setText("✓ Verbindung erfolgreich hergestellt!");
+                } else {
+                    dbStatusLabel.setTextFill(Color.web("#d32626"));
+                    dbStatusLabel.setText("✗ Verbindung fehlgeschlagen: " + resultFehler);
+                }
+            });
+        }).start();
     }
 
     /**
@@ -205,40 +300,64 @@ public class ControllerEinstellungen {
      */
     @FXML
     public void speichern(ActionEvent event) {
-        String email = emailFeld.getText().trim();
-        String passwort = passwortFeld.getText().trim();
-        String server = serverFeld.getText().trim();
-        String port = portFeld.getText().trim();
+        String dbIp = dbIpFeld.getText().trim();
+        String dbPortStr = dbPortFeld.getText().trim();
+        String dbName = dbNameFeld.getText().trim();
+        String dbUser = dbBenutzerFeld.getText().trim();
+        String dbPass = dbPasswortFeld.getText();
 
-        model.setEinstellung("email_adresse", email);
-        model.setEinstellung("email_passwort", passwort);
-        model.setEinstellung("smtp_server", server);
-        model.setEinstellung("smtp_port", port);
-
-        model.setEinstellung("ausleih_dauer_tage", ausleihDauerFeld.getText().trim());
-
-        String ausleihlimitText = nutzerAusleihlimitFeld.getText().trim();
-        if (ausleihlimitText.isEmpty()) {
-            model.setEinstellung("ausleihlimit_standart", null);
-        } else {
-            model.setEinstellung("ausleihlimit_standart", ausleihlimitText);
+        int dbPort = 3306;
+        if (!dbPortStr.isEmpty()) {
+            try {
+                dbPort = Integer.parseInt(dbPortStr);
+            } catch (NumberFormatException ignored) {}
         }
+        if (dbIp.isEmpty()) dbIp = "localhost";
+        if (dbName.isEmpty()) dbName = "Bibliothek";
+        if (dbUser.isEmpty()) dbUser = "root";
 
-        model.setEinstellung("reservierungen_aktiv", reservierungenAktivierenCheckBox.isSelected() ? "1" : "0");
-        model.setEinstellung("reservierung_dauer_tage", reservierungAbholzeitFeld.getText().trim());
-        model.setEinstellung("reservierung_sperre_tage", reservierungSperrzeitFeld.getText().trim());
-        model.setEinstellung("reservierung_max_anzahl", reservierungMaxAnzahlFeld.getText().trim());
+        if (model != null) {
+            model.saveDbConfig(dbIp, dbPort, dbName, dbUser, dbPass);
+            model.dbNeuVerbinden(dbIp, dbPort, dbName, dbUser, dbPass);
 
-        model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
-        model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());
-        String resetDatum = sperrenResetFeld.getValue() != null ? sperrenResetFeld.getValue().toString().trim(): "";
-        model.setEinstellung("sperren_reset_datum", resetDatum);
+            try {
+                String email = emailFeld.getText().trim();
+                String passwort = passwortFeld.getText().trim();
+                String server = serverFeld.getText().trim();
+                String port = portFeld.getText().trim();
 
-        String dbSelection = buechersucheDatenbankChoiceBox.getValue();
-        if (dbSelection != null)
-            model.setEinstellung("buechersuche_datenbank", dbSelection);
+                model.setEinstellung("email_adresse", email);
+                model.setEinstellung("email_passwort", passwort);
+                model.setEinstellung("smtp_server", server);
+                model.setEinstellung("smtp_port", port);
 
-        model.setEinstellung("buechersuche_api_key", buechersucheApiKeyFeld.getText().trim());
+                model.setEinstellung("ausleih_dauer_tage", ausleihDauerFeld.getText().trim());
+
+                String ausleihlimitText = nutzerAusleihlimitFeld.getText().trim();
+                if (ausleihlimitText.isEmpty()) {
+                    model.setEinstellung("ausleihlimit_standart", null);
+                } else {
+                    model.setEinstellung("ausleihlimit_standart", ausleihlimitText);
+                }
+
+                model.setEinstellung("reservierungen_aktiv", reservierungenAktivierenCheckBox.isSelected() ? "1" : "0");
+                model.setEinstellung("reservierung_dauer_tage", reservierungAbholzeitFeld.getText().trim());
+                model.setEinstellung("reservierung_sperre_tage", reservierungSperrzeitFeld.getText().trim());
+                model.setEinstellung("reservierung_max_anzahl", reservierungMaxAnzahlFeld.getText().trim());
+
+                model.setEinstellung("sperren_aktiv", sperrenAktivierenCheckBox.isSelected() ? "1" : "0");
+                model.setEinstellung("sperren_verspaetung_tage", sperrenVerspaetungFeld.getText().trim());
+                model.setEinstellung("sperren_zuruecksetzen_monate", sperrenResetMonateFeld.getText().trim());
+
+                String dbSelection = buechersucheDatenbankChoiceBox.getValue();
+                if (dbSelection != null)
+                    model.setEinstellung("buechersuche_datenbank", dbSelection);
+
+                model.setEinstellung("buechersuche_api_key", buechersucheApiKeyFeld.getText().trim());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         toStartseite(event);
     }
 

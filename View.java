@@ -22,7 +22,7 @@ public class View extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("scenes/login.fxml"));
-        primaryStage.setTitle("Schülerbibliothek");
+        primaryStage.setTitle("WHG Schülerbibliothek");
         
         final double targetWidth = 1920.0;
         final double targetHeight = 1080.0;

@@ -171,7 +171,7 @@ public class ControllerCsvImport {
 
             if (importierteNutzer.isEmpty()) {
                 errorText.setFill(Color.RED);
-                errorText.setText("Keine neuen Nutzer importiert (möglicherweise existieren alle bereits).");
+                errorText.setText("Keine neuen Nutzer importiert (möglicherweise existieren alle bereits oder das Format der CSV-Datei ist entspricht nicht den Vorgaben).");
                 return;
             }
 

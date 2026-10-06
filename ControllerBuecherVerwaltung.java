@@ -139,10 +139,7 @@ public class ControllerBuecherVerwaltung {
     private StackPane background;
 
     @FXML
-    private Text errorText;
-    
-    @FXML
-    private Text fehlerStatus;
+    private Label errorText;
 
     @FXML
     private Text statusText;
@@ -532,28 +529,19 @@ public class ControllerBuecherVerwaltung {
                         errorText.setText("Diese ISBN existiert bereits! Sie können über 'hinzufügen' weitere Exemplare anlegen.");
                         return;
                     }
-                    model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
-                            jahr, beschreibungFeld.getText(), alterFeld.getText());
-                    suchen();
-                    neuAktiv = false;
-                    bearbeitenButton.setText("bearbeiten");
-                    titelFeld.setEditable(false);
-                    autorFeld.setEditable(false);
-                    jahrFeld.setEditable(false);
-                    beschreibungFeld.setEditable(false);
-                    alterFeld.setEditable(false);
-                    zurueckButton.setDisable(false);
-                    neuButton.setText("neu");
-                    entfernenButton.setDisable(false);
-                    add.setDisable(false);
-                    searchBar.setEditable(true);
-                    titelFeld.clear();
-                    autorFeld.clear();
-                    jahrFeld.clear();
-                    beschreibungFeld.clear();
-                    alterFeld.clear();
-                    isbnFeld.clear();
-                    Platform.runLater(() -> isbnFeld.requestFocus());
+                    if (model.buchHinzufuegen(neueIsbn, titelFeld.getText(), autorFeld.getText(),
+                            jahr, beschreibungFeld.getText(), alterFeld.getText())) {
+                        suchen();
+                        titelFeld.clear();
+                        autorFeld.clear();
+                        jahrFeld.clear();
+                        beschreibungFeld.clear();
+                        alterFeld.clear();
+                        isbnFeld.clear();
+                        Platform.runLater(() -> isbnFeld.requestFocus());
+                    } else {
+                        errorText.setText("Fehler beim Speichern in der Datenbank!");
+                    }
                 } catch (NumberFormatException e) {
                     errorText.setText("Fehler: Jahr muss eine Zahl sein");
                     e.printStackTrace();
@@ -577,8 +565,7 @@ public class ControllerBuecherVerwaltung {
     public void addExemplare(ActionEvent event){
         String isbn = isbnFeld.getText();
         if(isbn!=null && !isbn.isEmpty()){
-            model.hinzuDA(isbn);
-            model.updateBuchStatus(isbn);
+            model.exemplarHinzufuegen(isbn);
             String savedIsbn = isbn;
             suchen();
             for (Buch b : buecherTabelle.getItems()) {
@@ -604,7 +591,7 @@ public class ControllerBuecherVerwaltung {
 
         if (!selectedBuch.getStatus().equals("entfernt")) {
             if(exemplareTabelle.getSelectionModel().getSelectedIndex() < 0){
-                fehlerStatus.setText("Bitte die Zeile, aus welcher ein Buch entfernt werden soll, auswählen.");
+                errorText.setText("Bitte die Zeile, aus welcher ein Buch entfernt werden soll, auswählen.");
                 return;
             }
             else{
@@ -615,7 +602,7 @@ public class ControllerBuecherVerwaltung {
                     if(!selectzeile.getName().equals("0")){
                         model.buchLoeschen(selectedBuch.getIsbn());
                     } else {
-                        fehlerStatus.setText("Kein verfügbares Exemplar zum Entfernen vorhanden.");
+                        errorText.setText("Kein verfügbares Exemplar zum Entfernen vorhanden.");
                         return;
                     }
                 }
@@ -630,7 +617,7 @@ public class ControllerBuecherVerwaltung {
             model.buchFreigeben(selectedBuch.getIsbn());
         }
 
-        fehlerStatus.setText("");
+        errorText.setText("");
         String savedIsbn = selectedBuch.getIsbn();
         suchen();
         for (Buch b : buecherTabelle.getItems()) {
@@ -760,7 +747,8 @@ public class ControllerBuecherVerwaltung {
      * 
      * @param isbn Die ISBN des abzufragenden Buches.
      */
-    public void buchDatenAbrufen(String isbn) {
+public void buchDatenAbrufen(String isbn) {
+    new Thread(() -> {
         try {
             String dbSetting = model.getEinstellung("buechersuche_datenbank");
             String apiQuelle = (dbSetting != null && dbSetting.equals("Google Books")) ? "google" : "openlibrary";
@@ -780,51 +768,51 @@ public class ControllerBuecherVerwaltung {
             URL url = new URL(urlText);
             HttpURLConnection verbindung = (HttpURLConnection) url.openConnection();
             verbindung.setRequestMethod("GET");
+            verbindung.setConnectTimeout(3000);
+            verbindung.setReadTimeout(3000);
 
             BufferedReader leser = new BufferedReader(new InputStreamReader(verbindung.getInputStream()));
             String zeile;
-            String json = "";
+            StringBuilder jsonBuilder = new StringBuilder();
             while ((zeile = leser.readLine()) != null) {
-                json += zeile;
+                jsonBuilder.append(zeile);
             }
             leser.close();
+            String json = jsonBuilder.toString();
 
             String titel = wertAuslesen(json, "title");
-            if (!titel.isEmpty())
-                titelFeld.setText(titel);
-
-            if (apiQuelle.equals("google")) {
-                String autor = arrayWertAuslesen(json, "authors");
-                if (!autor.isEmpty())
-                    autorFeld.setText(autor);
-
-                String datum = wertAuslesen(json, "publishedDate");
-                if (datum.length() >= 4)
-                    jahrFeld.setText(datum.substring(0, 4));
-
-                String beschreibung = wertAuslesen(json, "description");
-                if (!beschreibung.isEmpty())
-                    beschreibungFeld.setText(beschreibung);
-            } else {
-                String autor = wertAuslesen(json, "name");
-                if (!autor.isEmpty())
-                    autorFeld.setText(autor);
-
-                String datum = wertAuslesen(json, "publish_date");
-                if (datum.length() >= 4)
-                    jahrFeld.setText(datum.substring(datum.length() - 4));
-
-                String beschreibung = wertAuslesen(json, "notes");
-                if (!beschreibung.isEmpty())
-                    beschreibungFeld.setText(beschreibung);
+            String autor = apiQuelle.equals("google") ? arrayWertAuslesen(json, "authors") : wertAuslesen(json, "name");
+            String datum = apiQuelle.equals("google") ? wertAuslesen(json, "publishedDate") : wertAuslesen(json, "publish_date");
+            
+            String jahr = "";
+            if (apiQuelle.equals("google") && datum.length() >= 4) {
+                jahr = datum.substring(0, 4);
+            } else if (!apiQuelle.equals("google") && datum.length() >= 4) {
+                jahr = datum.substring(datum.length() - 4);
             }
 
+            String beschreibung = apiQuelle.equals("google") ? wertAuslesen(json, "description") : wertAuslesen(json, "notes");
+
+            // UI-Updates geordnet im JavaFX-Thread ausführen
+            final String fTitel = titel;
+            final String fAutor = autor;
+            final String fJahr = jahr;
+            final String fBeschreibung = beschreibung;
+
+            Platform.runLater(() -> {
+                if (!fTitel.isEmpty()) titelFeld.setText(fTitel);
+                if (!fAutor.isEmpty()) autorFeld.setText(fAutor);
+                if (!fJahr.isEmpty()) jahrFeld.setText(fJahr);
+                if (!fBeschreibung.isEmpty()) beschreibungFeld.setText(fBeschreibung);
+            });
+
         } catch (Exception e) {
-            errorText.setText("Fehler beim Abrufen der Buchdaten");
+            Platform.runLater(() -> errorText.setText("Fehler beim Abrufen der Buchdaten"));
         } finally {
             letzteBuchDatenAbruf = System.currentTimeMillis();
         }
-    }
+    }).start();
+}
 
     /**
      * Extrahiert einen simplen Wert zu einem Schlüssel aus einem JSON-String.
