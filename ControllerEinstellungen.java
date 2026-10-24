@@ -21,10 +21,15 @@ import java.time.LocalDate;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.transform.Scale;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import java.util.Optional;
 
 /**
  * Controller für die Einstellungen der Bibliothek.
- * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration, Mahnungseinstellungen und APIs.
+ * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration,
+ * Mahnungseinstellungen und APIs.
  */
 public class ControllerEinstellungen {
 
@@ -116,8 +121,10 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Setzt das Model der Bibliothek und lädt alle gespeicherten Einstellungen in die UI-Elemente.
-     * Aktiviert/Deaktiviert Eingabefelder basierend auf den jeweiligen Checkboxen (z. B. Reservierungen aktiv).
+     * Setzt das Model der Bibliothek und lädt alle gespeicherten Einstellungen in
+     * die UI-Elemente.
+     * Aktiviert/Deaktiviert Eingabefelder basierend auf den jeweiligen Checkboxen
+     * (z. B. Reservierungen aktiv).
      * 
      * @param model Das aktuelle Bibliotheks-Model.
      */
@@ -200,7 +207,7 @@ public class ControllerEinstellungen {
                     sperrenVerspaetungFeld.setText(sperrenVerspaetung);
                 else
                     sperrenVerspaetungFeld.setText("14");
-                    
+
                 String resetMonate = model.getEinstellung("sperren_zuruecksetzen_monate");
                 if (resetMonate != null)
                     sperrenResetMonateFeld.setText(resetMonate);
@@ -256,9 +263,12 @@ public class ControllerEinstellungen {
             }
         }
 
-        if (ip.isEmpty()) ip = "localhost";
-        if (name.isEmpty()) name = "Bibliothek";
-        if (user.isEmpty()) user = "root";
+        if (ip.isEmpty())
+            ip = "localhost";
+        if (name.isEmpty())
+            name = "Bibliothek";
+        if (user.isEmpty())
+            user = "root";
 
         dbStatusLabel.setTextFill(Color.web("#555555"));
         dbStatusLabel.setText("Verbindung wird getestet...");
@@ -293,7 +303,8 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Speichert alle in der UI vorgenommenen Einstellungen im Model (bzw. in der Datenbank) ab
+     * Speichert alle in der UI vorgenommenen Einstellungen im Model (bzw. in der
+     * Datenbank) ab
      * und leitet zurück auf die Startseite.
      * 
      * @param event Das ActionEvent.
@@ -307,14 +318,62 @@ public class ControllerEinstellungen {
         String dbPass = dbPasswortFeld.getText();
 
         int dbPort = 3306;
+        boolean portUngueltig = false;
         if (!dbPortStr.isEmpty()) {
             try {
                 dbPort = Integer.parseInt(dbPortStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException e) {
+                portUngueltig = true;
+            }
         }
-        if (dbIp.isEmpty()) dbIp = "localhost";
-        if (dbName.isEmpty()) dbName = "Bibliothek";
-        if (dbUser.isEmpty()) dbUser = "root";
+        if (dbIp.isEmpty())
+            dbIp = "localhost";
+        if (dbName.isEmpty())
+            dbName = "Bibliothek";
+        if (dbUser.isEmpty())
+            dbUser = "root";
+
+        // Automatischen Verbindungstest durchführen
+        String testFehler = null;
+        if (portUngueltig) {
+            testFehler = "Ungültiger Port (muss eine Zahl sein).";
+        } else if (model != null) {
+            testFehler = model.testDbVerbindung(dbIp, dbPort, dbName, dbUser, dbPass);
+        }
+
+        if (testFehler != null) {
+            if (dbStatusLabel != null) {
+                dbStatusLabel.setTextFill(Color.web("#d32626"));
+                dbStatusLabel.setText("✗ Verbindung fehlgeschlagen: " + testFehler);
+            }
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Datenbank nicht erreichbar");
+            alert.setHeaderText("Datenbank nicht erreichbar");
+            alert.setContentText(
+                    "Mit der angegebenen Datenbank konnte keine Verbindung hergestellt werden. "
+                            + "Bitte prüfen Sie Ihre Angaben im Punkt 'Datenbank'. "
+                            + "Sollten Sie falsche Zugangsdaten für die Datenbank speichern, lässt sich diese Einstellung unter Umständen nicht mehr ändern. "
+                            + "Siehe Benutzerhandbuch für Details.");
+
+            ButtonType abbrechenButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+            ButtonType trotzdemSpeichernButton = new ButtonType("Trotzdem speichern", ButtonBar.ButtonData.OK_DONE);
+            alert.getButtonTypes().setAll(abbrechenButton, trotzdemSpeichernButton);
+
+            try {
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                alert.initOwner(stage);
+            } catch (Exception ignored) {
+            }
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (!result.isPresent() || result.get() != trotzdemSpeichernButton) {
+                return;
+            }
+        } else if (dbStatusLabel != null) {
+            dbStatusLabel.setTextFill(Color.web("#2e7d32"));
+            dbStatusLabel.setText("✓ Verbindung erfolgreich hergestellt!");
+        }
 
         if (model != null) {
             model.saveDbConfig(dbIp, dbPort, dbName, dbUser, dbPass);
@@ -362,7 +421,8 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Bricht den Vorgang ab (oder navigiert nach dem Speichern) und kehrt zur Lehrer-Startseite zurück.
+     * Bricht den Vorgang ab (oder navigiert nach dem Speichern) und kehrt zur
+     * Lehrer-Startseite zurück.
      * 
      * @param event Das ActionEvent.
      */
@@ -379,7 +439,7 @@ public class ControllerEinstellungen {
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.show();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
