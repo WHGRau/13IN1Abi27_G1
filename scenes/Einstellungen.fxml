@@ -239,9 +239,57 @@
                                  <Button fx:id="dbVerbindungTestenButton" mnemonicParsing="false" onAction="#dbVerbindungTesten" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;" text="Verbindung testen">
                                     <font><Font name="System Bold" size="16.0" /></font>
                                  </Button>
-                                 <Label fx:id="dbStatusLabel" wrapText="true" style="-fx-font-size: 16px;" />
+                                 <Label fx:id="dbStatusLabel" style="-fx-font-size: 16px;" wrapText="true" />
                               </children>
                            </HBox>
+                        </VBox>
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <children>
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Schulmanager">
+                                 <font>
+                                    <Font name="System Bold" size="26.0" />
+                                 </font>
+                              </Text>
+                              <GridPane hgap="30" vgap="20">
+                                 <columnConstraints>
+                                    <ColumnConstraints minWidth="250" />
+                                    <ColumnConstraints hgrow="ALWAYS" />
+                                 </columnConstraints>
+                                 <children>
+                                    <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Nutzername/E-Mail:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <TextField fx:id="smIpFeld1" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                    <Label style="-fx-text-fill: black; -fx-font-size: 18px;" text="Passwort:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    <PasswordField fx:id="smPasswortFeld1" prefHeight="40" style="-fx-font-size: 16px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                 </children>
+                                 <rowConstraints>
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                 </rowConstraints>
+                              </GridPane>
+                              <HBox alignment="CENTER_LEFT" spacing="20">
+                                 <children>
+                                    <Button fx:id="smVerbindungTestenButton" mnemonicParsing="false" onAction="#smVerbindungTesten" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;" text="Login testen">
+                                       <font><Font name="System Bold" size="16.0" /></font>
+                                    </Button>
+                                    <Label fx:id="smStatusLabel" style="-fx-font-size: 16px;" wrapText="true" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <children>
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Erinnerungen">
+                                 <font>
+                                    <Font name="System Bold" size="26.0" />
+                                 </font>
+                              </Text>
+                              <VBox spacing="15">
+                                 <children>
+                                    <CheckBox fx:id="emErinnerung" mnemonicParsing="false" style="-fx-font-size: 18px; -fx-text-fill: black;" text="E-Mail" />
+                                    <CheckBox fx:id="smErinnerung" mnemonicParsing="false" style="-fx-font-size: 18px; -fx-text-fill: black;" text="Schulmanager" />
+                                 </children>
+                              </VBox>
+                           </children>
                         </VBox>
 
                      </children>

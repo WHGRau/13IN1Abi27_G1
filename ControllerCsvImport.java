@@ -57,6 +57,12 @@ public class ControllerCsvImport {
     @FXML
     private Button importierenButton;
 
+    @FXML
+    private CheckBox smActive;
+
+    @FXML
+    private Text smFeedbackText;
+
     /**
      * Setzt das Model der Bibliothek für diesen Controller.
      * 
@@ -106,6 +112,9 @@ public class ControllerCsvImport {
             selectedCsv = file;
             dateiNameText.setText(file.getName());
             errorText.setText("");
+            if (smFeedbackText != null) {
+                smFeedbackText.setText("");
+            }
         }
     }
 
@@ -167,12 +176,64 @@ public class ControllerCsvImport {
         }
 
         try {
-            ArrayList<Benutzer> importierteNutzer = model.nutzerAusCsvImportieren(selectedCsv);
+            if (smFeedbackText != null) {
+                smFeedbackText.setText("");
+            }
+            boolean smVerbinden = smActive != null && smActive.isSelected();
+            ArrayList<Benutzer> importierteNutzer = model.nutzerAusCsvImportieren(selectedCsv, smVerbinden);
+            int bestehendeOhneSm = model.getLetzteCsvBestehendeOhneSmCount();
+            int nachverknuepft = model.getLetzteCsvNachverknuepftCount();
 
             if (importierteNutzer.isEmpty()) {
+                if (smVerbinden && bestehendeOhneSm > 0 && smFeedbackText != null) {
+                    errorText.setFill(Color.ORANGE);
+                    errorText.setText("Keine neuen Nutzer angelegt (alle Nutzer existieren bereits).");
+                    if (nachverknuepft == bestehendeOhneSm) {
+                        smFeedbackText.setFill(Color.GREEN);
+                        smFeedbackText.setText(nachverknuepft + " von " + bestehendeOhneSm
+                                + " bestehenden Nutzern erfolgreich mit dem Schulmanager verbunden.");
+                    } else if (nachverknuepft > 0) {
+                        smFeedbackText.setFill(Color.ORANGE);
+                        smFeedbackText.setText(nachverknuepft + " von " + bestehendeOhneSm
+                                + " bestehenden Nutzern mit dem Schulmanager verbunden.");
+                    } else {
+                        smFeedbackText.setFill(Color.RED);
+                        smFeedbackText.setText("0 von " + bestehendeOhneSm
+                                + " bestehenden Nutzern konnten mit dem Schulmanager verbunden werden.");
+                    }
+                    if (nachverknuepft > 0) {
+                        selectedCsv = null;
+                        dateiNameText.setText("keine Datei ausgewählt");
+                    }
+                    return;
+                }
                 errorText.setFill(Color.RED);
-                errorText.setText("Keine neuen Nutzer importiert (möglicherweise existieren alle bereits oder das Format der CSV-Datei ist entspricht nicht den Vorgaben).");
+                errorText.setText(
+                        "Keine neuen Nutzer importiert (möglicherweise existieren alle bereits oder das Format der CSV-Datei ist entspricht nicht den Vorgaben).");
                 return;
+            }
+
+            if (smVerbinden && smFeedbackText != null) {
+                int verbundenCount = nachverknuepft;
+                for (Benutzer b : importierteNutzer) {
+                    if (b.getSchulmanagerId() > 0) {
+                        verbundenCount++;
+                    }
+                }
+                int gesamtZuVerbinden = importierteNutzer.size() + bestehendeOhneSm;
+                if (verbundenCount == gesamtZuVerbinden) {
+                    smFeedbackText.setFill(Color.GREEN);
+                    smFeedbackText.setText(verbundenCount + " von " + gesamtZuVerbinden
+                            + " Nutzern erfolgreich mit dem Schulmanager verbunden.");
+                } else if (verbundenCount > 0) {
+                    smFeedbackText.setFill(Color.ORANGE);
+                    smFeedbackText.setText(verbundenCount + " von " + gesamtZuVerbinden
+                            + " Nutzern mit dem Schulmanager verbunden.");
+                } else {
+                    smFeedbackText.setFill(Color.RED);
+                    smFeedbackText.setText("0 von " + gesamtZuVerbinden
+                            + " Nutzern konnten mit dem Schulmanager verbunden werden.");
+                }
             }
 
             if (ausweiseGenerierenCheckBox.isSelected()) {

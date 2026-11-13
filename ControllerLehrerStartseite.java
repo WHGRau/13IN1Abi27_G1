@@ -312,8 +312,10 @@ public class ControllerLehrerStartseite {
 
         ausleihdauerFeld.setText(String.valueOf(model.getAusleihDauer()));
 
-        loadVerliehenTabelle();
-        loadReserviertTabelle();
+        Platform.runLater(() -> {
+            loadVerliehenTabelle();
+            loadReserviertTabelle();
+        });
 
         String text = "Hallo, " + model.getName() + "!";
         // dynamisch die Schriftgrose an Text Lange anpassen
