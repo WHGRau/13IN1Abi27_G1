@@ -82,6 +82,27 @@ public class Bibliothek {
     }
 
     /**
+     * Prüft, ob E-Mail-Erinnerungen und -Benachrichtigungen (Mahnungen, Reservierungen,
+     * Kontosperrungen) in den Einstellungen aktiviert sind.
+     * 
+     * @return true wenn aktiv (Standard), false wenn deaktiviert.
+     */
+    public boolean isEmailErinnerungAktiv() {
+        String emailSetting = getEinstellung("emailErinnerung");
+        return (emailSetting == null) || "1".equals(emailSetting);
+    }
+
+    /**
+     * Prüft, ob Schulmanager-Erinnerungen und -Benachrichtigungen (Mahnungen, Reservierungen,
+     * Kontosperrungen) in den Einstellungen aktiviert sind.
+     * 
+     * @return true wenn aktiv ("1"), sonst false.
+     */
+    public boolean isSchulmanagerErinnerungAktiv() {
+        return "1".equals(getEinstellung("smErinnerung"));
+    }
+
+    /**
      * Prüft anhand des aktuellen Datums alle Ausleihen auf fällige Mahnungen
      * (2 Tage vorher, Stichtag, 1 Woche überfällig) und versendet E-Mails.
      */
@@ -90,9 +111,8 @@ public class Bibliothek {
             if (dbConnector == null || !dbConnector.isConnected()) {
                 return;
             }
-            String emailSetting = getEinstellung("emailErinnerung");
-            boolean emailAktiv = (emailSetting == null) || "1".equals(emailSetting);
-            boolean smAktiv = "1".equals(getEinstellung("smErinnerung"));
+            boolean emailAktiv = isEmailErinnerungAktiv();
+            boolean smAktiv = isSchulmanagerErinnerungAktiv();
             if (!emailAktiv && !smAktiv) {
                 return;
             }
@@ -2108,7 +2128,7 @@ public class Bibliothek {
     public void sperren(int pID, boolean automatisch) {
         QueryResult result;
         synchronized (dbConnector) {
-            dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = ?", pID);
+            dbConnector.executeStatement("SELECT email, vorname, schulmanagerUserId FROM benutzer WHERE id = ?", pID);
             result = dbConnector.getCurrentQueryResult();
             if (result != null && result.getRowCount() > 0) {
                 if (automatisch) {
@@ -2123,9 +2143,22 @@ public class Bibliothek {
         if (result != null && result.getRowCount() > 0) {
             String email = result.getData()[0][0];
             String vorname = result.getData()[0][1];
-            if (email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
+            String smUserId = (result.getData()[0].length > 2) ? result.getData()[0][2] : null;
+
+            if (isEmailErinnerungAktiv() && email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
                 MailService mailService = new MailService(this);
                 mailService.sendeGesperrtMail(email, vorname);
+            }
+
+            if (isSchulmanagerErinnerungAktiv() && smUserId != null && !smUserId.trim().isEmpty()
+                    && !smUserId.equalsIgnoreCase("null")) {
+                try {
+                    int parsedSmId = Integer.parseInt(smUserId.trim());
+                    if (parsedSmId > 0 && schulmanager != null) {
+                        schulmanager.sendeKontoGesperrt(parsedSmId, vorname);
+                    }
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
     }
@@ -2823,19 +2856,34 @@ public class Bibliothek {
                         "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) WHERE id = ?",
                         dauer, wartendeResId);
 
-                // Email senden an den Schüler, dessen Reservierung bereitgestellt wurde
+                // Email und Schulmanager-Benachrichtigung senden an den Schüler, dessen Reservierung bereitgestellt wurde
                 dbConnector.executeStatement(
-                        "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM benutzer, buecher WHERE benutzer.id = ? AND buecher.isbn = ?",
+                        "SELECT benutzer.email, benutzer.vorname, buecher.titel, benutzer.schulmanagerUserId FROM benutzer, buecher WHERE benutzer.id = ? AND buecher.isbn = ?",
                         reserviererId, isbn);
                 QueryResult mailResult = dbConnector.getCurrentQueryResult();
                 if (mailResult != null && mailResult.getRowCount() > 0) {
                     String empfaengerEmail = mailResult.getData()[0][0];
                     String vorname = mailResult.getData()[0][1];
                     String titel = mailResult.getData()[0][2];
-                    if (empfaengerEmail != null && !empfaengerEmail.trim().isEmpty()
+                    String smUserId = (mailResult.getData()[0].length > 3) ? mailResult.getData()[0][3] : null;
+
+                    boolean emailAktiv = isEmailErinnerungAktiv();
+                    boolean smAktiv = isSchulmanagerErinnerungAktiv();
+
+                    if (emailAktiv && empfaengerEmail != null && !empfaengerEmail.trim().isEmpty()
                             && !empfaengerEmail.equalsIgnoreCase("null")) {
                         MailService mailService = new MailService(this);
                         mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+                    }
+
+                    if (smAktiv && smUserId != null && !smUserId.trim().isEmpty() && !smUserId.equalsIgnoreCase("null")) {
+                        try {
+                            int parsedSmId = Integer.parseInt(smUserId.trim());
+                            if (parsedSmId > 0 && schulmanager != null) {
+                                schulmanager.sendeReservierungBereit(parsedSmId, vorname, titel);
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
                 }
                 return Integer.parseInt(wartendeResId);

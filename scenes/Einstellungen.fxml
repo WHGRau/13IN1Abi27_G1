@@ -278,7 +278,7 @@
                         </VBox>
                         <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
                            <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Erinnerungen">
+                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="optionale Nachrichten">
                                  <font>
                                     <Font name="System Bold" size="26.0" />
                                  </font>

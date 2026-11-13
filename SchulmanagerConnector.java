@@ -530,6 +530,9 @@ public class SchulmanagerConnector {
 
     public boolean sendErinnerung(int smUserId, String nutzerName, String buchTitel, String typ,
             String rueckgabeDatum) {
+        if (model != null && !model.isSchulmanagerErinnerungAktiv()) {
+            return false;
+        }
         String betreff = "";
         String nachricht = "Hallo " + nutzerName + ",\n\n";
 
@@ -550,5 +553,87 @@ public class SchulmanagerConnector {
 
         nachricht += "\n\nViele Grüße,\nDeine Schulbibliothek";
         return sendNachricht(smUserId, betreff, nachricht);
+    }
+
+    /**
+     * Sendet eine Benachrichtigung über eine bereitgestellte Reservierung per
+     * Schulmanager (synchron).
+     *
+     * @param smUserId   Die Schulmanager-User-ID des Nutzers.
+     * @param nutzerName Der Name/Vorname des Nutzers.
+     * @param buchTitel  Der Titel des abholbereiten Buches.
+     * @return true bei erfolgreichem Versand, sonst false.
+     */
+    public boolean sendReservierungBereit(int smUserId, String nutzerName, String buchTitel) {
+        if (model != null && !model.isSchulmanagerErinnerungAktiv()) {
+            return false;
+        }
+        int dauer = (model != null && model.getReservierungDauer() > 0) ? model.getReservierungDauer() : 7;
+        String betreff = "Deine Reservierung ist abholbereit!";
+        String nachricht = "Hallo " + nutzerName + ",\n\n" +
+                "gute Nachrichten! Das von dir reservierte Buch \"" + buchTitel
+                + "\" ist jetzt für dich verfügbar.\n" +
+                "Bitte hole es innerhalb der nächsten " + dauer
+                + " Tage in der Bibliothek ab.\n\n" +
+                "Viele Grüße,\nDeine Schulbibliothek";
+        return sendNachricht(smUserId, betreff, nachricht);
+    }
+
+    /**
+     * Sendet eine Benachrichtigung über eine bereitgestellte Reservierung per
+     * Schulmanager (asynchron).
+     *
+     * @param smUserId   Die Schulmanager-User-ID des Nutzers.
+     * @param nutzerName Der Name/Vorname des Nutzers.
+     * @param buchTitel  Der Titel des abholbereiten Buches.
+     */
+    public void sendeReservierungBereit(int smUserId, String nutzerName, String buchTitel) {
+        new Thread(() -> sendReservierungBereit(smUserId, nutzerName, buchTitel)).start();
+    }
+
+    /**
+     * Sendet eine Benachrichtigung über die Sperrung des Bibliothekskontos per
+     * Schulmanager (synchron).
+     *
+     * @param smUserId   Die Schulmanager-User-ID des Nutzers.
+     * @param nutzerName Der Name/Vorname des Nutzers.
+     * @return true bei erfolgreichem Versand, sonst false.
+     */
+    public boolean sendKontoGesperrt(int smUserId, String nutzerName) {
+        if (model != null && !model.isSchulmanagerErinnerungAktiv()) {
+            return false;
+        }
+        String betreff = "Dein Bibliotheks-Konto wurde gesperrt";
+        String nachricht = "Hallo " + nutzerName + ",\n\n" +
+                "dein Konto in der Schulbibliothek wurde soeben gesperrt.\n" +
+                "Wende dich bitte an eine zuständige Lehrkraft, um den Grund zu klären.\n\n" +
+                "Viele Grüße,\nDeine Schulbibliothek";
+        return sendNachricht(smUserId, betreff, nachricht);
+    }
+
+    /**
+     * Sendet eine Benachrichtigung über die Sperrung des Bibliothekskontos per
+     * Schulmanager (asynchron).
+     *
+     * @param smUserId   Die Schulmanager-User-ID des Nutzers.
+     * @param nutzerName Der Name/Vorname des Nutzers.
+     */
+    public void sendeKontoGesperrt(int smUserId, String nutzerName) {
+        new Thread(() -> sendKontoGesperrt(smUserId, nutzerName)).start();
+    }
+
+    /**
+     * Alias für sendErinnerung (synchron).
+     */
+    public boolean sendeMahnungSync(int smUserId, String nutzerName, String buchTitel, String typ,
+            String rueckgabeDatum) {
+        return sendErinnerung(smUserId, nutzerName, buchTitel, typ, rueckgabeDatum);
+    }
+
+    /**
+     * Alias für sendErinnerung (asynchron).
+     */
+    public void sendeMahnung(int smUserId, String nutzerName, String buchTitel, String typ, String rueckgabeDatum) {
+        new Thread(() -> sendErinnerung(smUserId, nutzerName, buchTitel, typ, rueckgabeDatum)).start();
     }
 }
