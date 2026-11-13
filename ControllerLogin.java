@@ -29,6 +29,13 @@ import javafx.scene.input.KeyCode;
 public class ControllerLogin {
     private Bibliothek model;
 
+    private synchronized Bibliothek getOrCreateModel() {
+        if (model == null) {
+            model = new Bibliothek();
+        }
+        return model;
+    }
+
     /**
      * Initialisiert den Login-Controller. Setzt den Fokus auf den Login-Button
      * und passt die Skalierung des Hintergrundbilds dynamisch an die Fenstergröße an.
@@ -39,7 +46,7 @@ public class ControllerLogin {
         // Bibliothek bereits im Hintergrund vorbereiten, während der Nutzer noch tippt
         new Thread(() -> {
             try {
-                model = new Bibliothek();
+                getOrCreateModel();
             } catch (Exception ignored) {
             }
         }).start();
@@ -93,15 +100,15 @@ public class ControllerLogin {
      * @param event Das ausgelöste ActionEvent.
      */
     public void login(ActionEvent event) {
-        if (model == null) {
-            model = new Bibliothek();
-        }
+        getOrCreateModel();
         int feedback;
         try {
             feedback = model.login(emailFeld.getText(), passwortFeld.getText());
         } catch (Exception e) {
             // Falls die Verbindung abgebrochen war, neu aufbauen und erneut versuchen
-            model = new Bibliothek();
+            synchronized (this) {
+                model = new Bibliothek();
+            }
             feedback = model.login(emailFeld.getText(), passwortFeld.getText());
         }
         if (feedback == 1) {
@@ -185,7 +192,7 @@ public class ControllerLogin {
      * @param event Das ActionEvent.
      */
     public void passwortVergessen(ActionEvent event) {
-        model = new Bibliothek();
+        getOrCreateModel();
         String email = emailFeld.getText().trim();
         if (istGueltigeEmail(email)) {
             model.passwortVergessen(email);

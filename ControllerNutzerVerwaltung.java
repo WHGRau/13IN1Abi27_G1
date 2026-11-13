@@ -251,6 +251,26 @@ public class ControllerNutzerVerwaltung {
 
         if (schulmanagerBox != null) {
             schulmanagerBox.managedProperty().bind(schulmanagerBox.visibleProperty());
+            schulmanagerBox.setVisible(false);
+        }
+
+        javafx.beans.value.ChangeListener<String> smResetListener = (obs, oldVal, newVal) -> {
+            if (neuAktiv && newUserSmConnected) {
+                currenrUserId = -1;
+                newUserSmConnected = false;
+                connectSchulmanagerButton.setText("verbinden");
+                smFeedbackText.setFill(Color.ORANGE);
+                smFeedbackText.setText("Nutzerdaten geändert – bitte erneut verbinden");
+            }
+        };
+        if (vornameFeld != null) {
+            vornameFeld.textProperty().addListener(smResetListener);
+        }
+        if (nameFeld != null) {
+            nameFeld.textProperty().addListener(smResetListener);
+        }
+        if (klasseFeld != null) {
+            klasseFeld.textProperty().addListener(smResetListener);
         }
 
         rolleAuswahl.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -405,7 +425,7 @@ public class ControllerNutzerVerwaltung {
         errorText.setText("");
         if (errorTextTimer != null)
             errorTextTimer.stop();
-        if (!bearbeitenAktiv) {
+        if (!bearbeitenAktiv && !neuAktiv) {
 
             connectSchulmanagerButton.setText("verbinden");
             smFeedbackText.setText("");
@@ -473,6 +493,21 @@ public class ControllerNutzerVerwaltung {
                     schulmanagerBox.setVisible(true);
                 }
                 loadVerlaufTabelle();
+            } else {
+                emailFeld.clear();
+                nameFeld.clear();
+                vornameFeld.clear();
+                ausleihlimitFeld.clear();
+                rolleAuswahl.setValue(null);
+                geburtsdatumPicker.setValue(null);
+                statusText.setText("");
+                verlaufTabelle.getItems().clear();
+                bearbeitenButton.setDisable(true);
+                entfernenButton.setDisable(true);
+                loeschenButton.setDisable(true);
+                if (schulmanagerBox != null) {
+                    schulmanagerBox.setVisible(false);
+                }
             }
 
         }
@@ -584,6 +619,8 @@ public class ControllerNutzerVerwaltung {
             geburtsdatumPicker.setDisable(true);
             zurueckButton.setDisable(false);
             neuButton.setDisable(false);
+            nutzerTabelle.setDisable(false);
+            searchBar.setEditable(true);
 
             entfernenButton.setDisable(false);
             loeschenButton.setDisable(false);
@@ -604,6 +641,10 @@ public class ControllerNutzerVerwaltung {
             boolean isJetztEmail = !emailFeld.getText().trim().isEmpty();
 
             int savedId = selectedNutzer.getId();
+            if ("lehrer".equals(rolle) && selectedNutzer.getSchulmanagerId() > 0) {
+                model.disconnectSchulmanager(savedId);
+                selectedNutzer.setSchulmanagerId(0);
+            }
             model.benutzerBearbeiten(savedId, rolle, emailFeld.getText().trim(), nameFeld.getText(),
                     vornameFeld.getText(), gebDatum, ausleihlimit);
 
@@ -696,6 +737,7 @@ public class ControllerNutzerVerwaltung {
                             vornameFeld.getText(), gebDatum, ausleihlimit, currenrUserId);
                 }
                 currenrUserId = -1;
+                newUserSmConnected = false;
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
@@ -706,7 +748,9 @@ public class ControllerNutzerVerwaltung {
                     errorTextTimer.stop();
                 }
                 neuAktiv = false;
+                selectedNutzer = null;
                 bearbeitenButton.setText("bearbeiten");
+                bearbeitenButton.setDisable(true);
                 emailFeld.setEditable(false);
                 nameFeld.setEditable(false);
                 vornameFeld.setEditable(false);
@@ -717,14 +761,19 @@ public class ControllerNutzerVerwaltung {
                 rolleAuswahl.setDisable(true);
                 geburtsdatumPicker.setDisable(true);
                 zurueckButton.setDisable(false);
+                nutzerTabelle.setDisable(false);
+                searchBar.setEditable(true);
                 neuButton.setText("neu");
-                entfernenButton.setDisable(false);
-                loeschenButton.setDisable(false);
+                entfernenButton.setDisable(true);
+                loeschenButton.setDisable(true);
                 emailFeld.clear();
                 nameFeld.clear();
                 vornameFeld.clear();
                 geburtsdatumPicker.setValue(null);
 
+                if (schulmanagerBox != null) {
+                    schulmanagerBox.setVisible(false);
+                }
                 connectSchulmanagerButton.setText("verbinden");
                 smFeedbackText.setText("");
                 klasseFeld.clear();
@@ -744,6 +793,8 @@ public class ControllerNutzerVerwaltung {
                 neuButton.setDisable(true);
                 entfernenButton.setDisable(true);
                 loeschenButton.setDisable(true);
+                nutzerTabelle.setDisable(true);
+                searchBar.setEditable(false);
                 checkEmailWarnung();
             }
         }
@@ -808,6 +859,8 @@ public class ControllerNutzerVerwaltung {
             geburtsdatumPicker.setDisable(false);
             geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(true);
+            nutzerTabelle.setDisable(true);
+            searchBar.setEditable(false);
             neuAktiv = true;
             checkEmailWarnung();
             updateSmVisibility();
@@ -833,13 +886,19 @@ public class ControllerNutzerVerwaltung {
             geburtsdatumPicker.setDisable(true);
             geburtsdatumPicker.setValue(null);
             zurueckButton.setDisable(false);
+            nutzerTabelle.setDisable(false);
+            searchBar.setEditable(true);
             neuAktiv = false;
+            newUserSmConnected = false;
             bearbeitenButton.setDisable(true);
             schulmanagerBox.setVisible(false);
             currenrUserId = -1;
             connectSchulmanagerButton.setText("verbinden");
             smFeedbackText.setText("");
             klasseFeld.clear();
+            if (nutzerTabelle.getSelectionModel().getSelectedItem() != null) {
+                selectBenutzer();
+            }
         }
     }
 
@@ -892,6 +951,12 @@ public class ControllerNutzerVerwaltung {
             bearbeitenButton.setDisable(true);
             entfernenButton.setDisable(true);
             loeschenButton.setDisable(true);
+            if (schulmanagerBox != null) {
+                schulmanagerBox.setVisible(false);
+            }
+            connectSchulmanagerButton.setText("verbinden");
+            smFeedbackText.setText("");
+            klasseFeld.clear();
             suchen();
         }
     }
@@ -1029,16 +1094,34 @@ public class ControllerNutzerVerwaltung {
 
     public void connectSchulmanager() {
         if (!neuAktiv) {
+            if (selectedNutzer == null) {
+                return;
+            }
             if (selectedNutzer.getSchulmanagerId() <= 0) {
-                if (model.connectSchulmanager(selectedNutzer, klasseFeld.getText())) {
-                    smFeedbackText.setFill(Color.GREEN);
-                    smFeedbackText.setText("Verbindung erfolgreich");
-                    connectSchulmanagerButton.setText("trennen");
-                } else {
-                    smFeedbackText.setFill(Color.RED);
-                    smFeedbackText.setText(
-                            "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
-                }
+                final Benutzer targetNutzer = selectedNutzer;
+                final String vn = vornameFeld.getText();
+                final String nn = nameFeld.getText();
+                final String kl = klasseFeld.getText();
+                connectSchulmanagerButton.setDisable(true);
+                smFeedbackText.setFill(Color.BLACK);
+                smFeedbackText.setText("Verbinde...");
+                new Thread(() -> {
+                    boolean connected = model.connectSchulmanager(targetNutzer, vn, nn, kl);
+                    Platform.runLater(() -> {
+                        connectSchulmanagerButton.setDisable(false);
+                        if (!neuAktiv && selectedNutzer == targetNutzer) {
+                            if (connected) {
+                                smFeedbackText.setFill(Color.GREEN);
+                                smFeedbackText.setText("Verbindung erfolgreich");
+                                connectSchulmanagerButton.setText("trennen");
+                            } else {
+                                smFeedbackText.setFill(Color.RED);
+                                smFeedbackText.setText(
+                                        "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
+                            }
+                        }
+                    });
+                }).start();
             } else {
                 model.disconnectSchulmanager(selectedNutzer.getId());
                 selectedNutzer.setSchulmanagerId(0);
@@ -1048,20 +1131,33 @@ public class ControllerNutzerVerwaltung {
             }
         } else {
             if (!newUserSmConnected) {
-                int id = model.getSchulmanagerUserId(vornameFeld.getText(), nameFeld.getText(), klasseFeld.getText());
-                if (id != -1) {
-                    smFeedbackText.setFill(Color.GREEN);
-                    smFeedbackText.setText("Verbindung erfolgreich");
-                    currenrUserId = id;
-                    connectSchulmanagerButton.setText("Verbindung trennen");
-                    newUserSmConnected = true;
-                } else {
-                    smFeedbackText.setFill(Color.RED);
-                    smFeedbackText.setText(
-                            "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
-                }
+                final String vn = vornameFeld.getText();
+                final String nn = nameFeld.getText();
+                final String kl = klasseFeld.getText();
+                connectSchulmanagerButton.setDisable(true);
+                smFeedbackText.setFill(Color.BLACK);
+                smFeedbackText.setText("Verbinde...");
+                new Thread(() -> {
+                    int id = model.getSchulmanagerUserId(vn, nn, kl);
+                    Platform.runLater(() -> {
+                        connectSchulmanagerButton.setDisable(false);
+                        if (neuAktiv) {
+                            if (id != -1) {
+                                smFeedbackText.setFill(Color.GREEN);
+                                smFeedbackText.setText("Verbindung erfolgreich");
+                                currenrUserId = id;
+                                connectSchulmanagerButton.setText("trennen");
+                                newUserSmConnected = true;
+                            } else {
+                                smFeedbackText.setFill(Color.RED);
+                                smFeedbackText.setText(
+                                        "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
+                            }
+                        }
+                    });
+                }).start();
             } else {
-                model.disconnectSchulmanager(currenrUserId);
+                currenrUserId = -1;
                 connectSchulmanagerButton.setText("verbinden");
                 smFeedbackText.setFill(Color.ORANGE);
                 smFeedbackText.setText("Nutzer nicht mit Schulmanager Account verknüpft");
@@ -1074,10 +1170,20 @@ public class ControllerNutzerVerwaltung {
     public void updateSmVisibility() {
         if (schulmanagerBox == null)
             return;
+        if (!neuAktiv && selectedNutzer == null) {
+            schulmanagerBox.setVisible(false);
+            return;
+        }
         Object selected = rolleAuswahl.getSelectionModel().getSelectedItem();
         String rolle = selected != null ? selected.toString() : "";
         if ("Lehrer".equalsIgnoreCase(rolle)) {
             schulmanagerBox.setVisible(false);
+            if (neuAktiv && newUserSmConnected) {
+                currenrUserId = -1;
+                newUserSmConnected = false;
+                connectSchulmanagerButton.setText("verbinden");
+                smFeedbackText.setText("");
+            }
         } else {
             schulmanagerBox.setVisible(true);
         }

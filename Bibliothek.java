@@ -53,6 +53,9 @@ public class Bibliothek {
     private String aktuellerModus = "LEER";
     private Random random = new Random();
     private SchulmanagerConnector schulmanager = new SchulmanagerConnector(this);
+    private final Object erinnerungLock = new Object();
+    private int letzteCsvBestehendeOhneSmCount = 0;
+    private int letzteCsvNachverknuepftCount = 0;
 
     /**
      * Konstruktor der Bibliothek. Baut die Datenbankverbindung auf,
@@ -83,67 +86,143 @@ public class Bibliothek {
      * (2 Tage vorher, Stichtag, 1 Woche überfällig) und versendet E-Mails.
      */
     public void erinnerungenPruefenUndVersenden() {
-        // 2 Tage vorher Erinnerung
-        dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY) AND ausleihen.geplante_rueckgabe > CURRENT_DATE() AND ausleihen.erinnerung_2tage_gesendet = 0");
-        QueryResult result2Tage = dbConnector.getCurrentQueryResult();
-        if (result2Tage != null && result2Tage.getRowCount() > 0) {
-            MailService mailService = new MailService(this);
-            for (int i = 0; i < result2Tage.getRowCount(); i++) {
-                String ausleihId = result2Tage.getData()[i][0];
-                String email = result2Tage.getData()[i][1];
-                String vorname = result2Tage.getData()[i][2];
-                String titel = result2Tage.getData()[i][3];
-                String datum = result2Tage.getData()[i][5];
-                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "2_Tage_vorher", datum);
-                    if (success) {
-                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?",
-                                ausleihId);
+        synchronized (erinnerungLock) {
+            if (dbConnector == null || !dbConnector.isConnected()) {
+                return;
+            }
+            String emailSetting = getEinstellung("emailErinnerung");
+            boolean emailAktiv = (emailSetting == null) || "1".equals(emailSetting);
+            boolean smAktiv = "1".equals(getEinstellung("smErinnerung"));
+            if (!emailAktiv && !smAktiv) {
+                return;
+            }
+
+            // 2 Tage vorher Erinnerung
+            QueryResult result2Tage;
+            synchronized (dbConnector) {
+                dbConnector.executeStatement(
+                        "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn,  DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y'), benutzer.schulmanagerUserId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_ADD(CURRENT_DATE(), INTERVAL 2 DAY) AND ausleihen.geplante_rueckgabe > CURRENT_DATE() AND ausleihen.erinnerung_2tage_gesendet = 0");
+                result2Tage = dbConnector.getCurrentQueryResult();
+            }
+            if (result2Tage != null && result2Tage.getRowCount() > 0) {
+                MailService mailService = new MailService(this);
+                for (int i = 0; i < result2Tage.getRowCount(); i++) {
+                    String ausleihId = result2Tage.getData()[i][0];
+                    String email = result2Tage.getData()[i][1];
+                    String vorname = result2Tage.getData()[i][2];
+                    String titel = result2Tage.getData()[i][3];
+                    String datum = result2Tage.getData()[i][5];
+                    String smUserId = result2Tage.getData()[i][6];
+                    if (emailAktiv && email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
+                        boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "2_Tage_vorher", datum);
+                        if (success) {
+                            synchronized (dbConnector) {
+                                dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?",
+                                        ausleihId);
+                            }
+                        }
+                    }
+                    if (smAktiv && smUserId != null && !smUserId.trim().isEmpty() && !smUserId.equalsIgnoreCase("null")) {
+                        try {
+                            int parsedSmId = Integer.parseInt(smUserId.trim());
+                            if (parsedSmId > 0) {
+                                boolean success = schulmanager.sendErinnerung(parsedSmId, vorname, titel, "2_Tage_vorher", datum);
+                                if (success) {
+                                    synchronized (dbConnector) {
+                                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_2tage_gesendet = 1 WHERE id = ?",
+                                                ausleihId);
+                                    }
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+
+            }
+
+            // Stichtag Erinnerung
+            QueryResult resultStichtag;
+            synchronized (dbConnector) {
+                dbConnector.executeStatement(
+                        "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y'), benutzer.schulmanagerUserId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= CURRENT_DATE() AND ausleihen.geplante_rueckgabe > DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_heute_gesendet = 0");
+                resultStichtag = dbConnector.getCurrentQueryResult();
+            }
+            if (resultStichtag != null && resultStichtag.getRowCount() > 0) {
+                MailService mailService = new MailService(this);
+                for (int i = 0; i < resultStichtag.getRowCount(); i++) {
+                    String ausleihId = resultStichtag.getData()[i][0];
+                    String email = resultStichtag.getData()[i][1];
+                    String vorname = resultStichtag.getData()[i][2];
+                    String titel = resultStichtag.getData()[i][3];
+                    String datum = resultStichtag.getData()[i][5];
+                    String smUserId = resultStichtag.getData()[i][6];
+                    if (emailAktiv && email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
+                        boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "Stichtag", datum);
+                        if (success) {
+                            synchronized (dbConnector) {
+                                dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = ?",
+                                        ausleihId);
+                            }
+                        }
+                    }
+                    if (smAktiv && smUserId != null && !smUserId.trim().isEmpty() && !smUserId.equalsIgnoreCase("null")) {
+                        try {
+                            int parsedSmId = Integer.parseInt(smUserId.trim());
+                            if (parsedSmId > 0) {
+                                boolean success = schulmanager.sendErinnerung(parsedSmId, vorname, titel, "Stichtag", datum);
+                                if (success) {
+                                    synchronized (dbConnector) {
+                                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = ?",
+                                                ausleihId);
+                                    }
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
                 }
             }
-        }
 
-        // Stichtag Erinnerung
-        dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= CURRENT_DATE() AND ausleihen.geplante_rueckgabe > DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_heute_gesendet = 0");
-        QueryResult resultStichtag = dbConnector.getCurrentQueryResult();
-        if (resultStichtag != null && resultStichtag.getRowCount() > 0) {
-            MailService mailService = new MailService(this);
-            for (int i = 0; i < resultStichtag.getRowCount(); i++) {
-                String ausleihId = resultStichtag.getData()[i][0];
-                String email = resultStichtag.getData()[i][1];
-                String vorname = resultStichtag.getData()[i][2];
-                String titel = resultStichtag.getData()[i][3];
-                String datum = resultStichtag.getData()[i][5];
-                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "Stichtag", datum);
-                    if (success) {
-                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_heute_gesendet = 1 WHERE id = ?",
-                                ausleihId);
-                    }
-                }
+            // 1 Woche überfällig
+            QueryResult result1Woche;
+            synchronized (dbConnector) {
+                dbConnector.executeStatement(
+                        "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y'), benutzer.schulmanagerUserId FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_1woche_gesendet = 0");
+                result1Woche = dbConnector.getCurrentQueryResult();
             }
-        }
-
-        // 1 Woche überfällig
-        dbConnector.executeStatement(
-                "SELECT ausleihen.id, benutzer.email, benutzer.vorname, buecher.titel, ausleihen.isbn, DATE_FORMAT(ausleihen.geplante_rueckgabe, '%d.%m.%Y') FROM ausleihen INNER JOIN benutzer ON ausleihen.schueler_id = benutzer.id INNER JOIN buecher ON ausleihen.isbn = buecher.isbn WHERE ausleihen.ruckgabe_datum IS NULL AND ausleihen.geplante_rueckgabe <= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND ausleihen.erinnerung_1woche_gesendet = 0");
-        QueryResult result1Woche = dbConnector.getCurrentQueryResult();
-        if (result1Woche != null && result1Woche.getRowCount() > 0) {
-            MailService mailService = new MailService(this);
-            for (int i = 0; i < result1Woche.getRowCount(); i++) {
-                String ausleihId = result1Woche.getData()[i][0];
-                String email = result1Woche.getData()[i][1];
-                String vorname = result1Woche.getData()[i][2];
-                String titel = result1Woche.getData()[i][3];
-                String datum = result1Woche.getData()[i][5];
-                if (email != null && !email.trim().isEmpty() && !email.equals("null")) {
-                    boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "1_Woche_danach", datum);
-                    if (success) {
-                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = ?",
-                                ausleihId);
+            if (result1Woche != null && result1Woche.getRowCount() > 0) {
+                MailService mailService = new MailService(this);
+                for (int i = 0; i < result1Woche.getRowCount(); i++) {
+                    String ausleihId = result1Woche.getData()[i][0];
+                    String email = result1Woche.getData()[i][1];
+                    String vorname = result1Woche.getData()[i][2];
+                    String titel = result1Woche.getData()[i][3];
+                    String datum = result1Woche.getData()[i][5];
+                    String smUserId = result1Woche.getData()[i][6];
+                    if (emailAktiv && email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
+                        boolean success = mailService.sendeMahnungMailSync(email, vorname, titel, "1_Woche_danach", datum);
+                        if (success) {
+                            synchronized (dbConnector) {
+                                dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = ?",
+                                        ausleihId);
+                            }
+                        }
+                    }
+                    if (smAktiv && smUserId != null && !smUserId.trim().isEmpty() && !smUserId.equalsIgnoreCase("null")) {
+                        try {
+                            int parsedSmId = Integer.parseInt(smUserId.trim());
+                            if (parsedSmId > 0) {
+                                boolean success = schulmanager.sendErinnerung(parsedSmId, vorname, titel, "1_Woche_danach", datum);
+                                if (success) {
+                                    synchronized (dbConnector) {
+                                        dbConnector.executeStatement("UPDATE ausleihen SET erinnerung_1woche_gesendet = 1 WHERE id = ?",
+                                                ausleihId);
+                                    }
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
                 }
             }
@@ -341,12 +420,14 @@ public class Bibliothek {
         if (dbConnector == null || !dbConnector.isConnected()) {
             return null;
         }
-        dbConnector.executeStatement("SELECT wert FROM einstellungen WHERE schluessel = ?", schluessel);
-        QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
-            return result.getData()[0][0];
+        synchronized (dbConnector) {
+            dbConnector.executeStatement("SELECT wert FROM einstellungen WHERE schluessel = ?", schluessel);
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0 && result.getData()[0][0] != null) {
+                return result.getData()[0][0];
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -1801,13 +1882,32 @@ public class Bibliothek {
 
     /**
      * Liest eine CSV-Datei ein und legt für jeden validen Eintrag einen neuen
-     * Schüler an.
+     * Schüler an (ohne automatische Schulmanager-Verknüpfung).
      * 
      * @param csvDatei Die eingelesene CSV-Datei.
      * @return Eine Liste der importierten Benutzer.
      */
     public ArrayList<Benutzer> nutzerAusCsvImportieren(java.io.File csvDatei) {
+        return nutzerAusCsvImportieren(csvDatei, false);
+    }
+
+    /**
+     * Liest eine CSV-Datei ein und legt für jeden validen Eintrag einen neuen
+     * Schüler an.
+     * 
+     * @param csvDatei    Die eingelesene CSV-Datei.
+     * @param smVerbinden Ob für die importierten Schüler über den
+     *                    SchulmanagerConnector
+     *                    die Schulmanager-ID gesucht und gespeichert werden soll.
+     * @return Eine Liste der importierten Benutzer.
+     */
+    public ArrayList<Benutzer> nutzerAusCsvImportieren(java.io.File csvDatei, boolean smVerbinden) {
         ArrayList<Benutzer> importierteNutzer = new ArrayList<>();
+        ArrayList<String> klassen = new ArrayList<>();
+        ArrayList<Benutzer> bestehendeOhneSm = new ArrayList<>();
+        ArrayList<String> bestehendeKlassen = new ArrayList<>();
+        letzteCsvBestehendeOhneSmCount = 0;
+        letzteCsvNachverknuepftCount = 0;
         if (!isLehrer())
             return importierteNutzer;
 
@@ -1821,7 +1921,7 @@ public class Bibliothek {
                 if (zeile.trim().isEmpty())
                     continue;
 
-                String[] spalten = zeile.split("[,;]");
+                String[] spalten = zeile.split("[,;]", -1);
 
                 if (spalten.length >= 3) {
                     String nachname = spalten[0].trim();
@@ -1831,16 +1931,32 @@ public class Bibliothek {
                     if (spalten.length >= 4) {
                         email = spalten[3].trim();
                     }
+                    String klasse = "";
+                    if (spalten.length >= 5) {
+                        klasse = spalten[4].trim();
+                    }
 
                     int maxBuecher = getStandartAusleihlimit();
 
                     if (!email.isEmpty() && emailVorhanden(email)) {
+                        if (smVerbinden && !klasse.isEmpty()) {
+                            dbConnector.executeStatement(
+                                    "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig, schulmanagerUserId FROM benutzer WHERE LOWER(email) = LOWER(?)",
+                                    email);
+                            QueryResult existingByEmail = dbConnector.getCurrentQueryResult();
+                            Benutzer bExist = parseBenutzerFromResult(existingByEmail);
+                            if (bExist != null && bExist.getSchulmanagerId() <= 0) {
+                                bExist.setKlasse(klasse);
+                                bestehendeOhneSm.add(bExist);
+                                bestehendeKlassen.add(klasse);
+                            }
+                        }
                         continue;
                     }
 
                     String gebDatumCheckSql = (geburtsdatum.isEmpty()) ? "geburtsdatum IS NULL"
                             : "geburtsdatum = ?";
-                    String checkSql = "SELECT id FROM benutzer WHERE LOWER(TRIM(vorname)) = ?"
+                    String checkSql = "SELECT id, nachname, vorname, email, passwort, rolle, freigeschaltet, gesperrt_von, geburtsdatum, maxBuecherGleichzeitig, schulmanagerUserId FROM benutzer WHERE LOWER(TRIM(vorname)) = ?"
                             + " AND (LOWER(TRIM(nachname)) = ?"
                             + " OR LOWER(TRIM(nachname)) = ?)"
                             + " AND " + gebDatumCheckSql;
@@ -1856,6 +1972,14 @@ public class Bibliothek {
                     existResult = dbConnector.getCurrentQueryResult();
 
                     if (existResult != null && existResult.getRowCount() > 0) {
+                        if (smVerbinden && !klasse.isEmpty()) {
+                            Benutzer bExist = parseBenutzerFromResult(existResult);
+                            if (bExist != null && bExist.getSchulmanagerId() <= 0) {
+                                bExist.setKlasse(klasse);
+                                bestehendeOhneSm.add(bExist);
+                                bestehendeKlassen.add(klasse);
+                            }
+                        }
                         continue;
                     }
 
@@ -1877,40 +2001,33 @@ public class Bibliothek {
 
                     }
                     QueryResult result = dbConnector.getCurrentQueryResult();
-                    if (result != null && result.getRowCount() > 0) {
-                        boolean freigeschaltet = result.getData()[0][6] != null && result.getData()[0][6].equals("1");
-                        int gesperrtVon = (result.getData()[0][7] != null
-                                && !result.getData()[0][7].equalsIgnoreCase("null")
-                                && !result.getData()[0][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[0][7])
-                                        : 0;
-                        String geb = (result.getData()[0].length > 8 && result.getData()[0][8] != null
-                                && !result.getData()[0][8].equalsIgnoreCase("null")) ? result.getData()[0][8] : null;
-                        int maxB = 0;
-                        if (result.getData()[0].length > 9 && result.getData()[0][9] != null
-                                && !result.getData()[0][9].equalsIgnoreCase("null")
-                                && !result.getData()[0][9].trim().isEmpty()) {
-                            try {
-                                maxB = Integer.parseInt(result.getData()[0][9]);
-                            } catch (NumberFormatException e) {
-                                maxB = 0;
-                            }
-                        }
-                        int smId = 0;
-                        if (result.getData()[0].length > 10 && result.getData()[0][10] != null
-                                && !result.getData()[0][10].equalsIgnoreCase("null")
-                                && !result.getData()[0][10].trim().isEmpty()) {
-                            try {
-                                smId = Integer.parseInt(result.getData()[0][10]);
-                            } catch (NumberFormatException e) {
-                                smId = 0;
-                            }
-                        }
-
-                        Benutzer b = new Benutzer(result.getData()[0][5], result.getData()[0][4],
-                                result.getData()[0][3], result.getData()[0][1], result.getData()[0][2],
-                                Integer.parseInt(result.getData()[0][0]), freigeschaltet, gesperrtVon, geb,
-                                maxB, smId);
+                    Benutzer b = parseBenutzerFromResult(result);
+                    if (b != null) {
+                        b.setKlasse(klasse);
                         importierteNutzer.add(b);
+                        klassen.add(klasse);
+                    }
+                }
+            }
+
+            letzteCsvBestehendeOhneSmCount = bestehendeOhneSm.size();
+
+            if (smVerbinden && (!importierteNutzer.isEmpty() || !bestehendeOhneSm.isEmpty())) {
+                ArrayList<Benutzer> alleZuVerbinden = new ArrayList<>(importierteNutzer);
+                alleZuVerbinden.addAll(bestehendeOhneSm);
+                ArrayList<String> alleKlassen = new ArrayList<>(klassen);
+                alleKlassen.addAll(bestehendeKlassen);
+
+                schulmanager.getUserIds(alleZuVerbinden, alleKlassen);
+                for (Benutzer b : alleZuVerbinden) {
+                    if (b.getSchulmanagerId() > 0) {
+                        dbConnector.executeStatement("UPDATE benutzer SET schulmanagerUserId = ? WHERE id = ?",
+                                b.getSchulmanagerId(), b.getId());
+                    }
+                }
+                for (Benutzer b : bestehendeOhneSm) {
+                    if (b.getSchulmanagerId() > 0) {
+                        letzteCsvNachverknuepftCount++;
                     }
                 }
             }
@@ -1919,6 +2036,52 @@ public class Bibliothek {
         }
 
         return importierteNutzer;
+    }
+
+    private Benutzer parseBenutzerFromResult(QueryResult result) {
+        if (result == null || result.getRowCount() == 0) {
+            return null;
+        }
+        boolean freigeschaltet = result.getData()[0][6] != null && result.getData()[0][6].equals("1");
+        int gesperrtVon = (result.getData()[0][7] != null
+                && !result.getData()[0][7].equalsIgnoreCase("null")
+                && !result.getData()[0][7].trim().isEmpty()) ? Integer.parseInt(result.getData()[0][7])
+                        : 0;
+        String geb = (result.getData()[0].length > 8 && result.getData()[0][8] != null
+                && !result.getData()[0][8].equalsIgnoreCase("null")) ? result.getData()[0][8] : null;
+        int maxB = 0;
+        if (result.getData()[0].length > 9 && result.getData()[0][9] != null
+                && !result.getData()[0][9].equalsIgnoreCase("null")
+                && !result.getData()[0][9].trim().isEmpty()) {
+            try {
+                maxB = Integer.parseInt(result.getData()[0][9]);
+            } catch (NumberFormatException e) {
+                maxB = 0;
+            }
+        }
+        int smId = 0;
+        if (result.getData()[0].length > 10 && result.getData()[0][10] != null
+                && !result.getData()[0][10].equalsIgnoreCase("null")
+                && !result.getData()[0][10].trim().isEmpty()) {
+            try {
+                smId = Integer.parseInt(result.getData()[0][10]);
+            } catch (NumberFormatException e) {
+                smId = 0;
+            }
+        }
+
+        return new Benutzer(result.getData()[0][5], result.getData()[0][4],
+                result.getData()[0][3], result.getData()[0][1], result.getData()[0][2],
+                Integer.parseInt(result.getData()[0][0]), freigeschaltet, gesperrtVon, geb,
+                maxB, smId);
+    }
+
+    public int getLetzteCsvBestehendeOhneSmCount() {
+        return letzteCsvBestehendeOhneSmCount;
+    }
+
+    public int getLetzteCsvNachverknuepftCount() {
+        return letzteCsvNachverknuepftCount;
     }
 
     /**
@@ -1943,23 +2106,27 @@ public class Bibliothek {
      * @param pID Die ID des Benutzers.
      */
     public void sperren(int pID, boolean automatisch) {
-
-        dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = ?", pID);
-        QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result != null && result.getRowCount() > 0) {
-            if (automatisch) {
-                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = NULL"
-                        + " WHERE id = ?", pID);
-            } else {
-                dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = ?"
-                        + " WHERE id = ?", angemeldet, pID);
+        QueryResult result;
+        synchronized (dbConnector) {
+            dbConnector.executeStatement("SELECT email, vorname FROM benutzer WHERE id = ?", pID);
+            result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                if (automatisch) {
+                    dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = NULL"
+                            + " WHERE id = ?", pID);
+                } else {
+                    dbConnector.executeStatement("UPDATE benutzer SET freigeschaltet = 0, gesperrt_von = ?"
+                            + " WHERE id = ?", angemeldet, pID);
+                }
             }
-
+        }
+        if (result != null && result.getRowCount() > 0) {
             String email = result.getData()[0][0];
             String vorname = result.getData()[0][1];
-            MailService mailService = new MailService(this);
-            mailService.sendeGesperrtMail(email, vorname);
-
+            if (email != null && !email.trim().isEmpty() && !email.equalsIgnoreCase("null")) {
+                MailService mailService = new MailService(this);
+                mailService.sendeGesperrtMail(email, vorname);
+            }
         }
     }
 
@@ -2114,20 +2281,22 @@ public class Bibliothek {
      * und setzt die entsprechenden Bücher wieder auf 'verfuegbar'.
      */
     public void reservierungenAktualisieren() {
-        dbConnector.executeStatement(
-                "SELECT id, isbn FROM reservierungen WHERE reservierung_ende <= CURRENT_DATE() AND status = 'bereit';");
-        QueryResult result = dbConnector.getCurrentQueryResult();
-        if (result != null && result.getRowCount() > 0) {
-            for (int i = 0; i < result.getRowCount(); i++) {
-                String id = result.getData()[i][0];
-                String buchIsbn = result.getData()[i][1];
-                dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgelaufen' WHERE id = ?", id);
-                Integer naechsteResId = naechsteWartendeReservierungBereitstellen(buchIsbn);
-                if (naechsteResId == null) {
-                    hinzuDA(buchIsbn);
-                    loeschRE(buchIsbn);
+        synchronized (dbConnector) {
+            dbConnector.executeStatement(
+                    "SELECT id, isbn FROM reservierungen WHERE reservierung_ende <= CURRENT_DATE() AND status = 'bereit';");
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                for (int i = 0; i < result.getRowCount(); i++) {
+                    String id = result.getData()[i][0];
+                    String buchIsbn = result.getData()[i][1];
+                    dbConnector.executeStatement("UPDATE reservierungen SET status = 'abgelaufen' WHERE id = ?", id);
+                    Integer naechsteResId = naechsteWartendeReservierungBereitstellen(buchIsbn);
+                    if (naechsteResId == null) {
+                        hinzuDA(buchIsbn);
+                        loeschRE(buchIsbn);
+                    }
+                    updateBuchStatus(buchIsbn);
                 }
-                updateBuchStatus(buchIsbn);
             }
         }
     }
@@ -2639,35 +2808,40 @@ public class Bibliothek {
      *         Reservierung vorlag.
      */
     public Integer naechsteWartendeReservierungBereitstellen(String isbn) {
-        int dauer = getReservierungDauer();
-        dbConnector.executeStatement(
-                "SELECT id, schueler_id FROM reservierungen WHERE isbn = ? AND status = 'wartend' ORDER BY reservierung_beginn ASC, id ASC LIMIT 1",
-                isbn);
-        QueryResult resResult = dbConnector.getCurrentQueryResult();
-
-        if (resResult != null && resResult.getRowCount() > 0) {
-            String wartendeResId = resResult.getData()[0][0];
-            String reserviererId = resResult.getData()[0][1];
-
+        synchronized (dbConnector) {
+            int dauer = getReservierungDauer();
             dbConnector.executeStatement(
-                    "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) WHERE id = ?",
-                    dauer, wartendeResId);
+                    "SELECT id, schueler_id FROM reservierungen WHERE isbn = ? AND status = 'wartend' ORDER BY reservierung_beginn ASC, id ASC LIMIT 1",
+                    isbn);
+            QueryResult resResult = dbConnector.getCurrentQueryResult();
 
-            // Email senden an den Schüler, dessen Reservierung bereitgestellt wurde
-            dbConnector.executeStatement(
-                    "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM benutzer, buecher WHERE benutzer.id = ? AND buecher.isbn = ?",
-                    reserviererId, isbn);
-            QueryResult mailResult = dbConnector.getCurrentQueryResult();
-            if (mailResult != null && mailResult.getRowCount() > 0) {
-                String empfaengerEmail = mailResult.getData()[0][0];
-                String vorname = mailResult.getData()[0][1];
-                String titel = mailResult.getData()[0][2];
-                MailService mailService = new MailService(this);
-                mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+            if (resResult != null && resResult.getRowCount() > 0) {
+                String wartendeResId = resResult.getData()[0][0];
+                String reserviererId = resResult.getData()[0][1];
+
+                dbConnector.executeStatement(
+                        "UPDATE reservierungen SET status = 'bereit', reservierung_ende = DATE_ADD(CURRENT_DATE(), INTERVAL ? DAY) WHERE id = ?",
+                        dauer, wartendeResId);
+
+                // Email senden an den Schüler, dessen Reservierung bereitgestellt wurde
+                dbConnector.executeStatement(
+                        "SELECT benutzer.email, benutzer.vorname, buecher.titel FROM benutzer, buecher WHERE benutzer.id = ? AND buecher.isbn = ?",
+                        reserviererId, isbn);
+                QueryResult mailResult = dbConnector.getCurrentQueryResult();
+                if (mailResult != null && mailResult.getRowCount() > 0) {
+                    String empfaengerEmail = mailResult.getData()[0][0];
+                    String vorname = mailResult.getData()[0][1];
+                    String titel = mailResult.getData()[0][2];
+                    if (empfaengerEmail != null && !empfaengerEmail.trim().isEmpty()
+                            && !empfaengerEmail.equalsIgnoreCase("null")) {
+                        MailService mailService = new MailService(this);
+                        mailService.sendeReservierungBereitMail(empfaengerEmail, vorname, titel);
+                    }
+                }
+                return Integer.parseInt(wartendeResId);
             }
-            return Integer.parseInt(wartendeResId);
+            return null;
         }
-        return null;
     }
 
     /**
@@ -3228,7 +3402,14 @@ public class Bibliothek {
         if (schueler == null) {
             return false;
         }
-        int id = schulmanager.getUserId(schueler.getVorname(), schueler.getName(), klasse);
+        return connectSchulmanager(schueler, schueler.getVorname(), schueler.getName(), klasse);
+    }
+
+    public boolean connectSchulmanager(Benutzer schueler, String vorname, String nachname, String klasse) {
+        if (schueler == null) {
+            return false;
+        }
+        int id = schulmanager.getUserId(vorname, nachname, klasse);
         if (id == -1) {
             return false;
         }
@@ -3244,8 +3425,8 @@ public class Bibliothek {
     public void disconnectSchulmanager(int userId) {
         dbConnector.executeStatement("UPDATE benutzer SET schulmanagerUserId = null WHERE id = ?", userId);
     }
-    
-    public int getSchulmanagerUserId(String vorname, String nachname, String klasse){
+
+    public int getSchulmanagerUserId(String vorname, String nachname, String klasse) {
         return schulmanager.getUserId(vorname, nachname, klasse);
     }
 }

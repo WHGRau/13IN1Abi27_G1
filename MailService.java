@@ -48,6 +48,9 @@ public class MailService {
      * @param nachricht Der Inhalt der E-Mail.
      */
     public void sendeEmail(String empfaengerEmail, String betreff, String nachricht) {
+        if (empfaengerEmail == null || empfaengerEmail.trim().isEmpty() || empfaengerEmail.equalsIgnoreCase("null")) {
+            return;
+        }
         if (!isConfigured()) {
             return;
         }
@@ -93,6 +96,9 @@ public class MailService {
     }
 
     public boolean sendeEmailSync(String empfaengerEmail, String betreff, String nachricht) {
+        if (empfaengerEmail == null || empfaengerEmail.trim().isEmpty() || empfaengerEmail.equalsIgnoreCase("null")) {
+            return false;
+        }
         if (!isConfigured()) {
             return false;
         }

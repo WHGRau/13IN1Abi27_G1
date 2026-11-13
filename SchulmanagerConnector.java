@@ -2,9 +2,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 
 public class SchulmanagerConnector {
-    private String jwt;
+    private volatile String jwt;
+    private volatile String cachedChatUsersJson;
     private final String apiUrl = "https://login.schulmanager-online.de/api";
     private final String bundleVersion = "860c7bfd2a";
     private final String userAgent = "SchulmanagerAutomatisierung/1.0 (rauwolf@whg-neuwied.de)";
@@ -18,7 +20,7 @@ public class SchulmanagerConnector {
     /**
      * Holt Benutzername und Passwort aus der Bibliothek und führt den Login aus.
      */
-    public boolean login() {
+    public synchronized boolean login() {
         if (model == null) {
             System.err.println("Bibliothek-Model ist nicht gesetzt!");
             return false;
@@ -29,16 +31,18 @@ public class SchulmanagerConnector {
     /**
      * Führt den Login mit den übergebenen Zugangsdaten aus.
      */
-    public boolean login(String userName, String userPasswort) {
+    public synchronized boolean login(String userName, String userPasswort) {
+        this.jwt = null;
+        this.cachedChatUsersJson = null;
         try {
-            if (userName == null || userPasswort == null) {
+            if (userName == null || userName.trim().isEmpty() || userPasswort == null || userPasswort.isEmpty()) {
                 System.err.println("Zugangsdaten für Schulmanager fehlen!");
                 return false;
             }
 
             String loginPayload = String.format(
                     "{\"emailOrUsername\":\"%s\",\"password\":\"%s\",\"hash\":null,\"mobileApp\":false,\"institutionId\":null}",
-                    userName, userPasswort);
+                    escapeJson(userName), escapeJson(userPasswort));
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -67,16 +71,36 @@ public class SchulmanagerConnector {
     }
 
     /**
+     * Setzt das gespeicherte JWT-Token zurück.
+     */
+    public synchronized void logout() {
+        this.jwt = null;
+        this.cachedChatUsersJson = null;
+    }
+
+    /**
      * Hilfsmethode mit automatischer 401-Erkennung und Re-Login-Schleife
      */
     private HttpResponse<String> sendSchulmanagerCallWithRetry(String payloadJson) throws Exception {
+        if (this.jwt == null) {
+            if (!login()) {
+                throw new RuntimeException("API-Call nicht möglich: Schulmanager-Login fehlgeschlagen.");
+            }
+        }
+
         HttpClient client = HttpClient.newHttpClient();
 
         for (int attempt = 0; attempt < 2; attempt++) {
+            String currentJwt = this.jwt;
+            if (currentJwt == null && !login()) {
+                throw new RuntimeException("API-Call nicht möglich: Kein gültiges JWT-Token.");
+            }
+            currentJwt = this.jwt;
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl + "/calls"))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + jwt)
+                    .header("Authorization", "Bearer " + currentJwt)
                     .header("User-Agent", userAgent)
                     .POST(HttpRequest.BodyPublishers.ofString(payloadJson))
                     .build();
@@ -99,7 +123,9 @@ public class SchulmanagerConnector {
      * den Subtext).
      */
     public int getUserId(String vorname, String nachname, String klasse) {
-        if (klasse == null || klasse.trim().isEmpty()) {
+        if (vorname == null || vorname.trim().isEmpty()
+                || nachname == null || nachname.trim().isEmpty()
+                || klasse == null || klasse.trim().isEmpty()) {
             return -1;
         }
         try {
@@ -111,13 +137,15 @@ public class SchulmanagerConnector {
 
             if (response.statusCode() == 200) {
                 String responseJson = response.body();
+                this.cachedChatUsersJson = responseJson;
                 System.out.println("Schulmanager get-chat-users Response: " + responseJson);
                 int foundId = parseUserIdFromChatUsers(responseJson, vorname, nachname, klasse);
                 if (foundId != -1) {
                     return foundId;
                 }
             } else {
-                System.err.println("Schulmanager get-chat-users Fehler! Status: " + response.statusCode() + ", Body: " + response.body());
+                System.err.println("Schulmanager get-chat-users Fehler! Status: " + response.statusCode() + ", Body: "
+                        + response.body());
             }
 
             return -1;
@@ -129,22 +157,120 @@ public class SchulmanagerConnector {
     }
 
     /**
+     * Holt einmalig alle Nutzer vom Schulmanager und sucht für alle übergebenen
+     * Schüler (sofern eine Klasse angegeben ist) die passende Schulmanager-ID
+     * und speichert diese direkt in den übergebenen Benutzer-Objekten.
+     * 
+     * @param schuelerListe Die Liste der Benutzer, für die die Schulmanager-ID
+     *                      gesucht werden soll.
+     * @return Anzahl der erfolgreich zugeordneten Schüler.
+     */
+    public int getUserIds(ArrayList<Benutzer> schuelerListe) {
+        if (schuelerListe == null || schuelerListe.isEmpty()) {
+            return 0;
+        }
+        ArrayList<String> klassen = new ArrayList<>();
+        for (Benutzer b : schuelerListe) {
+            klassen.add(b != null ? b.getKlasse() : null);
+        }
+        return getUserIds(schuelerListe, klassen);
+    }
+
+    /**
+     * Holt einmalig alle Nutzer vom Schulmanager und sucht anhand der übergebenen
+     * Klassenliste für alle übergebenen Schüler die passende Schulmanager-ID
+     * und speichert diese direkt in den Benutzer-Objekten.
+     * 
+     * @param schuelerListe Die Liste der Benutzer.
+     * @param klassen       Die zugehörigen Klassen der Benutzer (gleicher Index wie
+     *                      schuelerListe).
+     * @return Anzahl der erfolgreich zugeordneten Schüler.
+     */
+    public int getUserIds(ArrayList<Benutzer> schuelerListe, ArrayList<String> klassen) {
+        if (schuelerListe == null || schuelerListe.isEmpty()) {
+            return 0;
+        }
+
+        boolean hatMindestensEinenGueltigenEintrag = false;
+        for (int i = 0; i < schuelerListe.size(); i++) {
+            Benutzer b = schuelerListe.get(i);
+            if (b == null || b.getVorname() == null || b.getVorname().trim().isEmpty()
+                    || b.getName() == null || b.getName().trim().isEmpty()) {
+                continue;
+            }
+            String klasse = (klassen != null && i < klassen.size() && klassen.get(i) != null)
+                    ? klassen.get(i)
+                    : b.getKlasse();
+            if (klasse != null && !klasse.trim().isEmpty()) {
+                hatMindestensEinenGueltigenEintrag = true;
+                break;
+            }
+        }
+        if (!hatMindestensEinenGueltigenEintrag) {
+            return 0;
+        }
+
+        int verbundenCount = 0;
+        try {
+            String payload = String.format(
+                    "{\"bundleVersion\":\"%s\",\"requests\":[{\"moduleName\":\"messenger\",\"endpointName\":\"get-chat-users\"}]}",
+                    bundleVersion);
+
+            HttpResponse<String> response = sendSchulmanagerCallWithRetry(payload);
+
+            if (response.statusCode() == 200) {
+                String responseJson = response.body();
+                this.cachedChatUsersJson = responseJson;
+                System.out.println("Schulmanager get-chat-users Response: " + responseJson);
+
+                for (int i = 0; i < schuelerListe.size(); i++) {
+                    Benutzer b = schuelerListe.get(i);
+                    if (b == null || b.getVorname() == null || b.getVorname().trim().isEmpty()
+                            || b.getName() == null || b.getName().trim().isEmpty()) {
+                        continue;
+                    }
+                    String klasse = (klassen != null && i < klassen.size() && klassen.get(i) != null)
+                            ? klassen.get(i)
+                            : b.getKlasse();
+                    if (klasse == null || klasse.trim().isEmpty()) {
+                        continue;
+                    }
+                    int foundId = parseUserIdFromChatUsers(responseJson, b.getVorname(), b.getName(), klasse);
+                    if (foundId != -1) {
+                        b.setSchulmanagerId(foundId);
+                        verbundenCount++;
+                    }
+                }
+            } else {
+                System.err.println("Schulmanager get-chat-users Fehler! Status: " + response.statusCode()
+                        + ", Body: " + response.body());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return verbundenCount;
+    }
+
+    /**
      * Parst die User-ID aus der get-chat-users JSON-Antwort.
-     * Prüft flexibel auf Übereinstimmung von Name/Vorname und Klasse/Subtext.
+     * Prüft auf exakte Übereinstimmung von Vorname, Nachname und Klasse/Subtext.
      */
     private int parseUserIdFromChatUsers(String json, String vorname, String nachname, String klasse) {
-        if (json == null || klasse == null || klasse.trim().isEmpty()) return -1;
+        if (json == null
+                || vorname == null || vorname.trim().isEmpty()
+                || nachname == null || nachname.trim().isEmpty()
+                || klasse == null || klasse.trim().isEmpty()) {
+            return -1;
+        }
 
-        String normVorname = vorname != null ? vorname.trim().toLowerCase() : "";
-        String normNachname = nachname != null ? nachname.trim().toLowerCase() : "";
+        String normVorname = vorname.trim().toLowerCase();
+        String normNachname = nachname.trim().toLowerCase();
         String normKlasse = klasse.trim().toLowerCase();
 
-        // Suche nach Blöcken/Objekten innerhalb der Antwort
-        // Typisches Format in Schulmanager: {"name":"Christoph Rauwolf","subtext":"Informatik",...,"id":1234}
-        // oder {"id":1234,"name":"Christoph Rauwolf","subtext":"Informatik"}
-        // oder verschachtelt: "user":{"id":1234,...}
+        String expectedVorNach = (normVorname + " " + normNachname).replaceAll("\\s+", " ");
+        String expectedNachVor = (normNachname + " " + normVorname).replaceAll("\\s+", " ");
+        String expectedNachKommaVor = (normNachname + ", " + normVorname).replaceAll("\\s+", " ");
 
-        // Wir iterieren über Vorkommen von "id" oder "name"
         int pos = 0;
 
         while ((pos = json.indexOf("{", pos)) != -1) {
@@ -154,41 +280,38 @@ public class SchulmanagerConnector {
                 continue;
             }
 
-            // Prüfe nur flachere Objekte (oder prüfe jedes Objekt einzeln)
             String objJson = json.substring(pos, endObj + 1);
 
-            String nameVal = extractJsonStringValue(objJson, "name");
-            String firstnameVal = extractJsonStringValue(objJson, "firstname");
-            String lastnameVal = extractJsonStringValue(objJson, "lastname");
-            String subtextVal = extractJsonStringValue(objJson, "subtext");
-            int idVal = extractJsonIntValue(objJson, "id");
+            // Prüfe, ob dieses Objekt nicht das äußere Root- oder Ergebnis-Array-Objekt ist
+            boolean isLeafOrUserObj = !objJson.contains("\"requests\"")
+                    && !objJson.contains("\"results\"")
+                    && !objJson.contains("\"data\"");
 
-            // Prüfe, ob dieses Objekt nicht das äußere Root-Objekt ist (das evtl. viele Kinder enthält)
-            boolean isLeafOrUserObj = !objJson.contains("\"requests\"") && !objJson.contains("\"results\"");
+            if (isLeafOrUserObj) {
+                String nameVal = extractJsonStringValue(objJson, "name");
+                String firstnameVal = extractJsonStringValue(objJson, "firstname");
+                String lastnameVal = extractJsonStringValue(objJson, "lastname");
+                String subtextVal = extractJsonStringValue(objJson, "subtext");
+                int idVal = extractJsonIntValue(objJson, "id");
 
-            if (isLeafOrUserObj && idVal != -1 && (nameVal != null || firstnameVal != null || lastnameVal != null)) {
-                boolean nameMatches = false;
-                if (nameVal != null) {
-                    String normNameVal = nameVal.toLowerCase();
-                    if (!normVorname.isEmpty() && !normNachname.isEmpty()) {
-                        nameMatches = normNameVal.contains(normVorname) && normNameVal.contains(normNachname);
-                    } else if (!normNachname.isEmpty()) {
-                        nameMatches = normNameVal.contains(normNachname);
-                    } else if (!normVorname.isEmpty()) {
-                        nameMatches = normNameVal.contains(normVorname);
+                if (idVal != -1 && (nameVal != null || (firstnameVal != null && lastnameVal != null))) {
+                    boolean nameMatches = false;
+                    if (firstnameVal != null && lastnameVal != null) {
+                        nameMatches = firstnameVal.trim().equalsIgnoreCase(normVorname)
+                                && lastnameVal.trim().equalsIgnoreCase(normNachname);
                     }
-                }
-                if (!nameMatches && (firstnameVal != null || lastnameVal != null)) {
-                    String fn = firstnameVal != null ? firstnameVal.toLowerCase() : "";
-                    String ln = lastnameVal != null ? lastnameVal.toLowerCase() : "";
-                    nameMatches = (normVorname.isEmpty() || fn.contains(normVorname))
-                            && (normNachname.isEmpty() || ln.contains(normNachname));
-                }
+                    if (!nameMatches && nameVal != null) {
+                        String normNameVal = nameVal.trim().replaceAll("\\s+", " ").toLowerCase();
+                        nameMatches = normNameVal.equals(expectedVorNach)
+                                || normNameVal.equals(expectedNachVor)
+                                || normNameVal.equals(expectedNachKommaVor);
+                    }
 
-                if (nameMatches) {
-                    String normSubtext = subtextVal != null ? subtextVal.trim().toLowerCase() : "";
-                    if (!normSubtext.isEmpty() && (normSubtext.contains(normKlasse) || normKlasse.contains(normSubtext))) {
-                        return idVal; // Match für Name und Klasse!
+                    if (nameMatches) {
+                        String normSubtext = subtextVal != null ? subtextVal.trim().toLowerCase() : "";
+                        if (!normSubtext.isEmpty() && normSubtext.equals(normKlasse)) {
+                            return idVal;
+                        }
                     }
                 }
             }
@@ -227,17 +350,21 @@ public class SchulmanagerConnector {
     private String extractJsonStringValue(String json, String key) {
         String search = "\"" + key + "\"";
         int idx = json.indexOf(search);
-        if (idx == -1) return null;
+        if (idx == -1)
+            return null;
 
         int colon = json.indexOf(":", idx + search.length());
-        if (colon == -1) return null;
+        if (colon == -1)
+            return null;
 
         int quoteStart = json.indexOf("\"", colon + 1);
-        if (quoteStart == -1) return null;
+        if (quoteStart == -1)
+            return null;
 
         // Prüfen, ob dazwischen kein null steht
         String between = json.substring(colon + 1, quoteStart).trim();
-        if (between.startsWith("null")) return null;
+        if (between.startsWith("null"))
+            return null;
 
         int quoteEnd = quoteStart + 1;
         while (quoteEnd < json.length()) {
@@ -256,10 +383,12 @@ public class SchulmanagerConnector {
     private int extractJsonIntValue(String json, String key) {
         String search = "\"" + key + "\"";
         int idx = json.indexOf(search);
-        if (idx == -1) return -1;
+        if (idx == -1)
+            return -1;
 
         int colon = json.indexOf(":", idx + search.length());
-        if (colon == -1) return -1;
+        if (colon == -1)
+            return -1;
 
         int start = colon + 1;
         while (start < json.length() && Character.isWhitespace(json.charAt(start))) {
@@ -274,7 +403,8 @@ public class SchulmanagerConnector {
         if (end > start) {
             try {
                 return Integer.parseInt(json.substring(start, end));
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         return -1;
     }
@@ -283,19 +413,30 @@ public class SchulmanagerConnector {
      * Sendet eine Nachricht direkt an den Schulmanager (startet einen neuen
      * Chat/Thread).
      */
-    public void sendNachricht(int userId, String betreff, String nachricht) {
+    public boolean sendNachricht(int userId, String betreff, String nachricht) {
         try {
+            if (this.jwt == null && !login()) {
+                return false;
+            }
+
             String recipientName = "Empfaenger";
             String recipientSubtextJson = "null";
 
-            // 1. Versuche Name und Subtext über get-chat-users für die userId zu ermitteln
+            // 1. Versuche Name und Subtext über get-chat-users (einmalig gecacht) für die userId zu ermitteln
             try {
-                String usersPayload = String.format(
-                        "{\"bundleVersion\":\"%s\",\"requests\":[{\"moduleName\":\"messenger\",\"endpointName\":\"get-chat-users\"}]}",
-                        bundleVersion);
-                HttpResponse<String> usersResp = sendSchulmanagerCallWithRetry(usersPayload);
-                if (usersResp.statusCode() == 200 && usersResp.body() != null) {
-                    String[] userInfo = findUserInfoById(usersResp.body(), userId);
+                String chatUsersJson = this.cachedChatUsersJson;
+                if (chatUsersJson == null) {
+                    String usersPayload = String.format(
+                            "{\"bundleVersion\":\"%s\",\"requests\":[{\"moduleName\":\"messenger\",\"endpointName\":\"get-chat-users\"}]}",
+                            bundleVersion);
+                    HttpResponse<String> usersResp = sendSchulmanagerCallWithRetry(usersPayload);
+                    if (usersResp != null && usersResp.statusCode() == 200 && usersResp.body() != null) {
+                        chatUsersJson = usersResp.body();
+                        this.cachedChatUsersJson = chatUsersJson;
+                    }
+                }
+                if (chatUsersJson != null) {
+                    String[] userInfo = findUserInfoById(chatUsersJson, userId);
                     if (userInfo != null && userInfo[0] != null) {
                         recipientName = userInfo[0];
                         if (userInfo[1] != null) {
@@ -306,16 +447,19 @@ public class SchulmanagerConnector {
             } catch (Exception ignored) {
             }
 
-            // 2. Fallback: Name aus der lokalen Datenbank holen, falls über get-chat-users nicht gefunden
+            // 2. Fallback: Name aus der lokalen Datenbank holen, falls über get-chat-users
+            // nicht gefunden
             if ("Empfaenger".equals(recipientName) && model != null && model.getDbConnector() != null
                     && model.getDbConnector().isConnected()) {
-                model.getDbConnector().executeStatement(
-                        "SELECT vorname, nachname FROM benutzer WHERE schulmanagerUserId = ?", userId);
-                QueryResult qr = model.getDbConnector().getCurrentQueryResult();
-                if (qr != null && qr.getRowCount() > 0) {
-                    String vn = qr.getData()[0][0];
-                    String nn = qr.getData()[0][1];
-                    recipientName = ((vn != null ? vn : "") + " " + (nn != null ? nn : "")).trim();
+                synchronized (model.getDbConnector()) {
+                    model.getDbConnector().executeStatement(
+                            "SELECT vorname, nachname FROM benutzer WHERE schulmanagerUserId = ?", userId);
+                    QueryResult qr = model.getDbConnector().getCurrentQueryResult();
+                    if (qr != null && qr.getRowCount() > 0) {
+                        String vn = qr.getData()[0][0];
+                        String nn = qr.getData()[0][1];
+                        recipientName = ((vn != null ? vn : "") + " " + (nn != null ? nn : "")).trim();
+                    }
                 }
             }
 
@@ -330,14 +474,17 @@ public class SchulmanagerConnector {
                     escapeJson(nachricht));
 
             HttpResponse<String> response = sendSchulmanagerCallWithRetry(payload);
+            return response != null && response.statusCode() == 200;
 
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     /**
-     * Sucht zu einer gegebenen userId das [name, subtext] Paar aus der get-chat-users Antwort.
+     * Sucht zu einer gegebenen userId das [name, subtext] Paar aus der
+     * get-chat-users Antwort.
      */
     private String[] findUserInfoById(String json, int targetId) {
         int pos = 0;
@@ -348,7 +495,9 @@ public class SchulmanagerConnector {
                 continue;
             }
             String objJson = json.substring(pos, endObj + 1);
-            boolean isLeafOrUserObj = !objJson.contains("\"requests\"") && !objJson.contains("\"results\"");
+            boolean isLeafOrUserObj = !objJson.contains("\"requests\"")
+                    && !objJson.contains("\"results\"")
+                    && !objJson.contains("\"data\"");
             if (isLeafOrUserObj) {
                 int idVal = extractJsonIntValue(objJson, "id");
                 String nameVal = extractJsonStringValue(objJson, "name");
@@ -363,7 +512,8 @@ public class SchulmanagerConnector {
     }
 
     /**
-     * Escaped Sonderzeichen (Anführungszeichen, Backslashes, Zeilenumbrüche), damit der JSON-String valide bleibt.
+     * Escaped Sonderzeichen (Anführungszeichen, Backslashes, Zeilenumbrüche), damit
+     * der JSON-String valide bleibt.
      */
     private String escapeJson(String text) {
         if (text == null) {
@@ -376,5 +526,29 @@ public class SchulmanagerConnector {
                 .replace("\n", "\\n")
                 .replace("\r", "\\n")
                 .replace("\t", "\\t");
+    }
+
+    public boolean sendErinnerung(int smUserId, String nutzerName, String buchTitel, String typ,
+            String rueckgabeDatum) {
+        String betreff = "";
+        String nachricht = "Hallo " + nutzerName + ",\n\n";
+
+        if (typ.equals("2_Tage_vorher")) {
+            betreff = "Erinnerung: Buchrückgabe bald fällig";
+            nachricht += "wir möchten dich daran erinnern, dass du das Buch \"" + buchTitel
+                    + "\" am " + rueckgabeDatum + " zurückgeben musst.\n" +
+                    "Bitte denke daran, es rechtzeitig in der Bibliothek abzugeben.";
+        } else if (typ.equals("Stichtag")) {
+            betreff = "Buchrückgabe heute fällig!";
+            nachricht += "du musst das Buch \"" + buchTitel + "\" in der Bibliothek zurückgeben!\n" +
+                    "Bitte erledige das schnellstmöglich.";
+        } else if (typ.equals("1_Woche_danach")) {
+            betreff = "Buchrückgabe überfällig!";
+            nachricht += "du hast das Buch \"" + buchTitel + "\" leider nicht rechtzeitig zurückgegeben.\n" +
+                    "Bitte bringe das Buch umgehend in die Bibliothek.";
+        }
+
+        nachricht += "\n\nViele Grüße,\nDeine Schulbibliothek";
+        return sendNachricht(smUserId, betreff, nachricht);
     }
 }

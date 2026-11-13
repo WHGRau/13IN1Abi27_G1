@@ -18,6 +18,7 @@ public class Benutzer {
     private String geburtsdatum;
     private int maxBuecherGleichzeitig;
     private int schulmanagerId = 0;
+    private String klasse;
 
     /**
      * Erstellt einen neuen Benutzer ohne Geburtsdatum und ohne spezielles
@@ -234,5 +235,23 @@ public class Benutzer {
      */
     public void setSchulmanagerId(int schulmanagerId) {
         this.schulmanagerId = schulmanagerId;
+    }
+
+    /**
+     * Gibt die Klasse des Benutzers zurück.
+     * 
+     * @return Klasse des Benutzers.
+     */
+    public String getKlasse() {
+        return klasse;
+    }
+
+    /**
+     * Setzt die Klasse des Benutzers.
+     * 
+     * @param klasse Die Klasse des Benutzers.
+     */
+    public void setKlasse(String klasse) {
+        this.klasse = klasse;
     }
 }

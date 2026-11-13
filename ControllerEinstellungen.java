@@ -15,6 +15,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.control.DatePicker;
+
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -90,6 +91,11 @@ public class ControllerEinstellungen {
     private Button smVerbindungTestenButton;
     @FXML
     private Label smStatusLabel;
+
+    @FXML
+    private CheckBox emErinnerung;
+    @FXML
+    private CheckBox smErinnerung;
 
     private Bibliothek model;
 
@@ -233,6 +239,24 @@ public class ControllerEinstellungen {
                 String smPass = model.getEinstellung("schulmanagerPassword");
                 if (smPass != null && smPasswortFeld1 != null)
                     smPasswortFeld1.setText(smPass);
+
+                String emailErinnerung = model.getEinstellung("emailErinnerung");
+                if (emErinnerung != null) {
+                    if (emailErinnerung != null) {
+                        emErinnerung.setSelected(emailErinnerung.equals("1"));
+                    } else {
+                        emErinnerung.setSelected(true);
+                    }
+                }
+
+                String schulmanagerErinnerung = model.getEinstellung("smErinnerung");
+                if (smErinnerung != null) {
+                    if (schulmanagerErinnerung != null) {
+                        smErinnerung.setSelected(schulmanagerErinnerung.equals("1"));
+                    } else {
+                        smErinnerung.setSelected(false);
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -316,7 +340,8 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Testet den Schulmanager-Login mit den eingegebenen Zugangsdaten in einem separaten Thread.
+     * Testet den Schulmanager-Login mit den eingegebenen Zugangsdaten in einem
+     * separaten Thread.
      * Zeigt das Ergebnis über smStatusLabel an.
      * 
      * @param event Das ActionEvent.
@@ -346,13 +371,8 @@ public class ControllerEinstellungen {
         final String finalPass = pass;
 
         new Thread(() -> {
-            boolean success = false;
-            if (model != null && model.getSchulmanager() != null) {
-                success = model.getSchulmanager().login(finalUser, finalPass);
-            } else {
-                SchulmanagerConnector connector = new SchulmanagerConnector(model);
-                success = connector.login(finalUser, finalPass);
-            }
+            SchulmanagerConnector connector = new SchulmanagerConnector(model);
+            boolean success = connector.login(finalUser, finalPass);
 
             final boolean finalSuccess = success;
             Platform.runLater(() -> {
@@ -443,22 +463,42 @@ public class ControllerEinstellungen {
                 String smUser = null;
                 String smPass = null;
                 if (smIpFeld1 != null) {
-                    model.setEinstellung("schulmanagerUsername", smIpFeld1.getText().trim());
                     smUser = smIpFeld1.getText().trim();
                     model.setEinstellung("schulmanagerUsername", smUser);
                 }
                 if (smPasswortFeld1 != null) {
-                    model.setEinstellung("schulmanagerPassword", smPasswortFeld1.getText());
                     smPass = smPasswortFeld1.getText();
                     model.setEinstellung("schulmanagerPassword", smPass);
                 }
 
-                if (model.getSchulmanager() != null && smUser != null && !smUser.isEmpty() && smPass != null
-                        && !smPass.isEmpty()) {
-                    final String userToLogin = smUser;
-                    final String passToLogin = smPass;
+                String prevEm = model.getEinstellung("emailErinnerung");
+                boolean warEmAktiv = (prevEm == null) || "1".equals(prevEm);
+                boolean warSmAktiv = "1".equals(model.getEinstellung("smErinnerung"));
+
+                boolean neuEmAktiv = emErinnerung != null && emErinnerung.isSelected();
+                boolean neuSmAktiv = smErinnerung != null && smErinnerung.isSelected();
+                boolean erinnerungNeuAktiviert = (!warEmAktiv && neuEmAktiv) || (!warSmAktiv && neuSmAktiv);
+
+                model.setEinstellung("emailErinnerung", neuEmAktiv ? "1" : "0");
+                model.setEinstellung("smErinnerung", neuSmAktiv ? "1" : "0");
+
+                final String userToLogin = smUser;
+                final String passToLogin = smPass;
+                final boolean hasSmCredentials = userToLogin != null && !userToLogin.isEmpty()
+                        && passToLogin != null && !passToLogin.isEmpty();
+
+                if (model.getSchulmanager() != null && !hasSmCredentials) {
+                    model.getSchulmanager().logout();
+                }
+
+                if ((model.getSchulmanager() != null && hasSmCredentials) || erinnerungNeuAktiviert) {
                     new Thread(() -> {
-                        model.getSchulmanager().login(userToLogin, passToLogin);
+                        if (model.getSchulmanager() != null && hasSmCredentials) {
+                            model.getSchulmanager().login(userToLogin, passToLogin);
+                        }
+                        if (erinnerungNeuAktiviert) {
+                            model.erinnerungenPruefenUndVersenden();
+                        }
                     }).start();
                 }
             } catch (Exception e) {
