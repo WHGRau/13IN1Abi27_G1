@@ -27,6 +27,7 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
@@ -52,7 +53,8 @@ import javafx.scene.control.SplitMenuButton;
 
 /**
  * Controller für die Benutzerverwaltung.
- * Verwaltet das Suchen, Bearbeiten, Sperren, Löschen und Erstellen von Benutzern,
+ * Verwaltet das Suchen, Bearbeiten, Sperren, Löschen und Erstellen von
+ * Benutzern,
  * sowie das Erzeugen von Benutzerausweisen.
  */
 public class ControllerNutzerVerwaltung {
@@ -61,6 +63,8 @@ public class ControllerNutzerVerwaltung {
     private boolean bearbeitenAktiv = false;
     private boolean neuAktiv = false;
     private PauseTransition errorTextTimer;
+    private int currenrUserId = -1;
+    private boolean newUserSmConnected = false;
 
     @FXML
     private TextField searchBar;
@@ -148,6 +152,18 @@ public class ControllerNutzerVerwaltung {
     @FXML
     private TableColumn<tabelleZeile, String> verlaufLehrerSpalte;
 
+    @FXML
+    private VBox schulmanagerBox;
+
+    @FXML
+    private TextField klasseFeld;
+
+    @FXML
+    private Text smFeedbackText;
+
+    @FXML
+    private Button connectSchulmanagerButton;
+
     /**
      * Hilfsklasse für die Darstellung eines Eintrags im Ausleih-Verlauf.
      */
@@ -162,12 +178,12 @@ public class ControllerNutzerVerwaltung {
         /**
          * Erstellt einen neuen Verlaufseintrag.
          * 
-         * @param isbn Die ISBN des ausgeliehenen Buches.
-         * @param titel Der Titel des Buches.
-         * @param geliehen Datum der Ausleihe.
+         * @param isbn          Die ISBN des ausgeliehenen Buches.
+         * @param titel         Der Titel des Buches.
+         * @param geliehen      Datum der Ausleihe.
          * @param geplRueckgabe Geplantes Rückgabedatum.
-         * @param rueckgabe Tatsächliches Rückgabedatum.
-         * @param lehrer Der die Ausleihe genehmigende Lehrer.
+         * @param rueckgabe     Tatsächliches Rückgabedatum.
+         * @param lehrer        Der die Ausleihe genehmigende Lehrer.
          */
         public tabelleZeile(String isbn, String titel, String geliehen, String geplRueckgabe, String rueckgabe,
                 String lehrer) {
@@ -223,7 +239,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     /**
-     * Initialisiert den Controller, setzt Tabellenspalten, konfiguriert den Hintergrund
+     * Initialisiert den Controller, setzt Tabellenspalten, konfiguriert den
+     * Hintergrund
      * und fügt Cell-Factories für farbliche Markierungen (überfällig) hinzu.
      */
     public void initialize() {
@@ -231,6 +248,15 @@ public class ControllerNutzerVerwaltung {
         errorTextTimer.setOnFinished(e -> errorText.setText(""));
         rolleAuswahl.getItems().addAll("Schüler", "Lehrer", "Helfer");
         rolleAuswahl.setDisable(true);
+
+        if (schulmanagerBox != null) {
+            schulmanagerBox.managedProperty().bind(schulmanagerBox.visibleProperty());
+        }
+
+        rolleAuswahl.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            updateSmVisibility();
+            checkEmailWarnung();
+        });
         nameSpalte.setCellValueFactory(new PropertyValueFactory<>("name"));
         vornameSpalte.setCellValueFactory(new PropertyValueFactory<>("vorname"));
         nutzerTabelle.setPlaceholder(new Label("Keine Nutzer gefunden"));
@@ -335,7 +361,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     /**
-     * Sucht anhand des Textes in der Suchleiste nach Benutzern und füllt die Tabelle mit den Ergebnissen.
+     * Sucht anhand des Textes in der Suchleiste nach Benutzern und füllt die
+     * Tabelle mit den Ergebnissen.
      */
     public void suchen() {
 
@@ -371,7 +398,8 @@ public class ControllerNutzerVerwaltung {
 
     /**
      * Wird ausgeführt, wenn ein Nutzer in der Tabelle angeklickt wird.
-     * Füllt die Textfelder mit den Daten des Nutzers und aktualisiert Sperren-Button/Ausleihverlauf.
+     * Füllt die Textfelder mit den Daten des Nutzers und aktualisiert
+     * Sperren-Button/Ausleihverlauf.
      */
     public void selectBenutzer() {
         errorText.setText("");
@@ -379,6 +407,9 @@ public class ControllerNutzerVerwaltung {
             errorTextTimer.stop();
         if (!bearbeitenAktiv) {
 
+            connectSchulmanagerButton.setText("verbinden");
+            smFeedbackText.setText("");
+            klasseFeld.clear();
             selectedNutzer = nutzerTabelle.getSelectionModel().getSelectedItem();
             if (selectedNutzer != null) {
                 if (selectedNutzer.getEmail() != null) {
@@ -425,6 +456,22 @@ public class ControllerNutzerVerwaltung {
                 }
                 entfernenButton.setDisable(false);
                 loeschenButton.setDisable(false);
+                if (smFeedbackText != null) {
+                    if (selectedNutzer.getSchulmanagerId() > 0) {
+                        smFeedbackText.setFill(Color.GREEN);
+                        smFeedbackText.setText("Nutzer mit Schulmanager Account verknüpft");
+                        connectSchulmanagerButton.setText("trennen");
+                    } else {
+                        smFeedbackText.setFill(Color.ORANGE);
+                        smFeedbackText.setText("Nutzer nicht mit Schulmanager Account verknüpft");
+                        connectSchulmanagerButton.setText("verbinden");
+                    }
+                }
+                if (selectedNutzer.getRolle().equalsIgnoreCase("lehrer")) {
+                    schulmanagerBox.setVisible(false);
+                } else {
+                    schulmanagerBox.setVisible(true);
+                }
                 loadVerlaufTabelle();
             }
 
@@ -432,7 +479,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     /**
-     * Überprüft, ob bei Lehrern/Helfern eine E-Mail fehlt, bzw. warnt Schüler ohne E-Mail.
+     * Überprüft, ob bei Lehrern/Helfern eine E-Mail fehlt, bzw. warnt Schüler ohne
+     * E-Mail.
      */
     public void checkEmailWarnung() {
         if (neuAktiv || bearbeitenAktiv) {
@@ -446,7 +494,7 @@ public class ControllerNutzerVerwaltung {
                 }
             } else if ("Lehrer".equals(rolle) || "Helfer".equals(rolle)) {
                 if (emailFeld.getText().trim().isEmpty()) {
-                    errorText.setFill(Color.ORANGE);
+                    errorText.setFill(Color.RED);
                     errorText.setText(rolle + " benötigen eine Email-Adresse");
                 } else {
                     errorText.setText("");
@@ -539,6 +587,10 @@ public class ControllerNutzerVerwaltung {
 
             entfernenButton.setDisable(false);
             loeschenButton.setDisable(false);
+
+            connectSchulmanagerButton.setText("verbinden");
+            smFeedbackText.setText("");
+            klasseFeld.clear();
 
             String rolle = "schueler";
             if ("Lehrer".equals(rolleAuswahl.getValue())) {
@@ -636,8 +688,14 @@ public class ControllerNutzerVerwaltung {
                     rolle = "helfer";
                 }
                 String gebDatum = geburtsdatumPicker.getValue() != null ? geburtsdatumPicker.getValue().toString() : "";
-                model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
-                        vornameFeld.getText(), gebDatum, ausleihlimit);
+                if (currenrUserId == -1) {
+                    model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                            vornameFeld.getText(), gebDatum, ausleihlimit, -1);
+                } else {
+                    model.neuerBenutzer(rolle, emailFeld.getText().trim(), nameFeld.getText(),
+                            vornameFeld.getText(), gebDatum, ausleihlimit, currenrUserId);
+                }
+                currenrUserId = -1;
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
                     errorText.setFill(Color.GREEN);
@@ -666,6 +724,10 @@ public class ControllerNutzerVerwaltung {
                 nameFeld.clear();
                 vornameFeld.clear();
                 geburtsdatumPicker.setValue(null);
+
+                connectSchulmanagerButton.setText("verbinden");
+                smFeedbackText.setText("");
+                klasseFeld.clear();
 
             } else {
                 bearbeitenAktiv = true;
@@ -714,14 +776,15 @@ public class ControllerNutzerVerwaltung {
     }
 
     /**
-     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen Nutzers.
+     * Aktiviert oder deaktiviert den Modus zum manuellen Hinzufügen eines neuen
+     * Nutzers.
      */
     public void nutzerErstellen() {
         errorText.setText("");
         if (errorTextTimer != null)
             errorTextTimer.stop();
         if (!neuAktiv) {
-
+            newUserSmConnected = false;
             neuButton.setText("abbrechen");
             entfernenButton.setDisable(true);
             loeschenButton.setDisable(true);
@@ -747,6 +810,10 @@ public class ControllerNutzerVerwaltung {
             zurueckButton.setDisable(true);
             neuAktiv = true;
             checkEmailWarnung();
+            updateSmVisibility();
+            connectSchulmanagerButton.setText("verbinden");
+            smFeedbackText.setText("");
+            klasseFeld.clear();
         } else {
             neuButton.setText("neu");
             entfernenButton.setDisable(true);
@@ -768,6 +835,11 @@ public class ControllerNutzerVerwaltung {
             zurueckButton.setDisable(false);
             neuAktiv = false;
             bearbeitenButton.setDisable(true);
+            schulmanagerBox.setVisible(false);
+            currenrUserId = -1;
+            connectSchulmanagerButton.setText("verbinden");
+            smFeedbackText.setText("");
+            klasseFeld.clear();
         }
     }
 
@@ -825,7 +897,8 @@ public class ControllerNutzerVerwaltung {
     }
 
     /**
-     * Lädt die Ausleih-Historie des ausgewählten Nutzers und zeigt sie in der Verlaufstabelle an.
+     * Lädt die Ausleih-Historie des ausgewählten Nutzers und zeigt sie in der
+     * Verlaufstabelle an.
      */
     public void loadVerlaufTabelle() {
         QueryResult result = model.getNutzerVerlauf(selectedNutzer.getId());
@@ -951,6 +1024,62 @@ public class ControllerNutzerVerwaltung {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void connectSchulmanager() {
+        if (!neuAktiv) {
+            if (selectedNutzer.getSchulmanagerId() <= 0) {
+                if (model.connectSchulmanager(selectedNutzer, klasseFeld.getText())) {
+                    smFeedbackText.setFill(Color.GREEN);
+                    smFeedbackText.setText("Verbindung erfolgreich");
+                    connectSchulmanagerButton.setText("trennen");
+                } else {
+                    smFeedbackText.setFill(Color.RED);
+                    smFeedbackText.setText(
+                            "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
+                }
+            } else {
+                model.disconnectSchulmanager(selectedNutzer.getId());
+                selectedNutzer.setSchulmanagerId(0);
+                connectSchulmanagerButton.setText("verbinden");
+                smFeedbackText.setFill(Color.ORANGE);
+                smFeedbackText.setText("Nutzer nicht mehr mit Schulmanager Account verknüpft");
+            }
+        } else {
+            if (!newUserSmConnected) {
+                int id = model.getSchulmanagerUserId(vornameFeld.getText(), nameFeld.getText(), klasseFeld.getText());
+                if (id != -1) {
+                    smFeedbackText.setFill(Color.GREEN);
+                    smFeedbackText.setText("Verbindung erfolgreich");
+                    currenrUserId = id;
+                    connectSchulmanagerButton.setText("Verbindung trennen");
+                    newUserSmConnected = true;
+                } else {
+                    smFeedbackText.setFill(Color.RED);
+                    smFeedbackText.setText(
+                            "Verbindung fehlgeschlagen\nPrüfen Sie die korrekte Schreibweise und Format von Name und Klasse (z.B. 05a oder 13Abi27) oder die Login Daten in den Einstellungen");
+                }
+            } else {
+                model.disconnectSchulmanager(currenrUserId);
+                connectSchulmanagerButton.setText("verbinden");
+                smFeedbackText.setFill(Color.ORANGE);
+                smFeedbackText.setText("Nutzer nicht mit Schulmanager Account verknüpft");
+                newUserSmConnected = false;
+            }
+
+        }
+    }
+
+    public void updateSmVisibility() {
+        if (schulmanagerBox == null)
+            return;
+        Object selected = rolleAuswahl.getSelectionModel().getSelectedItem();
+        String rolle = selected != null ? selected.toString() : "";
+        if ("Lehrer".equalsIgnoreCase(rolle)) {
+            schulmanagerBox.setVisible(false);
+        } else {
+            schulmanagerBox.setVisible(true);
         }
     }
 }

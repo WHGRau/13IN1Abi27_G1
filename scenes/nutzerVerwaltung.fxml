@@ -23,7 +23,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
+<StackPane fx:id="background" alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerNutzerVerwaltung">
    <children>
       <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #E9E9D3;">
          <children>
@@ -52,7 +52,7 @@
                </padding>
                <children>
                   <!-- Left Column: User List & Search -->
-                  <VBox prefWidth="450.0" spacing="15.0" HBox.hgrow="NEVER">
+                  <VBox maxWidth="450.0" minWidth="450.0" prefWidth="450.0" spacing="15.0" HBox.hgrow="NEVER">
                      <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
@@ -87,7 +87,7 @@
                   </VBox>
 
                   <!-- Center Column: Details & Actions -->
-                  <VBox prefWidth="500.0" spacing="20.0" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="500.0" minWidth="500.0" prefWidth="500.0" spacing="20.0" HBox.hgrow="NEVER">
                      <children>
                         <Label text="Benutzer Details">
                            <font>
@@ -124,7 +124,7 @@
                               <Label text="Rolle:" GridPane.columnIndex="0" GridPane.rowIndex="3">
                                  <font><Font size="16.0" /></font>
                               </Label>
-                              <ChoiceBox fx:id="rolleAuswahl" onAction="#checkEmailWarnung" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              <ChoiceBox fx:id="rolleAuswahl" prefHeight="35.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                               <Label text="Geburtsdatum:" GridPane.columnIndex="0" GridPane.rowIndex="4">
                                  <font><Font size="16.0" /></font>
@@ -165,9 +165,42 @@
                            </children>
                         </HBox>
                         
-                        <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0">
+                        <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="460.0">
                            <font><Font size="16.0" /></font>
                         </Text>
+                        <VBox fx:id="schulmanagerBox" spacing="12.0" style="-fx-background-color: #DFDFCD; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #C0C0C0; -fx-border-radius: 8;">
+                           <children>
+                              <Label text="Schulmanager verknüpfen">
+                                 <font>
+                                    <Font name="System Bold" size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Klasse:">
+                                 <font>
+                                    <Font size="15.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="klasseFeld" prefHeight="35.0" promptText="z. B. 05a oder 13Abi27">
+                                 <font>
+                                    <Font size="15.0" />
+                                 </font>
+                              </TextField>
+                              <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                 <children>
+                                    <Button fx:id="connectSchulmanagerButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#connectSchulmanager" prefHeight="35.0" text="verbinden">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </Button>
+                                    <Text fx:id="smFeedbackText" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="330.0">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </Text>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
                         
                         <Region VBox.vgrow="ALWAYS" /> <!-- pushes Schülerausweis to bottom if there's space -->
                         

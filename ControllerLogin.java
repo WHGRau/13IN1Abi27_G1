@@ -36,6 +36,14 @@ public class ControllerLogin {
     public void initialize() {
         Platform.runLater(() -> loginButton.requestFocus());
 
+        // Bibliothek bereits im Hintergrund vorbereiten, während der Nutzer noch tippt
+        new Thread(() -> {
+            try {
+                model = new Bibliothek();
+            } catch (Exception ignored) {
+            }
+        }).start();
+
         Platform.runLater(() -> {
             Scene scene = background.getScene();
             if (scene != null) {
@@ -85,8 +93,17 @@ public class ControllerLogin {
      * @param event Das ausgelöste ActionEvent.
      */
     public void login(ActionEvent event) {
-        model = new Bibliothek();
-        int feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        if (model == null) {
+            model = new Bibliothek();
+        }
+        int feedback;
+        try {
+            feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        } catch (Exception e) {
+            // Falls die Verbindung abgebrochen war, neu aufbauen und erneut versuchen
+            model = new Bibliothek();
+            feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        }
         if (feedback == 1) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();

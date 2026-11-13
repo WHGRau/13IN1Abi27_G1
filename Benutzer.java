@@ -1,10 +1,10 @@
 
 /**
- * Repräsentiert einen Benutzer der Bibliothek (z. B. Schüler, Lehrer oder Helfer).
+ * Repräsentiert einen Benutzer der Bibliothek (z. B. Schüler, Lehrer oder
+ * Helfer).
  * Speichert alle relevanten Daten wie Name, Rolle und Ausleihlimits.
  */
-public class Benutzer
-{
+public class Benutzer {
     // Instanzvariablen - ersetzen Sie das folgende Beispiel mit Ihren Variablen
     private String email;
     private String passwort;
@@ -17,58 +17,85 @@ public class Benutzer
     private int gesperrtVon;
     private String geburtsdatum;
     private int maxBuecherGleichzeitig;
-    
+    private int schulmanagerId = 0;
+
     /**
-     * Erstellt einen neuen Benutzer ohne Geburtsdatum und ohne spezielles Ausleihlimit.
+     * Erstellt einen neuen Benutzer ohne Geburtsdatum und ohne spezielles
+     * Ausleihlimit.
      * 
-     * @param pRolle Die Rolle des Benutzers (z. B. "Schüler", "Lehrer").
-     * @param pPw Das Passwort des Benutzers.
-     * @param pEmail Die E-Mail-Adresse.
-     * @param pNn Der Nachname.
-     * @param pVn Der Vorname.
-     * @param pId Die eindeutige ID des Benutzers.
+     * @param pRolle          Die Rolle des Benutzers (z. B. "Schüler", "Lehrer").
+     * @param pPw             Das Passwort des Benutzers.
+     * @param pEmail          Die E-Mail-Adresse.
+     * @param pNn             Der Nachname.
+     * @param pVn             Der Vorname.
+     * @param pId             Die eindeutige ID des Benutzers.
      * @param pFreigeschaltet Status, ob der Benutzer freigeschaltet ist.
-     * @param pGesperrtVon ID des Admins, der den Benutzer gesperrt hat (0 falls nicht gesperrt).
+     * @param pGesperrtVon    ID des Admins, der den Benutzer gesperrt hat (0 falls
+     *                        nicht gesperrt).
      */
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon)
-    {
-        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, null, 0);
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet,
+            int pGesperrtVon) {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, null, 0, 0);
     }
 
     /**
-     * Erstellt einen neuen Benutzer mit Geburtsdatum, aber ohne spezielles Ausleihlimit.
+     * Erstellt einen neuen Benutzer mit Geburtsdatum, aber ohne spezielles
+     * Ausleihlimit.
      * 
-     * @param pRolle Die Rolle des Benutzers.
-     * @param pPw Das Passwort des Benutzers.
-     * @param pEmail Die E-Mail-Adresse.
-     * @param pNn Der Nachname.
-     * @param pVn Der Vorname.
-     * @param pId Die eindeutige ID.
+     * @param pRolle          Die Rolle des Benutzers.
+     * @param pPw             Das Passwort des Benutzers.
+     * @param pEmail          Die E-Mail-Adresse.
+     * @param pNn             Der Nachname.
+     * @param pVn             Der Vorname.
+     * @param pId             Die eindeutige ID.
      * @param pFreigeschaltet Freischaltungsstatus.
-     * @param pGesperrtVon ID des sperrenden Admins.
-     * @param pGeburtsdatum Das Geburtsdatum als String.
+     * @param pGesperrtVon    ID des sperrenden Admins.
+     * @param pGeburtsdatum   Das Geburtsdatum als String.
      */
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon, String pGeburtsdatum)
-    {
-        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, pGeburtsdatum, 0);
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet,
+            int pGesperrtVon, String pGeburtsdatum) {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, pGeburtsdatum, 0, 0);
     }
 
     /**
-     * Erstellt einen neuen Benutzer mit allen relevanten Daten inklusive Geburtsdatum und maximalem Ausleihlimit.
+     * Erstellt einen neuen Benutzer mit allen relevanten Daten inklusive
+     * Geburtsdatum und maximalem Ausleihlimit.
      * 
-     * @param pRolle Die Rolle des Benutzers.
-     * @param pPw Das Passwort des Benutzers.
-     * @param pEmail Die E-Mail-Adresse.
-     * @param pNn Der Nachname.
-     * @param pVn Der Vorname.
-     * @param pId Die eindeutige ID.
-     * @param pFreigeschaltet Freischaltungsstatus.
-     * @param pGesperrtVon ID des sperrenden Admins.
-     * @param pGeburtsdatum Das Geburtsdatum als String.
+     * @param pRolle                  Die Rolle des Benutzers.
+     * @param pPw                     Das Passwort des Benutzers.
+     * @param pEmail                  Die E-Mail-Adresse.
+     * @param pNn                     Der Nachname.
+     * @param pVn                     Der Vorname.
+     * @param pId                     Die eindeutige ID.
+     * @param pFreigeschaltet         Freischaltungsstatus.
+     * @param pGesperrtVon            ID des sperrenden Admins.
+     * @param pGeburtsdatum           Das Geburtsdatum als String.
      * @param pMaxBuecherGleichzeitig Das Limit für gleichzeitig ausleihbare Bücher.
      */
-    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet, int pGesperrtVon, String pGeburtsdatum, int pMaxBuecherGleichzeitig)
-    {
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet,
+            int pGesperrtVon, String pGeburtsdatum, int pMaxBuecherGleichzeitig) {
+        this(pRolle, pPw, pEmail, pNn, pVn, pId, pFreigeschaltet, pGesperrtVon, pGeburtsdatum, pMaxBuecherGleichzeitig,
+                0);
+    }
+
+    /**
+     * Erstellt einen neuen Benutzer mit allen relevanten Daten inklusive
+     * Geburtsdatum, maximalem Ausleihlimit und Schulmanager-User-ID.
+     * 
+     * @param pRolle                  Die Rolle des Benutzers.
+     * @param pPw                     Das Passwort des Benutzers.
+     * @param pEmail                  Die E-Mail-Adresse.
+     * @param pNn                     Der Nachname.
+     * @param pVn                     Der Vorname.
+     * @param pId                     Die eindeutige ID.
+     * @param pFreigeschaltet         Freischaltungsstatus.
+     * @param pGesperrtVon            ID des sperrenden Admins.
+     * @param pGeburtsdatum           Das Geburtsdatum als String.
+     * @param pMaxBuecherGleichzeitig Das Limit für gleichzeitig ausleihbare Bücher.
+     * @param pSchulmanagerId         Die User-ID im Schulmanager Online.
+     */
+    public Benutzer(String pRolle, String pPw, String pEmail, String pNn, String pVn, int pId, boolean pFreigeschaltet,
+            int pGesperrtVon, String pGeburtsdatum, int pMaxBuecherGleichzeitig, int pSchulmanagerId) {
         email = pEmail;
         passwort = pPw;
         nachname = pNn;
@@ -80,6 +107,7 @@ public class Benutzer
         gesperrtVon = pGesperrtVon;
         geburtsdatum = pGeburtsdatum;
         maxBuecherGleichzeitig = pMaxBuecherGleichzeitig;
+        schulmanagerId = pSchulmanagerId;
     }
 
     /**
@@ -144,14 +172,15 @@ public class Benutzer
     public boolean isFreigeschaltet() {
         return freigeschaltet;
     }
-    
-    public void setLateDays(int days){
+
+    public void setLateDays(int days) {
         lateDays = days;
     }
-    
-    public int getLateDays(){
+
+    public int getLateDays() {
         return lateDays;
     }
+
     /**
      * Gibt die ID des Admins zurück, der diesen Benutzer gesperrt hat.
      * 
@@ -160,7 +189,7 @@ public class Benutzer
     public int getGesperrtVon() {
         return gesperrtVon;
     }
-    
+
     /**
      * Gibt das Geburtsdatum des Benutzers zurück.
      * 
@@ -187,5 +216,23 @@ public class Benutzer
      */
     public int getAusleihlimit() {
         return maxBuecherGleichzeitig;
+    }
+
+    /**
+     * Gibt die Schulmanager-User-ID zurück.
+     * 
+     * @return Schulmanager-User-ID (0 oder -1 falls nicht verknüpft).
+     */
+    public int getSchulmanagerId() {
+        return schulmanagerId;
+    }
+
+    /**
+     * Setzt die Schulmanager-User-ID.
+     * 
+     * @param schulmanagerId Die Schulmanager-User-ID.
+     */
+    public void setSchulmanagerId(int schulmanagerId) {
+        this.schulmanagerId = schulmanagerId;
     }
 }

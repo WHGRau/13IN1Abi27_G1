@@ -24,7 +24,8 @@ import javafx.scene.transform.Scale;
 
 /**
  * Controller für die Einstellungen der Bibliothek.
- * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration, Mahnungseinstellungen und APIs.
+ * Verwaltet Parameter wie Ausleihdauer, E-Mail-Konfiguration,
+ * Mahnungseinstellungen und APIs.
  */
 public class ControllerEinstellungen {
 
@@ -81,6 +82,15 @@ public class ControllerEinstellungen {
     @FXML
     private TextField buechersucheApiKeyFeld;
 
+    @FXML
+    private TextField smIpFeld1;
+    @FXML
+    private PasswordField smPasswortFeld1;
+    @FXML
+    private Button smVerbindungTestenButton;
+    @FXML
+    private Label smStatusLabel;
+
     private Bibliothek model;
 
     /**
@@ -116,8 +126,10 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Setzt das Model der Bibliothek und lädt alle gespeicherten Einstellungen in die UI-Elemente.
-     * Aktiviert/Deaktiviert Eingabefelder basierend auf den jeweiligen Checkboxen (z. B. Reservierungen aktiv).
+     * Setzt das Model der Bibliothek und lädt alle gespeicherten Einstellungen in
+     * die UI-Elemente.
+     * Aktiviert/Deaktiviert Eingabefelder basierend auf den jeweiligen Checkboxen
+     * (z. B. Reservierungen aktiv).
      * 
      * @param model Das aktuelle Bibliotheks-Model.
      */
@@ -200,7 +212,7 @@ public class ControllerEinstellungen {
                     sperrenVerspaetungFeld.setText(sperrenVerspaetung);
                 else
                     sperrenVerspaetungFeld.setText("14");
-                    
+
                 String resetMonate = model.getEinstellung("sperren_zuruecksetzen_monate");
                 if (resetMonate != null)
                     sperrenResetMonateFeld.setText(resetMonate);
@@ -213,6 +225,14 @@ public class ControllerEinstellungen {
                 String apiKey = model.getEinstellung("buechersuche_api_key");
                 if (apiKey != null)
                     buechersucheApiKeyFeld.setText(apiKey);
+
+                String smUser = model.getEinstellung("schulmanagerUsername");
+                if (smUser != null && smIpFeld1 != null)
+                    smIpFeld1.setText(smUser);
+
+                String smPass = model.getEinstellung("schulmanagerPassword");
+                if (smPass != null && smPasswortFeld1 != null)
+                    smPasswortFeld1.setText(smPass);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -256,9 +276,12 @@ public class ControllerEinstellungen {
             }
         }
 
-        if (ip.isEmpty()) ip = "localhost";
-        if (name.isEmpty()) name = "Bibliothek";
-        if (user.isEmpty()) user = "root";
+        if (ip.isEmpty())
+            ip = "localhost";
+        if (name.isEmpty())
+            name = "Bibliothek";
+        if (user.isEmpty())
+            user = "root";
 
         dbStatusLabel.setTextFill(Color.web("#555555"));
         dbStatusLabel.setText("Verbindung wird getestet...");
@@ -293,7 +316,65 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Speichert alle in der UI vorgenommenen Einstellungen im Model (bzw. in der Datenbank) ab
+     * Testet den Schulmanager-Login mit den eingegebenen Zugangsdaten in einem separaten Thread.
+     * Zeigt das Ergebnis über smStatusLabel an.
+     * 
+     * @param event Das ActionEvent.
+     */
+    @FXML
+    public void smVerbindungTesten(ActionEvent event) {
+        String user = smIpFeld1 != null ? smIpFeld1.getText().trim() : "";
+        String pass = smPasswortFeld1 != null ? smPasswortFeld1.getText() : "";
+
+        if (user.isEmpty() || pass.isEmpty()) {
+            if (smStatusLabel != null) {
+                smStatusLabel.setTextFill(Color.web("#d32626"));
+                smStatusLabel.setText("Bitte Nutzername und Passwort eingeben.");
+            }
+            return;
+        }
+
+        if (smStatusLabel != null) {
+            smStatusLabel.setTextFill(Color.web("#555555"));
+            smStatusLabel.setText("Login wird getestet...");
+        }
+        if (smVerbindungTestenButton != null) {
+            smVerbindungTestenButton.setDisable(true);
+        }
+
+        final String finalUser = user;
+        final String finalPass = pass;
+
+        new Thread(() -> {
+            boolean success = false;
+            if (model != null && model.getSchulmanager() != null) {
+                success = model.getSchulmanager().login(finalUser, finalPass);
+            } else {
+                SchulmanagerConnector connector = new SchulmanagerConnector(model);
+                success = connector.login(finalUser, finalPass);
+            }
+
+            final boolean finalSuccess = success;
+            Platform.runLater(() -> {
+                if (smVerbindungTestenButton != null) {
+                    smVerbindungTestenButton.setDisable(false);
+                }
+                if (smStatusLabel != null) {
+                    if (finalSuccess) {
+                        smStatusLabel.setTextFill(Color.web("#2e7d32"));
+                        smStatusLabel.setText("✓ Login erfolgreich!");
+                    } else {
+                        smStatusLabel.setTextFill(Color.web("#d32626"));
+                        smStatusLabel.setText("✗ Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");
+                    }
+                }
+            });
+        }).start();
+    }
+
+    /**
+     * Speichert alle in der UI vorgenommenen Einstellungen im Model (bzw. in der
+     * Datenbank) ab
      * und leitet zurück auf die Startseite.
      * 
      * @param event Das ActionEvent.
@@ -310,11 +391,15 @@ public class ControllerEinstellungen {
         if (!dbPortStr.isEmpty()) {
             try {
                 dbPort = Integer.parseInt(dbPortStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
-        if (dbIp.isEmpty()) dbIp = "localhost";
-        if (dbName.isEmpty()) dbName = "Bibliothek";
-        if (dbUser.isEmpty()) dbUser = "root";
+        if (dbIp.isEmpty())
+            dbIp = "localhost";
+        if (dbName.isEmpty())
+            dbName = "Bibliothek";
+        if (dbUser.isEmpty())
+            dbUser = "root";
 
         if (model != null) {
             model.saveDbConfig(dbIp, dbPort, dbName, dbUser, dbPass);
@@ -354,6 +439,28 @@ public class ControllerEinstellungen {
                     model.setEinstellung("buechersuche_datenbank", dbSelection);
 
                 model.setEinstellung("buechersuche_api_key", buechersucheApiKeyFeld.getText().trim());
+
+                String smUser = null;
+                String smPass = null;
+                if (smIpFeld1 != null) {
+                    model.setEinstellung("schulmanagerUsername", smIpFeld1.getText().trim());
+                    smUser = smIpFeld1.getText().trim();
+                    model.setEinstellung("schulmanagerUsername", smUser);
+                }
+                if (smPasswortFeld1 != null) {
+                    model.setEinstellung("schulmanagerPassword", smPasswortFeld1.getText());
+                    smPass = smPasswortFeld1.getText();
+                    model.setEinstellung("schulmanagerPassword", smPass);
+                }
+
+                if (model.getSchulmanager() != null && smUser != null && !smUser.isEmpty() && smPass != null
+                        && !smPass.isEmpty()) {
+                    final String userToLogin = smUser;
+                    final String passToLogin = smPass;
+                    new Thread(() -> {
+                        model.getSchulmanager().login(userToLogin, passToLogin);
+                    }).start();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -362,7 +469,8 @@ public class ControllerEinstellungen {
     }
 
     /**
-     * Bricht den Vorgang ab (oder navigiert nach dem Speichern) und kehrt zur Lehrer-Startseite zurück.
+     * Bricht den Vorgang ab (oder navigiert nach dem Speichern) und kehrt zur
+     * Lehrer-Startseite zurück.
      * 
      * @param event Das ActionEvent.
      */
