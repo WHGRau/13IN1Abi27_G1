@@ -173,24 +173,24 @@ public class ControllerSchuelerStartseite {
         }
 
         nutzernameText.setText(text);
-        gesperrtText.setVisible(!model.isFreigeschaltet());
-        updateTabellen();
-        
-        bild = model.tagefuerSchueler();
-        Image eule = null;
-        
-        if(bild == 1){
-            eule = new Image(getClass().getResource("/eulen/EuleAngry.png").toExternalForm());
-        }
-        else if (bild == 2){
-            eule = new Image(getClass().getResource("/eulen/keineEule.png").toExternalForm());
-        }
-        else{
-            eule = new Image(getClass().getResource("/eulen/normaleEule.png").toExternalForm());
-        }
-        
-        mahnung.setImage(eule);
-        mahnung.setPreserveRatio(true);
+        Platform.runLater(() -> {
+            gesperrtText.setVisible(!model.isFreigeschaltet());
+            updateTabellen();
+
+            bild = model.tagefuerSchueler();
+            Image eule = null;
+
+            if (bild == 1) {
+                eule = new Image(getClass().getResource("/eulen/EuleAngry.png").toExternalForm());
+            } else if (bild == 2) {
+                eule = new Image(getClass().getResource("/eulen/keineEule.png").toExternalForm());
+            } else {
+                eule = new Image(getClass().getResource("/eulen/normaleEule.png").toExternalForm());
+            }
+
+            mahnung.setImage(eule);
+            mahnung.setPreserveRatio(true);
+        });
     }
 
     /**

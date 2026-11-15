@@ -48,6 +48,9 @@ public class MailService {
      * @param nachricht Der Inhalt der E-Mail.
      */
     public void sendeEmail(String empfaengerEmail, String betreff, String nachricht) {
+        if (empfaengerEmail == null || empfaengerEmail.trim().isEmpty() || empfaengerEmail.equalsIgnoreCase("null")) {
+            return;
+        }
         if (!isConfigured()) {
             return;
         }
@@ -93,6 +96,9 @@ public class MailService {
     }
 
     public boolean sendeEmailSync(String empfaengerEmail, String betreff, String nachricht) {
+        if (empfaengerEmail == null || empfaengerEmail.trim().isEmpty() || empfaengerEmail.equalsIgnoreCase("null")) {
+            return false;
+        }
         if (!isConfigured()) {
             return false;
         }
@@ -139,6 +145,9 @@ public class MailService {
      * @param nutzerName Der Name des Nutzers für die Anrede.
      */
     public void sendeGesperrtMail(String empfaengerEmail, String nutzerName) {
+        if (model != null && !model.isEmailErinnerungAktiv()) {
+            return;
+        }
         String betreff = "Dein Bibliotheks-Konto wurde gesperrt";
         String nachricht = "Hallo " + nutzerName + ",\n\n" +
                 "dein Konto in der Schulbibliothek wurde soeben gesperrt.\n" +
@@ -155,6 +164,9 @@ public class MailService {
      * @param buchTitel Der Titel des bereitliegenden Buches.
      */
     public void sendeReservierungBereitMail(String empfaengerEmail, String nutzerName, String buchTitel) {
+        if (model != null && !model.isEmailErinnerungAktiv()) {
+            return;
+        }
         String betreff = "Deine Reservierung ist abholbereit!";
         String nachricht = "Hallo " + nutzerName + ",\n\n" +
                 "gute Nachrichten! Das von dir reservierte Buch \"" + buchTitel + "\" ist jetzt für dich verfügbar.\n" +
@@ -175,6 +187,9 @@ public class MailService {
      */
     public void sendeMahnungMail(String empfaengerEmail, String nutzerName, String buchTitel, String typ,
             String rueckgabeDatum) {
+        if (model != null && !model.isEmailErinnerungAktiv()) {
+            return;
+        }
         String betreff = "";
         String nachricht = "Hallo " + nutzerName + ",\n\n";
 
@@ -199,6 +214,9 @@ public class MailService {
 
     public boolean sendeMahnungMailSync(String empfaengerEmail, String nutzerName, String buchTitel, String typ,
             String rueckgabeDatum) {
+        if (model != null && !model.isEmailErinnerungAktiv()) {
+            return false;
+        }
         String betreff = "";
         String nachricht = "Hallo " + nutzerName + ",\n\n";
 

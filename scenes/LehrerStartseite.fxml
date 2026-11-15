@@ -188,7 +188,7 @@
                         <Font size="18.0" />
                      </font>
                   </Button>
-                  <Button fx:id="mahnungButton" layoutX="1776.0" layoutY="809.0" mnemonicParsing="false" onAction="#mahnungHinzufuegen" text="Mahnung hinzufügen" />
+                  <Button fx:id="mahnungButton" layoutX="1755.0" layoutY="812.0" mnemonicParsing="false" onAction="#mahnungHinzufuegen" text="Mahnung hinzufügen" />
              </children>
         </AnchorPane>
       </children>

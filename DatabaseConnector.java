@@ -55,7 +55,7 @@ public class DatabaseConnector {
    * liefert, so kann dieses Ergebnis anschließend mit der Methode getCurrentQueryResult 
    * abgerufen werden.
    */
-  public boolean executeStatement(String pSQLStatement, Object... params){  
+  public synchronized boolean executeStatement(String pSQLStatement, Object... params){  
     //Altes Ergebnis loeschen
     currentQueryResult = null;
     message = null;

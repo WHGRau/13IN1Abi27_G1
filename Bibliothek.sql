@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 05, 2026 at 06:37 PM
+-- Host: localhost
+-- Generation Time: Nov 11, 2026 at 04:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `bibliothek`
+-- Database: `Bibliothek`
 --
 
 -- --------------------------------------------------------
@@ -58,8 +58,17 @@ CREATE TABLE `benutzer` (
   `gesperrt_von` int(11) DEFAULT NULL,
   `geburtsdatum` date DEFAULT NULL,
   `passwortAendern` tinyint(1) NOT NULL,
-  `maxBuecherGleichzeitig` int(11) NOT NULL
+  `maxBuecherGleichzeitig` int(11) NOT NULL,
+  `schulmanagerUserId` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `benutzer`
+--
+
+INSERT INTO `benutzer` (`id`, `vorname`, `nachname`, `email`, `passwort`, `rolle`, `freigeschaltet`, `gesperrt_von`, `geburtsdatum`, `passwortAendern`, `maxBuecherGleichzeitig`, `schulmanagerUserId`) VALUES
+(10000022, 'Silvia', 'Ibald', 'ibald@whgneuwied.de', '$argon2id$v=19$m=60000,t=10,p=1$MGN9JoEPxvDuiRofxUl8oA$BNDn0mac9TbT54flv12uvm8MPeT3l+4VVZ704omFsAA', 'lehrer', 1, NULL, NULL, 1, 3, NULL),
+(10000023, 'Rike', 'Höfer', 'hoefer@whgneuwied.de', '$argon2id$v=19$m=60000,t=10,p=1$MGN9JoEPxvDuiRofxUl8oA$BNDn0mac9TbT54flv12uvm8MPeT3l+4VVZ704omFsAA', 'lehrer', 1, NULL, NULL, 1, 3, NULL);
 
 -- --------------------------------------------------------
 
@@ -160,7 +169,7 @@ ALTER TABLE `ausleihen`
 -- AUTO_INCREMENT for table `benutzer`
 --
 ALTER TABLE `benutzer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000022;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000024;
 
 --
 -- AUTO_INCREMENT for table `reservierungen`

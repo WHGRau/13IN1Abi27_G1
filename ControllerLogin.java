@@ -29,12 +29,27 @@ import javafx.scene.input.KeyCode;
 public class ControllerLogin {
     private Bibliothek model;
 
+    private synchronized Bibliothek getOrCreateModel() {
+        if (model == null) {
+            model = new Bibliothek();
+        }
+        return model;
+    }
+
     /**
      * Initialisiert den Login-Controller. Setzt den Fokus auf den Login-Button
      * und passt die Skalierung des Hintergrundbilds dynamisch an die Fenstergröße an.
      */
     public void initialize() {
         Platform.runLater(() -> loginButton.requestFocus());
+
+        // Bibliothek bereits im Hintergrund vorbereiten, während der Nutzer noch tippt
+        new Thread(() -> {
+            try {
+                getOrCreateModel();
+            } catch (Exception ignored) {
+            }
+        }).start();
 
         Platform.runLater(() -> {
             Scene scene = background.getScene();
@@ -85,8 +100,17 @@ public class ControllerLogin {
      * @param event Das ausgelöste ActionEvent.
      */
     public void login(ActionEvent event) {
-        model = new Bibliothek();
-        int feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        getOrCreateModel();
+        int feedback;
+        try {
+            feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        } catch (Exception e) {
+            // Falls die Verbindung abgebrochen war, neu aufbauen und erneut versuchen
+            synchronized (this) {
+                model = new Bibliothek();
+            }
+            feedback = model.login(emailFeld.getText(), passwortFeld.getText());
+        }
         if (feedback == 1) {
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -168,7 +192,7 @@ public class ControllerLogin {
      * @param event Das ActionEvent.
      */
     public void passwortVergessen(ActionEvent event) {
-        model = new Bibliothek();
+        getOrCreateModel();
         String email = emailFeld.getText().trim();
         if (istGueltigeEmail(email)) {
             model.passwortVergessen(email);
