@@ -65,14 +65,24 @@ public class passwortResetController {
                 stage.setScene(scene);
                 stage.show();
             } else if (model != null && !model.getName().isEmpty()) {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
-                Parent root = loader.load();
-                ControllerSchuelerStartseite controller = loader.getController();
-                controller.setModel(model);
-                Scene scene = new Scene(root);
-                scene.setFill(Color.web("#E9E9D3"));
-                stage.setScene(scene);
-                stage.show();
+                if (model.isSchuelerportalAktiv()) {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
+                    Parent root = loader.load();
+                    ControllerSchuelerStartseite controller = loader.getController();
+                    controller.setModel(model);
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                    stage.setScene(scene);
+                    stage.show();
+                } else {
+                    model.logout();
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/login.fxml"));
+                    Parent root = loader.load();
+                    Scene scene = new Scene(root);
+                    scene.setFill(Color.web("#E9E9D3"));
+                    stage.setScene(scene);
+                    stage.show();
+                }
             } else {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/login.fxml"));
                 Parent root = loader.load();

@@ -17,7 +17,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<StackPane fx:id="background" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerEinstellungen">
+<StackPane fx:id="background" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ControllerEinstellungen">
    <children>
       <VBox prefHeight="1080.0" prefWidth="1920.0" spacing="0">
          <children>
@@ -114,6 +114,16 @@
                                  <RowConstraints />
                               </rowConstraints>
                            </GridPane>
+                        </VBox>
+
+                        <!-- Schülerportal Sektion -->
+                        <VBox spacing="20" style="-fx-background-color: white; -fx-padding: 40; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                           <HBox alignment="CENTER_LEFT" spacing="30">
+                               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Schülerportal">
+                                  <font><Font name="System Bold" size="26.0" /></font>
+                               </Text>
+                               <CheckBox fx:id="schuelerportalAktivierenCheckBox" mnemonicParsing="false" style="-fx-font-size: 18px;" text="aktivieren" />
+                           </HBox>
                         </VBox>
 
                         <!-- Reservierungen Sektion -->

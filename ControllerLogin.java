@@ -124,6 +124,12 @@ public class ControllerLogin {
                     stage.setScene(scene);
                     stage.show();
                 } else{
+                    if (!model.isSchuelerportalAktiv()) {
+                        model.logout();
+                        fehlerText.setFill(Color.web("#d32626"));
+                        fehlerText.setText("Das Schülerportal ist derzeit deaktiviert");
+                        return;
+                    }
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("scenes/SchuelerStartseite.fxml"));
                     Parent root = loader.load();
                     ControllerSchuelerStartseite controller = loader.getController();
@@ -139,6 +145,12 @@ public class ControllerLogin {
         }else if(feedback==2)
 
         {
+            if (!model.isLehrer() && !model.isHelfer() && !model.isSchuelerportalAktiv()) {
+                model.logout();
+                fehlerText.setFill(Color.web("#d32626"));
+                fehlerText.setText("Das Schülerportal ist derzeit deaktiviert");
+                return;
+            }
             try {
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 Scene currentScene = ((Node) event.getSource()).getScene();
@@ -154,6 +166,10 @@ public class ControllerLogin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }else if(feedback==-1)
+        {
+            fehlerText.setFill(Color.web("#d32626"));
+            fehlerText.setText("Das Schülerportal ist derzeit deaktiviert");
         }else
         {
             fehlerText.setFill(Color.web("#d32626"));
@@ -195,6 +211,11 @@ public class ControllerLogin {
         getOrCreateModel();
         String email = emailFeld.getText().trim();
         if (istGueltigeEmail(email)) {
+            if (model.isSchuelerByEmail(email) && !model.isSchuelerportalAktiv()) {
+                fehlerText.setFill(Color.web("#d32626"));
+                fehlerText.setText("Das Schülerportal ist derzeit deaktiviert");
+                return;
+            }
             model.passwortVergessen(email);
             fehlerText.setFill(Color.BLACK);
             fehlerText.setText("Bitte überprüfen Sie Ihr E-Mail-Postfach");

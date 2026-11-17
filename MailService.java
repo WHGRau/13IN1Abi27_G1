@@ -241,12 +241,18 @@ public class MailService {
 
     /**
      * Sendet eine Willkommens-E-Mail mit den Anmeldedaten nach der Registrierung.
+     * Schüler erhalten diese nur, wenn das Schülerportal aktiviert ist.
      * 
      * @param empfaengerEmail Die E-Mail-Adresse des neuen Nutzers.
      * @param nutzerName Der Name des Nutzers.
      * @param passwort Das vergebene Initialpasswort.
      */
     public void sendeAnmeldeMail(String empfaengerEmail, String nutzerName, String passwort) {
+        if (model != null && !model.isSchuelerportalAktiv()) {
+            if (model.isSchuelerByEmail(empfaengerEmail)) {
+                return;
+            }
+        }
         String betreff = "Willkommen in der Schülerbibliothek!";
         String nachricht = "Hallo " + nutzerName
                 + ",\n\n Wir freuen uns sehr, dass du dich für die Bibliothek angemeldet hast. \n Mit folgendem Passwort kannst du dich im Onlineportal anmelden: \n"
@@ -257,12 +263,18 @@ public class MailService {
 
     /**
      * Sendet eine E-Mail mit einem neuen Passwort, wenn dieses zurückgesetzt wurde.
+     * Schüler erhalten diese nur, wenn das Schülerportal aktiviert ist.
      * 
      * @param empfaengerEmail Die E-Mail-Adresse des Nutzers.
      * @param nutzerName Der Name des Nutzers.
      * @param passwort Das neu vergebene Passwort.
      */
     public void sendePasswortResetMail(String empfaengerEmail, String nutzerName, String passwort) {
+        if (model != null && !model.isSchuelerportalAktiv()) {
+            if (model.isSchuelerByEmail(empfaengerEmail)) {
+                return;
+            }
+        }
         String betreff = "Passwort zurücksetzen";
         String nachricht = "Hallo " + nutzerName
                 + ",\n\n  \n Mit folgendem Passwort kannst du dich nun im Onlineportal anmelden: \n" + passwort

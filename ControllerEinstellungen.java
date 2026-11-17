@@ -96,6 +96,8 @@ public class ControllerEinstellungen {
     private CheckBox emErinnerung;
     @FXML
     private CheckBox smErinnerung;
+    @FXML
+    private CheckBox schuelerportalAktivierenCheckBox;
 
     private Bibliothek model;
 
@@ -255,6 +257,15 @@ public class ControllerEinstellungen {
                         smErinnerung.setSelected(schulmanagerErinnerung.equals("1"));
                     } else {
                         smErinnerung.setSelected(false);
+                    }
+                }
+
+                String schuelerportalAktiv = model.getEinstellung("schuelerportal_aktiv");
+                if (schuelerportalAktivierenCheckBox != null) {
+                    if (schuelerportalAktiv != null) {
+                        schuelerportalAktivierenCheckBox.setSelected(schuelerportalAktiv.equals("1"));
+                    } else {
+                        schuelerportalAktivierenCheckBox.setSelected(false);
                     }
                 }
             } catch (Exception e) {
@@ -481,6 +492,11 @@ public class ControllerEinstellungen {
 
                 model.setEinstellung("emailErinnerung", neuEmAktiv ? "1" : "0");
                 model.setEinstellung("smErinnerung", neuSmAktiv ? "1" : "0");
+
+                if (schuelerportalAktivierenCheckBox != null) {
+                    model.setEinstellung("schuelerportal_aktiv",
+                            schuelerportalAktivierenCheckBox.isSelected() ? "1" : "0");
+                }
 
                 final String userToLogin = smUser;
                 final String passToLogin = smPass;

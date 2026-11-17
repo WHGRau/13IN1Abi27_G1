@@ -103,6 +103,15 @@ public class Bibliothek {
     }
 
     /**
+     * Prüft, ob das Schülerportal in den Einstellungen aktiviert ist.
+     * 
+     * @return true wenn aktiv ("1"), sonst false (standardmäßig deaktiviert).
+     */
+    public boolean isSchuelerportalAktiv() {
+        return "1".equals(getEinstellung("schuelerportal_aktiv"));
+    }
+
+    /**
      * Prüft anhand des aktuellen Datums alle Ausleihen auf fällige Mahnungen
      * (2 Tage vorher, Stichtag, 1 Woche überfällig) und versendet E-Mails.
      */
@@ -1351,8 +1360,8 @@ public class Bibliothek {
      * 
      * @param email    Die E-Mail.
      * @param passwort Das unverschlüsselte Passwort.
-     * @return 1 = normaler Login, 2 = Passwort muss zwingend geändert werden, 0 =
-     *         fehlgeschlagen.
+     * @return 1 = normaler Login, 2 = Passwort muss zwingend geändert werden, -1 =
+     *         Schülerportal deaktiviert, 0 = fehlgeschlagen.
      */
     public int login(String email, String passwort) {
         if (dbConnector == null || !dbConnector.isConnected()) {
@@ -1369,6 +1378,11 @@ public class Bibliothek {
                 email.toLowerCase());
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
+            String rolle = result.getData()[0][5];
+            boolean isSchueler = !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+            if (isSchueler && !isSchuelerportalAktiv()) {
+                return -1;
+            }
 
             gespeichertesPasswort = result.getData()[0][1];
             boolean passwortStimmt = passwordEncoder.matches(passwort, gespeichertesPasswort);
@@ -1447,6 +1461,47 @@ public class Bibliothek {
             return "helfer".equals(angemeldetRolle);
         }
         return false;
+    }
+
+    /**
+     * @return True, wenn der angemeldete Nutzer ein Schüler ist (oder keine Lehrkraft/Helfer), sonst
+     *         false.
+     */
+    public boolean isSchueler() {
+        if (angemeldetRolle != null) {
+            return !"lehrer".equals(angemeldetRolle) && !"helfer".equals(angemeldetRolle);
+        }
+        if (angemeldet == null || dbConnector == null || !dbConnector.isConnected()) {
+            return false;
+        }
+        dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE id = ?", angemeldet);
+        QueryResult result = dbConnector.getCurrentQueryResult();
+        if (result != null && result.getRowCount() > 0) {
+            angemeldetRolle = result.getData()[0][0];
+            return !"lehrer".equals(angemeldetRolle) && !"helfer".equals(angemeldetRolle);
+        }
+        return false;
+    }
+
+    /**
+     * Prüft anhand der E-Mail-Adresse, ob der Benutzer ein Schüler (bzw. kein Lehrer/Helfer) ist.
+     * 
+     * @param email Die E-Mail-Adresse.
+     * @return true wenn Schüler/Nicht-Mitarbeiter, sonst false.
+     */
+    public boolean isSchuelerByEmail(String email) {
+        if (email == null || email.trim().isEmpty() || dbConnector == null || !dbConnector.isConnected()) {
+            return true;
+        }
+        synchronized (dbConnector) {
+            dbConnector.executeStatement("SELECT rolle FROM benutzer WHERE LOWER(email) = LOWER(?)", email.trim());
+            QueryResult result = dbConnector.getCurrentQueryResult();
+            if (result != null && result.getRowCount() > 0) {
+                String rolle = result.getData()[0][0];
+                return !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+            }
+        }
+        return true;
     }
 
     /**
@@ -1894,7 +1949,10 @@ public class Bibliothek {
             }
 
             if (pEmail != null && !pEmail.trim().isEmpty()) {
-                initialesPasswortSenden(pEmail);
+                boolean isSchueler = !"lehrer".equals(pRolle) && !"helfer".equals(pRolle);
+                if (!isSchueler || isSchuelerportalAktiv()) {
+                    initialesPasswortSenden(pEmail);
+                }
             }
         }
 
@@ -3298,13 +3356,19 @@ public class Bibliothek {
     /**
      * Generiert ein neues zufälliges Passwort für die angegebene E-Mail-Adresse,
      * speichert es gehasht ab und schickt es dem Nutzer per E-Mail zu.
+     * Für Schüler nur möglich, wenn das Schülerportal aktiv ist.
      * 
      * @param email Die E-Mail-Adresse.
      */
     public void passwortVergessen(String email) {
-        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?", email);
+        dbConnector.executeStatement("SELECT id, vorname, nachname, email, passwort, rolle FROM benutzer WHERE email = ?", email);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
+            String rolle = result.getData()[0][5];
+            boolean isSchueler = !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+            if (isSchueler && !isSchuelerportalAktiv()) {
+                return;
+            }
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
             dbConnector.executeStatement("UPDATE benutzer SET passwort = ?"
                     + ", passwortAendern = '1' WHERE email = ?", passwordEncoder.encode(passwort), email);
@@ -3315,14 +3379,19 @@ public class Bibliothek {
 
     /**
      * Sendet einem neu angelegten Benutzer sein initial generiertes Passwort per
-     * E-Mail zu.
+     * E-Mail zu. Schüler erhalten die Willkommens-Mail nur, wenn das Schülerportal aktiv ist.
      * 
      * @param email Die E-Mail-Adresse.
      */
     public void initialesPasswortSenden(String email) {
-        dbConnector.executeStatement("SELECT * FROM benutzer WHERE email = ?", email);
+        dbConnector.executeStatement("SELECT id, vorname, nachname, email, passwort, rolle FROM benutzer WHERE email = ?", email);
         QueryResult result = dbConnector.getCurrentQueryResult();
         if (result != null && result.getRowCount() > 0) {
+            String rolle = result.getData()[0][5];
+            boolean isSchueler = !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+            if (isSchueler && !isSchuelerportalAktiv()) {
+                return;
+            }
             String passwort = Integer.toString(random.nextInt(10000000, 100000000));
             dbConnector.executeStatement("UPDATE benutzer SET passwort = ?"
                     + ", passwortAendern = '1' WHERE email = ?", passwordEncoder.encode(passwort), email);

@@ -659,10 +659,17 @@ public class ControllerNutzerVerwaltung {
             selectBenutzer();
 
             if (isNeueEmail && isJetztEmail) {
-                model.initialesPasswortSenden(emailFeld.getText().trim());
-                errorText.setFill(Color.GREEN);
-                errorText.setText("Anmeldedaten per E-Mail verschickt");
-                errorTextTimer.playFromStart();
+                boolean isSchueler = !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+                if (!isSchueler || model.isSchuelerportalAktiv()) {
+                    model.initialesPasswortSenden(emailFeld.getText().trim());
+                    errorText.setFill(Color.GREEN);
+                    errorText.setText("Anmeldedaten per E-Mail verschickt");
+                    errorTextTimer.playFromStart();
+                } else {
+                    errorText.setFill(Color.GREEN);
+                    errorText.setText("Benutzer gespeichert");
+                    errorTextTimer.playFromStart();
+                }
             } else {
                 errorText.setText("");
                 errorTextTimer.stop();
@@ -740,9 +747,16 @@ public class ControllerNutzerVerwaltung {
                 newUserSmConnected = false;
                 suchen();
                 if (!emailFeld.getText().trim().isEmpty()) {
-                    errorText.setFill(Color.GREEN);
-                    errorText.setText("Anmeldedaten per E-Mail verschickt");
-                    errorTextTimer.playFromStart();
+                    boolean isSchueler = !"lehrer".equals(rolle) && !"helfer".equals(rolle);
+                    if (!isSchueler || model.isSchuelerportalAktiv()) {
+                        errorText.setFill(Color.GREEN);
+                        errorText.setText("Anmeldedaten per E-Mail verschickt");
+                        errorTextTimer.playFromStart();
+                    } else {
+                        errorText.setFill(Color.GREEN);
+                        errorText.setText("Benutzer angelegt");
+                        errorTextTimer.playFromStart();
+                    }
                 } else {
                     errorText.setText("");
                     errorTextTimer.stop();
